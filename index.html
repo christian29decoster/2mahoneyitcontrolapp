@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secore LLC | Next-Gen Emergency Control Automation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #1a1a1a;
+            --accent-cyan: #00ffff;
+            --accent-magenta: #ff00ff;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --border-color: #333333;
+            --card-bg: #1f1f1f;
+            --gradient-primary: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+        }
+
+        [data-theme="light"] {
+            --primary-bg: #ffffff;
+            --secondary-bg: #f8f9fa;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--secondary-bg);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .language-switcher {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lang-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--border-color);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            padding-top: 80px;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Sections */
+        section {
+            padding: 5rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Features */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Dashboard Demo Section */
+        .dashboard-demo {
+            background: var(--secondary-bg);
+            padding: 5rem 0;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            margin-top: 3rem;
+        }
+
+        .demo-content {
+            padding: 2rem;
+        }
+
+        .demo-content h3 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .demo-content p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .demo-features {
+            list-style: none;
+        }
+
+        .demo-features li {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+            color: var(--text-secondary);
+        }
+
+        .demo-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-cyan);
+            font-weight: bold;
+        }
+
+        .demo-image {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+        }
+
+        .demo-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .demo-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .demo-tab {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-tab.active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+        }
+
+        /* Technology */
+        .tech-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+        }
+
+        .tech-logo {
+            font-size: 4rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .tech-logo:hover {
+            color: var(--accent-cyan);
+            transform: scale(1.1);
+        }
+
+        /* Testimonials */
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .testimonial-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .testimonial-card::before {
+            content: '"';
+            font-size: 4rem;
+            color: var(--accent-cyan);
+            position: absolute;
+            top: -10px;
+            left: 20px;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .author-info h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .author-info p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--secondary-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 0 1rem;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .tech-logos {
+                gap: 2rem;
+            }
+
+            .tech-logo {
+                font-size: 3rem;
+            }
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background: var(--secondary-bg);
+            border-top: 1px solid var(--border-color);
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+            z-index: 999;
+        }
+
+        .mobile-menu.active {
+            transform: translateY(0);
+        }
+
+        .mobile-menu ul {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .mobile-menu li {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .mobile-menu a {
+            color: var(--text-primary);
+            text-decoration: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Secore LLC</div>
+                
+                <nav class="nav-menu">
+                    <a href="#home" data-lang-key="nav.home">Home</a>
+                    <a href="#features" data-lang-key="nav.features">Features</a>
+                    <a href="#demo" data-lang-key="nav.demo">Demo</a>
+                    <a href="#technology" data-lang-key="nav.technology">Technology</a>
+                    <a href="#testimonials" data-lang-key="nav.testimonials">Testimonials</a>
+                    <a href="#contact" data-lang-key="nav.contact">Contact</a>
+                </nav>
+
+                <div class="header-controls">
+                    <div class="language-switcher">
+                        <button class="lang-btn active" data-lang="de">DE</button>
+                        <button class="lang-btn" data-lang="en">EN</button>
+                        <button class="lang-btn" data-lang="es">ES</button>
+                    </div>
+                    <button class="theme-toggle" id="themeToggle">🌙</button>
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <nav class="mobile-menu" id="mobileMenu">
+        <ul>
+            <li><a href="#home" data-lang-key="nav.home">Home</a></li>
+            <li><a href="#features" data-lang-key="nav.features">Features</a></li>
+            <li><a href="#demo" data-lang-key="nav.demo">Demo</a></li>
+            <li><a href="#technology" data-lang-key="nav.technology">Technology</a></li>
+            <li><a href="#testimonials" data-lang-key="nav.testimonials">Testimonials</a></li>
+            <li><a href="#contact" data-lang-key="nav.contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1 data-lang-key="hero.title">Next-Gen Emergency Control Automation</h1>
+                <p data-lang-key="hero.subtitle">Revolutionize your emergency coordination with AI-powered automation. Increase efficiency, reduce response times, and maximize the safety of your emergency responders.</p>
+                <button class="cta-button" data-lang-key="hero.cta">Request Demo</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features">
+        <div class="container">
+            <h2 class="section-title" data-lang-key="features.title">Our Core Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3 data-lang-key="features.alarm.title">Alarm Reception & Dispatch</h3>
+                    <p data-lang-key="features.alarm.desc">Intelligent alarm processing with automatic prioritization and optimal resource allocation for maximum efficiency.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-drone"></i>
+                    </div>
+                    <h3 data-lang-key="features.drone.title">Drone Live Monitoring</h3>
+                    <p data-lang-key="features.drone.desc">Real-time monitoring and control of drone fleets for precise situation assessment and safe operations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 data-lang-key="features.robot.title">Autonomous Robot Control</h3>
+                    <p data-lang-key="features.robot.desc">Advanced AI control for autonomous robots in dangerous environments and complex operational scenarios.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 data-lang-key="features.reporting.title">Real-time Reporting & Compliance</h3>
+                    <p data-lang-key="features.reporting.desc">Comprehensive reporting and compliance tracking for transparent processes and optimal decision-making.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <h3 data-lang-key="features.integration.title">Seamless Integration</h3>
+                    <p data-lang-key="features.integration.desc">Complete integration into existing systems and seamless communication between all stakeholders.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 data-lang-key="features.security.title">Cybersecurity</h3>
+                    <p data-lang-key="features.security.desc">Highest security standards with end-to-end encryption and continuous threat detection.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Demo Section -->
+    <section class="dashboard-demo" id="demo">
+        <div class="container">
+            <h2 class="section-title" data-lang-key="demo.title">System Demo</h2>
+            
+            <div class="demo-tabs">
+                <button class="demo-tab active" data-tab="alarm">Alarm Dashboard</button>
+                <button class="demo-tab" data-tab="dispatch">Dispatch Center</button>
+                <button class="demo-tab" data-tab="monitoring">Live Monitoring</button>
+            </div>
+
+            <div class="demo-grid">
+                <div class="demo-content">
+                    <h3 data-lang-key="demo.alarm.title">Intelligent Alarm Management</h3>
+                    <p data-lang-key="demo.alarm.desc">Our advanced alarm processing system automatically prioritizes incoming alerts and optimizes resource allocation for maximum efficiency.</p>
+                    <ul class="demo-features">
+                        <li data-lang-key="demo.alarm.feature1">Automatic alarm prioritization</li>
+                        <li data-lang-key="demo.alarm.feature2">Real-time resource tracking</li>
+                        <li data-lang-key="demo.alarm.feature3">Intelligent dispatch recommendations</li>
+                        <li data-lang-key="demo.alarm.feature4">Multi-channel alarm integration</li>
+                    </ul>
+                </div>
+                <div class="demo-image">
+                    <img id="demoImage" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" alt="Emergency Control Dashboard">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Section -->
+    <section id="technology">
+        <div class="container">
+            <h2 class="section-title" data-lang-key="technology.title">Our Technology Partners</h2>
+            <div class="tech-logos">
+                <div class="tech-logo">
+                    <i class="fab fa-aws"></i>
+                </div>
+                <div class="tech-logo">
+                    <i class="fab fa-microsoft"></i>
+                </div>
+                <div class="tech-logo">
+                    <i class="fab fa-google"></i>
+                </div>
+                <div class="tech-logo">
+                    <i class="fas fa-cloud"></i>
+                </div>
+                <div class="tech-logo">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="tech-logo">
+                    <i class="fas fa-microchip"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials">
+        <div class="container">
+            <h2 class="section-title" data-lang-key="testimonials.title">What Our Customers Say</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <p class="testimonial-text" data-lang-key="testimonials.testimonial1">The automation has reduced our response times by 40%. A real game-changer for our control center.</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">MF</div>
+                        <div class="author-info">
+                            <h4 data-lang-key="testimonials.author1.name">Michael Fischer</h4>
+                            <p data-lang-key="testimonials.author1.title">Control Center Manager Munich</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <p class="testimonial-text" data-lang-key="testimonials.testimonial2">The AI-powered dispatch optimizes our resource allocation perfectly. We save valuable time on every operation.</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">SW</div>
+                        <div class="author-info">
+                            <h4 data-lang-key="testimonials.author2.name">Sarah Weber</h4>
+                            <p data-lang-key="testimonials.author2.title">Operations Manager Berlin</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <p class="testimonial-text" data-lang-key="testimonials.testimonial3">The integration was seamless and the user-friendliness exceeds all expectations. Absolutely recommended!</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">TM</div>
+                        <div class="author-info">
+                            <h4 data-lang-key="testimonials.author3.name">Thomas Müller</h4>
+                            <p data-lang-key="testimonials.author3.title">IT Director Hamburg</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="logo">Secore LLC</div>
+                <div class="footer-links">
+                    <a href="#" data-lang-key="footer.imprint">Imprint</a>
+                    <a href="#" data-lang-key="footer.privacy">Privacy</a>
+                    <a href="#" data-lang-key="footer.terms">Terms</a>
+                </div>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p data-lang-key="footer.copyright">© 2024 Secore LLC, Florida, USA. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Demo images for different tabs
+        const demoImages = {
+            alarm: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+            dispatch: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+            monitoring: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
+        };
+
+        // Language translations
+        const translations = {
+            de: {
+                'nav.home': 'Home',
+                'nav.features': 'Features',
+                'nav.demo': 'Demo',
+                'nav.technology': 'Technology',
+                'nav.testimonials': 'Testimonials',
+                'nav.contact': 'Contact',
+                'hero.title': 'Next-Gen Leitstellen-Automatisierung',
+                'hero.subtitle': 'Revolutionieren Sie Ihre Notfallkoordination mit KI-gestützter Automatisierung. Steigern Sie Effizienz, reduzieren Sie Reaktionszeiten und maximieren Sie die Sicherheit Ihrer Einsatzkräfte.',
+                'hero.cta': 'Jetzt Demo buchen',
+                'features.title': 'Unsere Kernfunktionen',
+                'features.alarm.title': 'Alarmannahme & Disposition',
+                'features.alarm.desc': 'Intelligente Alarmverarbeitung mit automatischer Priorisierung und optimaler Ressourcenverteilung für maximale Effizienz.',
+                'features.drone.title': 'Drohnen-Liveüberwachung',
+                'features.drone.desc': 'Echtzeit-Überwachung und Steuerung von Drohnenflotten für präzise Lageerkundung und sichere Einsätze.',
+                'features.robot.title': 'Autonome Robotersteuerung',
+                'features.robot.desc': 'Fortschrittliche KI-Steuerung für autonome Roboter in gefährlichen Umgebungen und komplexen Einsatzszenarien.',
+                'features.reporting.title': 'Echtzeit-Reporting & Compliance',
+                'features.reporting.desc': 'Umfassende Berichterstattung und Compliance-Tracking für transparente Prozesse und optimale Entscheidungsfindung.',
+                'features.integration.title': 'Nahtlose Integration',
+                'features.integration.desc': 'Vollständige Integration in bestehende Systeme und nahtlose Kommunikation zwischen allen Beteiligten.',
+                'features.security.title': 'Cybersicherheit',
+                'features.security.desc': 'Höchste Sicherheitsstandards mit Ende-zu-Ende-Verschlüsselung und kontinuierlicher Bedrohungserkennung.',
+                'demo.title': 'System-Demo',
+                'demo.alarm.title': 'Intelligente Alarmverwaltung',
+                'demo.alarm.desc': 'Unser fortschrittliches Alarmverarbeitungssystem priorisiert eingehende Alarme automatisch und optimiert die Ressourcenverteilung für maximale Effizienz.',
+                'demo.alarm.feature1': 'Automatische Alarmpriorisierung',
+                'demo.alarm.feature2': 'Echtzeit-Ressourcenverfolgung',
+                'demo.alarm.feature3': 'Intelligente Dispositionsempfehlungen',
+                'demo.alarm.feature4': 'Multi-Channel-Alarmintegration',
+                'technology.title': 'Unsere Technologie-Partner',
+                'testimonials.title': 'Das sagen unsere Kunden',
+                'testimonials.testimonial1': 'Die Automatisierung hat unsere Reaktionszeiten um 40% reduziert. Ein echter Game-Changer für unsere Leitstelle.',
+                'testimonials.author1.name': 'Michael Fischer',
+                'testimonials.author1.title': 'Leiter Leitstelle München',
+                'testimonials.testimonial2': 'Die KI-gestützte Disposition optimiert unsere Ressourcenverteilung perfekt. Wir sparen wertvolle Zeit bei jedem Einsatz.',
+                'testimonials.author2.name': 'Sarah Weber',
+                'testimonials.author2.title': 'Einsatzleiterin Berlin',
+                'testimonials.testimonial3': 'Die Integration war nahtlos und die Benutzerfreundlichkeit übertrifft alle Erwartungen. Absolut empfehlenswert!',
+                'testimonials.author3.name': 'Thomas Müller',
+                'testimonials.author3.title': 'IT-Direktor Hamburg',
+                'footer.imprint': 'Impressum',
+                'footer.privacy': 'Datenschutz',
+                'footer.terms': 'AGB',
+                'footer.copyright': '© 2024 Secore LLC, Florida, USA. Alle Rechte vorbehalten.'
+            },
+            en: {
+                'nav.home': 'Home',
+                'nav.features': 'Features',
+                'nav.demo': 'Demo',
+                'nav.technology': 'Technology',
+                'nav.testimonials': 'Testimonials',
+                'nav.contact': 'Contact',
+                'hero.title': 'Next-Gen Emergency Control Automation',
+                'hero.subtitle': 'Revolutionize your emergency coordination with AI-powered automation. Increase efficiency, reduce response times, and maximize the safety of your emergency responders.',
+                'hero.cta': 'Request Demo',
+                'features.title': 'Our Core Features',
+                'features.alarm.title': 'Alarm Reception & Dispatch',
+                'features.alarm.desc': 'Intelligent alarm processing with automatic prioritization and optimal resource allocation for maximum efficiency.',
+                'features.drone.title': 'Drone Live Monitoring',
+                'features.drone.desc': 'Real-time monitoring and control of drone fleets for precise situation assessment and safe operations.',
+                'features.robot.title': 'Autonomous Robot Control',
+                'features.robot.desc': 'Advanced AI control for autonomous robots in dangerous environments and complex operational scenarios.',
+                'features.reporting.title': 'Real-time Reporting & Compliance',
+                'features.reporting.desc': 'Comprehensive reporting and compliance tracking for transparent processes and optimal decision-making.',
+                'features.integration.title': 'Seamless Integration',
+                'features.integration.desc': 'Complete integration into existing systems and seamless communication between all stakeholders.',
+                'features.security.title': 'Cybersecurity',
+                'features.security.desc': 'Highest security standards with end-to-end encryption and continuous threat detection.',
+                'demo.title': 'System Demo',
+                'demo.alarm.title': 'Intelligent Alarm Management',
+                'demo.alarm.desc': 'Our advanced alarm processing system automatically prioritizes incoming alerts and optimizes resource allocation for maximum efficiency.',
+                'demo.alarm.feature1': 'Automatic alarm prioritization',
+                'demo.alarm.feature2': 'Real-time resource tracking',
+                'demo.alarm.feature3': 'Intelligent dispatch recommendations',
+                'demo.alarm.feature4': 'Multi-channel alarm integration',
+                'technology.title': 'Our Technology Partners',
+                'testimonials.title': 'What Our Customers Say',
+                'testimonials.testimonial1': 'The automation has reduced our response times by 40%. A real game-changer for our control center.',
+                'testimonials.author1.name': 'Michael Fischer',
+                'testimonials.author1.title': 'Control Center Manager Munich',
+                'testimonials.testimonial2': 'The AI-powered dispatch optimizes our resource allocation perfectly. We save valuable time on every operation.',
+                'testimonials.author2.name': 'Sarah Weber',
+                'testimonials.author2.title': 'Operations Manager Berlin',
+                'testimonials.testimonial3': 'The integration was seamless and the user-friendliness exceeds all expectations. Absolutely recommended!',
+                'testimonials.author3.name': 'Thomas Müller',
+                'testimonials.author3.title': 'IT Director Hamburg',
+                'footer.imprint': 'Imprint',
+                'footer.privacy': 'Privacy',
+                'footer.terms': 'Terms',
+                'footer.copyright': '© 2024 Secore LLC, Florida, USA. All rights reserved.'
+            },
+            es: {
+                'nav.home': 'Inicio',
+                'nav.features': 'Características',
+                'nav.demo': 'Demo',
+                'nav.technology': 'Tecnología',
+                'nav.testimonials': 'Testimonios',
+                'nav.contact': 'Contacto',
+                'hero.title': 'Automatización de Centros de Emergencia de Nueva Generación',
+                'hero.subtitle': 'Revoluciona tu coordinación de emergencias con automatización impulsada por IA. Aumenta la eficiencia, reduce los tiempos de respuesta y maximiza la seguridad de tus equipos de emergencia.',
+                'hero.cta': 'Solicitar Demo',
+                'features.title': 'Nuestras Características Principales',
+                'features.alarm.title': 'Recepción y Despacho de Alarmas',
+                'features.alarm.desc': 'Procesamiento inteligente de alarmas con priorización automática y asignación óptima de recursos para máxima eficiencia.',
+                'features.drone.title': 'Monitoreo en Vivo de Drones',
+                'features.drone.desc': 'Monitoreo y control en tiempo real de flotas de drones para evaluación precisa de situaciones y operaciones seguras.',
+                'features.robot.title': 'Control de Robots Autónomos',
+                'features.robot.desc': 'Control avanzado de IA para robots autónomos en entornos peligrosos y escenarios operativos complejos.',
+                'features.reporting.title': 'Reportes en Tiempo Real y Cumplimiento',
+                'features.reporting.desc': 'Reportes integrales y seguimiento de cumplimiento para procesos transparentes y toma de decisiones óptima.',
+                'features.integration.title': 'Integración Perfecta',
+                'features.integration.desc': 'Integración completa en sistemas existentes y comunicación perfecta entre todas las partes interesadas.',
+                'features.security.title': 'Ciberseguridad',
+                'features.security.desc': 'Estándares de seguridad más altos con encriptación de extremo a extremo y detección continua de amenazas.',
+                'demo.title': 'Demo del Sistema',
+                'demo.alarm.title': 'Gestión Inteligente de Alarmas',
+                'demo.alarm.desc': 'Nuestro sistema avanzado de procesamiento de alarmas prioriza automáticamente las alertas entrantes y optimiza la asignación de recursos para máxima eficiencia.',
+                'demo.alarm.feature1': 'Priorización automática de alarmas',
+                'demo.alarm.feature2': 'Seguimiento de recursos en tiempo real',
+                'demo.alarm.feature3': 'Recomendaciones inteligentes de despacho',
+                'demo.alarm.feature4': 'Integración de alarmas multicanal',
+                'technology.title': 'Nuestros Socios Tecnológicos',
+                'testimonials.title': 'Lo que Dicen Nuestros Clientes',
+                'testimonials.testimonial1': 'La automatización ha reducido nuestros tiempos de respuesta en un 40%. Un verdadero cambio de juego para nuestro centro de control.',
+                'testimonials.author1.name': 'Michael Fischer',
+                'testimonials.author1.title': 'Gerente Centro de Control Munich',
+                'testimonials.testimonial2': 'El despacho impulsado por IA optimiza perfectamente nuestra asignación de recursos. Ahorramos tiempo valioso en cada operación.',
+                'testimonials.author2.name': 'Sarah Weber',
+                'testimonials.author2.title': 'Gerente de Operaciones Berlin',
+                'testimonials.testimonial3': 'La integración fue perfecta y la facilidad de uso supera todas las expectativas. ¡Absolutamente recomendado!',
+                'testimonials.author3.name': 'Thomas Müller',
+                'testimonials.author3.title': 'Director IT Hamburg',
+                'footer.imprint': 'Aviso Legal',
+                'footer.privacy': 'Privacidad',
+                'footer.terms': 'Términos',
+                'footer.copyright': '© 2024 Secore LLC, Florida, USA. Todos los derechos reservados.'
+            }
+        };
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        let isDarkMode = true;
+
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            themeToggle.textContent = isDarkMode ? '🌙' : '☀️';
+        });
+
+        // Language switcher functionality
+        const langButtons = document.querySelectorAll('.lang-btn');
+        let currentLang = 'de';
+
+        langButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.getAttribute('data-lang');
+                if (lang !== currentLang) {
+                    currentLang = lang;
+                    updateLanguage();
+                    
+                    // Update active button
+                    langButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                }
+            });
+        });
+
+        function updateLanguage() {
+            const elements = document.querySelectorAll('[data-lang-key]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-lang-key');
+                if (translations[currentLang] && translations[currentLang][key]) {
+                    element.textContent = translations[currentLang][key];
+                }
+            });
+        }
+
+        // Demo tab functionality
+        const demoTabs = document.querySelectorAll('.demo-tab');
+        const demoImage = document.getElementById('demoImage');
+
+        demoTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabType = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                demoTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update image
+                if (demoImages[tabType]) {
+                    demoImage.src = demoImages[tabType];
+                }
+            });
+        });
+
+        // Mobile menu functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking on a link
+        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+            });
+        });
+
+        // Smooth scrolling for navigation links
+        const navLinks = document.querySelectorAll('a[href^="#"]');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                if (targetSection) {
+                    targetSection.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // CTA button functionality
+        const ctaButton = document.querySelector('.cta-button');
+        ctaButton.addEventListener('click', () => {
+            alert(currentLang === 'de' ? 'Demo-Anfrage wird gesendet...' : 
+                  currentLang === 'en' ? 'Demo request will be sent...' : 
+                  'Solicitud de demo será enviada...');
+        });
+
+        // Initialize
+        updateLanguage();
+    </script>
+</body>
+</html> 
