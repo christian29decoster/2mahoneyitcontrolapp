@@ -10,10 +10,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.12",
+    "lucide-react": "^0.294.0",
     "next": "14.0.4",
     "react": "^18",
-    "react-dom": "^18",
-    "lucide-react": "^0.294.0"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -1,14 +1,9 @@
+'use client'
+
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
-import { Nav } from '@/components/Nav'
-
-const inter = Inter({ subsets: ['latin'] })
-
-export const metadata: Metadata = {
-  title: 'Mahoney Control App',
-  description: 'Security management and monitoring platform',
-}
+import { AnimatePresence, motion } from 'framer-motion'
+import AppShell from '@/components/AppShell'
 
 export default function RootLayout({
   children,
@@ -16,13 +11,23 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={inter.className}>
-        <div className="min-h-screen bg-background">
-          <Nav />
-          <main className="container mx-auto px-4 py-8">
-            {children}
-          </main>
+    <html lang="en">
+      <body>
+        <div className="iphone-frame">
+          <AppShell>
+            <AnimatePresence mode="wait">
+              <motion.main
+                key={typeof window !== 'undefined' ? location.pathname : 'ssr'}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}
+                className="safe p-4 pb-24"
+              >
+                {children}
+              </motion.main>
+            </AnimatePresence>
+          </AppShell>
         </div>
       </body>
     </html>
