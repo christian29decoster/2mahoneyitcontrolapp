@@ -1,9 +1,7 @@
-name: Deploy to Vercel
+name: Deploy to Vercel (Simple)
 
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
 
 jobs:
@@ -27,10 +25,9 @@ jobs:
         run: npm run build
         
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-          working-directory: ./
+        run: |
+          echo "Deployment would happen here"
+          echo "To deploy manually:"
+          echo "1. Go to https://vercel.com"
+          echo "2. Import this GitHub repository"
+          echo "3. Vercel will auto-detect Next.js and deploy"

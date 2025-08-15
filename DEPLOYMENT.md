@@ -2,15 +2,21 @@
 
 ## Vercel Deployment
 
-### Option 1: GitHub Actions (Recommended)
+### Option 1: Vercel Dashboard (Recommended - Easiest)
+
+1. **Gehe zu [vercel.com](https://vercel.com)**
+2. **Klicke "New Project"**
+3. **Importiere das GitHub Repository**:
+   - Wähle dein GitHub Account
+   - Wähle das Repository `2mahoneyitcontrolapp`
+   - Vercel erkennt automatisch Next.js
+4. **Deploy**: Klicke "Deploy" - fertig!
+
+### Option 2: GitHub Actions (Advanced)
 
 1. **Fork/Clone** das Repository
-2. **Vercel Project erstellen**:
-   - Gehe zu [vercel.com](https://vercel.com)
-   - Importiere das GitHub Repository
-   - Vercel erkennt automatisch Next.js
-
-3. **GitHub Secrets konfigurieren** (falls GitHub Actions verwendet):
+2. **Vercel Project erstellen** (wie oben)
+3. **GitHub Secrets konfigurieren**:
    ```
    VERCEL_TOKEN=your_vercel_token
    VERCEL_ORG_ID=your_org_id
