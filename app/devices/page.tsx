@@ -11,6 +11,7 @@ import { Toast, ToastType } from '@/components/Toasts'
 import { devices, demoTenant } from '@/lib/demo'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
+import { FolderOpen } from 'lucide-react'
 import { useAuditStore } from '@/lib/store'
 import { DeviceDetailSheet } from '@/components/DeviceDetailSheet'
 
@@ -303,6 +304,27 @@ export default function DevicesPage() {
         onSendMessage={handleSendMessage}
         onIsolateDevice={handleIsolateDevice}
       />
+
+      {/* Project Suggestion */}
+      <Card>
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-[var(--primary)]/10 rounded-[8px] flex items-center justify-center">
+            <FolderOpen className="w-4 h-4 text-[var(--primary)]" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-[var(--text)]">Need a Project?</h3>
+            <p className="text-sm text-[var(--muted)]">
+              Create a project to scope and track this work
+            </p>
+          </div>
+          <HapticButton
+            label="Create"
+            onClick={() => window.location.href = '/projects?new=1'}
+            variant="surface"
+            className="text-xs"
+          />
+        </div>
+      </Card>
 
       {/* Toast Manager */}
       <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
