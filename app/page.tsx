@@ -21,7 +21,10 @@ export default function DashboardPage() {
   const [isUpgradeSheetOpen, setIsUpgradeSheetOpen] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
-  const setAuditCounts = useAuditStore(s => s.setAuditCounts)
+  const { auditCounts, setAuditCounts } = useAuditStore(s => ({ 
+    auditCounts: s.auditCounts, 
+    setAuditCounts: s.setAuditCounts 
+  }))
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -64,6 +67,31 @@ export default function DashboardPage() {
       quarantined: 0,
     })
   }, [setAuditCounts])
+
+  const runQuickAudit = (date: Date) => {
+    // Simuliere Audit-Logik
+    const unprotected = Math.floor(Math.random() * 5) + 1; // 1-5
+    const stale = Math.floor(Math.random() * 3); // 0-2
+    const quarantined = Math.floor(Math.random() * 2); // 0-1
+    
+    return {
+      summary: { unprotected, stale, quarantined },
+      timestamp: date.toISOString()
+    }
+  }
+
+  const handleQuickAudit = () => {
+    h.impact('medium')
+    const result = runQuickAudit(new Date())
+    setAuditCounts(result.summary)
+    
+    const total = result.summary.unprotected + result.summary.stale + result.summary.quarantined
+    if (total > 0) {
+      addToast('warning', `Quick Audit Complete`, `${result.summary.unprotected} critical · ${result.summary.stale} stale · ${result.summary.quarantined} quarantined`)
+    } else {
+      addToast('success', 'Quick Audit Complete', 'All systems optimized!')
+    }
+  }
   
   return (
     <>
@@ -109,6 +137,35 @@ export default function DashboardPage() {
             />
           ))}
         </div>
+
+        {/* Quick Audit Block */}
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-[var(--text)]">Quick Security Audit</h3>
+            <HapticButton
+              label="Run Audit"
+              onClick={handleQuickAudit}
+              variant="surface"
+            />
+          </div>
+          <p className="text-sm text-[var(--muted)] mb-4">
+            Scan your environment for unprotected devices, stale configurations, and quarantined systems.
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px]">
+              <div className="text-2xl font-bold text-[var(--danger)]">{auditCounts.unprotected}</div>
+              <div className="text-xs text-[var(--muted)]">Unprotected</div>
+            </div>
+            <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px]">
+              <div className="text-2xl font-bold text-[var(--warning)]">{auditCounts.stale}</div>
+              <div className="text-xs text-[var(--muted)]">Stale</div>
+            </div>
+            <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px]">
+              <div className="text-2xl font-bold text-[var(--muted)]">{auditCounts.quarantined}</div>
+              <div className="text-xs text-[var(--muted)]">Quarantined</div>
+            </div>
+          </div>
+        </Card>
 
         {/* Proactive Recommendations */}
         <Recommendation />
