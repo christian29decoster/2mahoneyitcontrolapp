@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Shield, AlertTriangle, MessageSquare, Wifi, Download, Send } from 'lucide-react'
 import { Sheet } from './Sheets'
@@ -7,6 +8,7 @@ import { HapticButton } from './HapticButton'
 import { Badge } from './Badge'
 import { MiniMap } from './MiniMap'
 import { useHaptics } from '@/hooks/useHaptics'
+import CustomMessageDialog from './CustomMessageDialog'
 
 interface DeviceDetail {
   name: string
@@ -52,6 +54,7 @@ export function DeviceDetailSheet({
   onSendMessage,
   onIsolateDevice
 }: DeviceDetailSheetProps) {
+  const [showCustomMessage, setShowCustomMessage] = useState(false)
   const h = useHaptics()
 
   if (!device) return null
@@ -212,7 +215,7 @@ export function DeviceDetailSheet({
             variant="surface"
             onClick={() => {
               h.impact('light')
-              onSendMessage()
+              setShowCustomMessage(true)
             }}
             className="w-full"
           />
@@ -228,6 +231,17 @@ export function DeviceDetailSheet({
           />
         </div>
       </div>
+
+      {/* Custom Message Dialog */}
+      <CustomMessageDialog
+        open={showCustomMessage}
+        onOpenChange={setShowCustomMessage}
+        onSend={(message) => {
+          h.success()
+          onSendMessage()
+          // TODO: Send custom message to SOC
+        }}
+      />
     </Sheet>
   )
 }

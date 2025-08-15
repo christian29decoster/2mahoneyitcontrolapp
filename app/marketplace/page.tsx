@@ -8,11 +8,15 @@ import { HapticButton } from '@/components/HapticButton'
 import { Sheet } from '@/components/Sheets'
 import { Toast, ToastType } from '@/components/Toasts'
 import { services } from '@/lib/mahoney'
+import ServiceDetailsSheet from '@/components/marketplace/ServiceDetailsSheet'
+import CheckoutSummary from '@/components/marketplace/CheckoutSummary'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 
 export default function MarketplacePage() {
   const [selectedService, setSelectedService] = useState<any>(null)
+  const [isServiceDetailsOpen, setIsServiceDetailsOpen] = useState(false)
+  const [checkoutItems, setCheckoutItems] = useState<any[]>([])
   const [checkoutStep, setCheckoutStep] = useState(0)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
@@ -29,19 +33,29 @@ export default function MarketplacePage() {
   const handleServiceClick = (service: any) => {
     h.impact('light')
     setSelectedService(service)
+    setIsServiceDetailsOpen(true)
   }
   
-  const handleAddToPlan = () => {
+  const handleAddToPlan = (payload: { qty: number; monthlyUSD: number; proratedUSD: number }) => {
     h.impact('medium')
+    const newItem = {
+      ...selectedService,
+      qty: payload.qty,
+      monthlyUSD: payload.monthlyUSD,
+      proratedUSD: payload.proratedUSD
+    }
+    setCheckoutItems([...checkoutItems, newItem])
     setSelectedService(null)
+    setIsServiceDetailsOpen(false)
     setIsCheckoutOpen(true)
     setCheckoutStep(0)
   }
   
-  const handleRequestQuote = () => {
+  const handleRequestQuote = (payload: { qty: number; monthlyUSD: number; proratedUSD: number }) => {
     h.impact('medium')
     addToast('success', 'Quote Requested', 'Our team will contact you within 24 hours.')
     setSelectedService(null)
+    setIsServiceDetailsOpen(false)
   }
   
   const handleCheckoutNext = () => {
@@ -71,12 +85,9 @@ export default function MarketplacePage() {
       title: 'Summary',
       content: (
         <div className="space-y-4">
-          <div className="bg-[var(--surface)]/50 rounded-[16px] p-4">
-            <h3 className="font-semibold text-[var(--text)] mb-2">{selectedService?.name}</h3>
-            <p className="text-[var(--primary)] font-medium">{selectedService?.price}</p>
-          </div>
+          <CheckoutSummary lines={checkoutItems} />
           <div className="text-sm text-[var(--muted)]">
-            <p>This service will be added to your current plan and billed accordingly.</p>
+            <p>These services will be added to your current plan and billed accordingly.</p>
           </div>
         </div>
       )
@@ -180,43 +191,21 @@ export default function MarketplacePage() {
       </motion.div>
 
       {/* Service Details Sheet */}
-      <Sheet
-        isOpen={!!selectedService}
-        onClose={() => setSelectedService(null)}
-        title={selectedService?.name}
-      >
-        {selectedService && (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-[var(--text)] mb-2">{selectedService.name}</h3>
-              <p className="text-2xl font-bold text-[var(--primary)] mb-4">{selectedService.price}</p>
-              
-              <div className="space-y-3">
-                {selectedService.bullets.map((bullet: string, index: number) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <Check className="w-5 h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
-                    <p className="text-[var(--muted)]">{bullet}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <HapticButton
-                label="Add to Plan"
-                onClick={handleAddToPlan}
-                className="w-full"
-              />
-              <HapticButton
-                label="Request Quote"
-                variant="surface"
-                onClick={handleRequestQuote}
-                className="w-full"
-              />
-            </div>
-          </div>
-        )}
-      </Sheet>
+      {selectedService && (
+        <ServiceDetailsSheet
+          service={selectedService}
+          billing={{
+            periodStartISO: new Date().toISOString(),
+            periodEndISO: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          }}
+          isOpen={isServiceDetailsOpen}
+          onClose={() => {
+            setIsServiceDetailsOpen(false)
+            setSelectedService(null)
+          }}
+          onAdd={handleAddToPlan}
+        />
+      )}
 
       {/* Checkout Sheet */}
       <Sheet

@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
+import SheetBody from './SheetBody'
 import { useHaptics } from '@/hooks/useHaptics'
 import { ReactNode } from 'react'
 
@@ -61,9 +62,9 @@ export function Sheet({ isOpen, onClose, title, children, maxHeight = '85vh' }: 
             </div>
             
             {/* Content */}
-            <div className="px-6 pb-6 overflow-y-auto">
+            <SheetBody>
               {children}
-            </div>
+            </SheetBody>
           </motion.div>
         </>
       )}

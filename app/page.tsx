@@ -14,6 +14,7 @@ import { Toast, ToastType } from '@/components/Toasts'
 import { QuickAuditBlock } from '@/components/QuickAuditBlock'
 import { demoTenant, stats, alerts, mail } from '@/lib/demo'
 import { TrendingUp, CheckCircle } from 'lucide-react'
+import { planMonthlyUSD, formatCurrency } from '@/lib/pricing'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useAuditStore } from '@/lib/store'
@@ -75,7 +76,7 @@ export default function DashboardPage() {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <p className="text-sm text-[var(--text)] mb-2">
-                You&apos;re on <strong>{demoTenant.currentPlan.tier}</strong>. Upgrade to <strong>{demoTenant.upgradeOffer.target.tier}</strong> (+${demoTenant.upgradeOffer.deltaMonthly}/mo) to reduce MTTR, enable automated device discovery, and expand mailbox analytics.
+                You&apos;re on <strong>{demoTenant.currentPlan.tier}</strong> ({formatCurrency(planMonthlyUSD('Essential', 5, 25))}/mo). Upgrade to <strong>{demoTenant.upgradeOffer.target.tier}</strong> (+${demoTenant.upgradeOffer.deltaMonthly}/mo) to reduce MTTR, enable automated device discovery, and expand mailbox analytics.
               </p>
               <div className="flex space-x-3">
                 <HapticButton
