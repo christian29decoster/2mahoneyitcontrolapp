@@ -74,51 +74,51 @@ export default function CompanyPage() {
           </div>
           
                           <div className="space-y-4">
-                  {company.locations.map((location) => (
-                    <Card key={location.name}>
-                      <div className="space-y-4">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold text-[var(--text)] mb-1">{location.name}</h3>
-                            <p className="text-sm text-[var(--muted)]">{location.address}</p>
-                          </div>
-                          <HapticButton
-                            label="Start Navigation"
-                            variant="surface"
-                            onClick={() => handleStartNavigation(location)}
-                          />
-                        </div>
+            {company.locations.map((location) => (
+              <Card key={location.name}>
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold text-[var(--text)] mb-1">{location.name}</h3>
+                      <p className="text-sm text-[var(--muted)]">{location.address}</p>
+                    </div>
+                    <HapticButton
+                      label="Start Navigation"
+                      variant="surface"
+                      onClick={() => handleStartNavigation(location)}
+                    />
+                  </div>
 
-                        {/* Mini Map */}
-                        <MiniMap 
-                          lat={location.lat} 
-                          lng={location.lng} 
-                          name={location.name}
-                        />
-                      </div>
-                    </Card>
-                  ))}
+                  {/* Mini Map */}
+                  <MiniMap 
+                    lat={location.lat} 
+                    lng={location.lng} 
+                    name={location.name}
+                  />
                 </div>
+              </Card>
+            ))}
+          </div>
         </div>
 
         {/* Certificates */}
         <div>
           <h2 className="text-xl font-semibold text-[var(--text)] mb-4">Certificates</h2>
                           <div className="space-y-3">
-                  {company.certificates.map((cert) => (
-                    <Card key={cert.id}>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-[12px] flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-[var(--primary)]" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-[var(--text)]">{cert.name}</h3>
-                          <p className="text-sm text-[var(--muted)]">ID: {cert.id}</p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
+            {company.certificates.map((cert) => (
+              <Card key={cert.id}>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-[12px] flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-[var(--primary)]" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-[var(--text)]">{cert.name}</h3>
+                    <p className="text-sm text-[var(--muted)]">ID: {cert.id}</p>
+                  </div>
                 </div>
+              </Card>
+            ))}
+          </div>
         </div>
       </motion.div>
 

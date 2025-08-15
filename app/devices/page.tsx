@@ -39,13 +39,13 @@ export default function DevicesPage() {
     { key: 'phone', label: 'Phone' }
   ]
   
-          const filteredDevices = devices.filter(device => {
-          const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                               device.serial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                               device.location.toLowerCase().includes(searchTerm.toLowerCase())
-          const matchesFilter = selectedFilter === 'all' || device.type.toLowerCase() === selectedFilter
-          return matchesSearch && matchesFilter
-        })
+  const filteredDevices = devices.filter(device => {
+    const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         device.serial.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         device.location.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = selectedFilter === 'all' || device.type.toLowerCase() === selectedFilter
+    return matchesSearch && matchesFilter
+  })
   
   const handleAddDevice = () => {
     h.impact('medium')
@@ -59,7 +59,7 @@ export default function DevicesPage() {
     setIsAddStaffOpen(false)
   }
   
-            const handleRemap = () => {
+  const handleRemap = () => {
     if (demoTenant.currentPlan.tier === 'Essential') {
       addToast('warning', 'Automated discovery requires Prime. Preview upgrade?')
       return
