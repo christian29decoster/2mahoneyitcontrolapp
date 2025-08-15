@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Filter, Plus, MapPin } from 'lucide-react'
 import { Card } from '@/components/Card'
@@ -11,6 +11,7 @@ import { Toast, ToastType } from '@/components/Toasts'
 import { devices, demoTenant } from '@/lib/demo'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
+import { useAuditStore } from '@/lib/store'
 
 export default function DevicesPage() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -20,6 +21,7 @@ export default function DevicesPage() {
   const [isRemapLoading, setIsRemapLoading] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
+  const clearAuditCounts = useAuditStore(s => s.clearAuditCounts)
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -57,21 +59,26 @@ export default function DevicesPage() {
     setIsAddStaffOpen(false)
   }
   
-          const handleRemap = () => {
-          if (demoTenant.currentPlan.tier === 'Essential') {
-            addToast('warning', 'Automated discovery requires Prime. Preview upgrade?')
-            return
-          }
-    
+            const handleRemap = () => {
+    if (demoTenant.currentPlan.tier === 'Essential') {
+      addToast('warning', 'Automated discovery requires Prime. Preview upgrade?')
+      return
+    }
+
     setIsRemapLoading(true)
     h.impact('medium')
-    
+
     setTimeout(() => {
       setIsRemapLoading(false)
       h.success()
       addToast('success', 'Mapping successful. 24 devices updated.')
     }, 2000)
   }
+
+  // Badge zurücksetzen beim Öffnen der Devices-Seite
+  useEffect(() => {
+    clearAuditCounts()
+  }, [clearAuditCounts])
   
   return (
     <>

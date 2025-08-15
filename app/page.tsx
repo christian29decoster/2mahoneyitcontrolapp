@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { StatTile } from '@/components/StatTile'
 import { Recommendation } from '@/components/Recommendation'
@@ -14,12 +14,14 @@ import { Toast, ToastType } from '@/components/Toasts'
 import { demoTenant, stats, alerts, mail } from '@/lib/demo'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
+import { useAuditStore } from '@/lib/store'
 
 export default function DashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<any>(null)
   const [isUpgradeSheetOpen, setIsUpgradeSheetOpen] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
+  const setAuditCounts = useAuditStore(s => s.setAuditCounts)
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -52,6 +54,16 @@ export default function DashboardPage() {
     addToast('info', 'Upgrade Preview', 'This would initiate the upgrade process in production.')
     setIsUpgradeSheetOpen(false)
   }
+
+  // Demo Audit Counts setzen (simuliert Quick Audit)
+  useEffect(() => {
+    // Simuliere Audit-Ergebnisse: 2 unprotected, 1 stale, 0 quarantined
+    setAuditCounts({
+      unprotected: 2,
+      stale: 1,
+      quarantined: 0,
+    })
+  }, [setAuditCounts])
   
   return (
     <>
