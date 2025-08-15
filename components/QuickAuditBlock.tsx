@@ -32,6 +32,7 @@ interface AuditResult {
 export function QuickAuditBlock() {
   const [isRunning, setIsRunning] = useState(false)
   const [result, setResult] = useState<AuditResult | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const h = useHaptics()
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
 
@@ -76,6 +77,7 @@ export function QuickAuditBlock() {
     h.impact('medium')
     setIsRunning(true)
     setResult(null)
+    setError(null)
     
     try {
       const auditResult = await runQuickAudit()
@@ -90,6 +92,7 @@ export function QuickAuditBlock() {
       }
     } catch (error) {
       console.error('Audit failed:', error)
+      setError('Audit failed. Please try again.')
     } finally {
       setIsRunning(false)
     }
@@ -122,6 +125,12 @@ export function QuickAuditBlock() {
           disabled={isRunning}
         />
       </div>
+      
+      {error && (
+        <div className="mb-4 p-3 bg-[var(--danger)]/10 border border-[var(--danger)]/20 rounded-[12px]">
+          <p className="text-sm text-[var(--danger)]">{error}</p>
+        </div>
+      )}
       
       <p className="text-sm text-[var(--muted)] mb-4">
         Scan your environment for EDR/XDR installation status, compliance issues, and security vulnerabilities.
