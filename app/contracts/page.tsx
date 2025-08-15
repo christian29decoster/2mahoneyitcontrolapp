@@ -14,6 +14,7 @@ import { useContract } from '@/hooks/useContract'
 import { useHaptics } from '@/hooks/useHaptics'
 import { formatCurrency } from '@/lib/pricing'
 import { stagger } from '@/lib/ui/motion'
+import { TrendingUp } from 'lucide-react'
 
 export default function ContractsPage() {
   const [selectedRequest, setSelectedRequest] = useState<any>(null)
@@ -110,6 +111,27 @@ export default function ContractsPage() {
           onClick={handleRequestCancellation}
           variant="danger"
         />
+
+        {/* Upselling Banner */}
+        <Card>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-[var(--primary)]/10 rounded-[8px] flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-[var(--text)]">Enhance Your Security</h3>
+              <p className="text-sm text-[var(--muted)]">
+                Discover services tailored to your current plan
+              </p>
+            </div>
+            <HapticButton
+              label="Explore"
+              onClick={() => window.location.href = '/upselling'}
+              variant="surface"
+              className="text-xs"
+            />
+          </div>
+        </Card>
 
         {/* Active Services */}
         <Card>

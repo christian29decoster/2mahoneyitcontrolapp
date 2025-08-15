@@ -13,6 +13,7 @@ import { Sheet } from '@/components/Sheets'
 import { Toast, ToastType } from '@/components/Toasts'
 import { QuickAuditBlock } from '@/components/QuickAuditBlock'
 import { demoTenant, stats, alerts, mail } from '@/lib/demo'
+import { TrendingUp, CheckCircle } from 'lucide-react'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useAuditStore } from '@/lib/store'
@@ -113,6 +114,58 @@ export default function DashboardPage() {
 
         {/* Enhanced Quick Audit Block */}
         <QuickAuditBlock />
+
+        {/* Upselling Recommendations */}
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-[var(--text)]">Security Enhancements</h3>
+            <HapticButton
+              label="View All"
+              onClick={() => window.location.href = '/upselling'}
+              variant="surface"
+              className="text-xs"
+            />
+          </div>
+          <div className="space-y-3">
+            <div className="p-3 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--primary-600)]/10 border border-[var(--primary)]/20 rounded-[16px]">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-6 h-6 bg-[var(--primary)]/20 rounded-[6px] flex items-center justify-center">
+                  <TrendingUp className="w-3 h-3 text-[var(--primary)]" />
+                </div>
+                <span className="text-sm font-medium text-[var(--text)]">Virtual CISO</span>
+                <Badge variant="destructive" className="text-xs">-15%</Badge>
+              </div>
+              <p className="text-xs text-[var(--muted)] mb-2">
+                Strategic security leadership for your organization
+              </p>
+              <HapticButton
+                label="Learn More"
+                onClick={() => window.location.href = '/upselling'}
+                variant="surface"
+                className="text-xs"
+              />
+            </div>
+            
+            <div className="p-3 bg-gradient-to-r from-[var(--warning)]/10 to-[var(--warning)]/10 border border-[var(--warning)]/20 rounded-[16px]">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-6 h-6 bg-[var(--warning)]/20 rounded-[6px] flex items-center justify-center">
+                  <CheckCircle className="w-3 h-3 text-[var(--warning)]" />
+                </div>
+                <span className="text-sm font-medium text-[var(--text)]">Compliance Package</span>
+                <Badge variant="secondary" className="text-xs">New</Badge>
+              </div>
+              <p className="text-xs text-[var(--muted)] mb-2">
+                Stay ahead of regulatory changes
+              </p>
+              <HapticButton
+                label="Learn More"
+                onClick={() => window.location.href = '/upselling'}
+                variant="surface"
+                className="text-xs"
+              />
+            </div>
+          </div>
+        </Card>
 
         {/* Proactive Recommendations */}
         <Recommendation />
