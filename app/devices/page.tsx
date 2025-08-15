@@ -44,7 +44,7 @@ export default function DevicesPage() {
   const filteredDevices = devices.filter(device => {
     const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          device.serial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         device.location.toLowerCase().includes(searchTerm.toLowerCase())
+                         (typeof device.location === 'string' ? device.location.toLowerCase().includes(searchTerm.toLowerCase()) : device.location.name.toLowerCase().includes(searchTerm.toLowerCase()))
     const matchesFilter = selectedFilter === 'all' || device.type.toLowerCase() === selectedFilter
     return matchesSearch && matchesFilter
   })

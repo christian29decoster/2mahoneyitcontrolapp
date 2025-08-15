@@ -14,7 +14,7 @@ interface DeviceDetail {
   os: string
   version: string
   lastLogin: string
-  location: {
+  location: string | {
     name: string
     lat: number
     lng: number
@@ -107,7 +107,9 @@ export function DeviceDetailSheet({
             </div>
             <div>
               <p className="text-[var(--muted)]">Location</p>
-              <p className="text-[var(--text)]">{device.location.name}</p>
+              <p className="text-[var(--text)]">
+                {typeof device.location === 'string' ? device.location : device.location.name}
+              </p>
             </div>
           </div>
         </div>
@@ -160,11 +162,17 @@ export function DeviceDetailSheet({
         {/* Location Map */}
         <div>
           <h4 className="font-medium text-[var(--text)] mb-3">Location</h4>
-          <MiniMap 
-            lat={device.location.lat} 
-            lng={device.location.lng} 
-            name={device.location.name}
-          />
+          {typeof device.location === 'string' ? (
+            <div className="p-4 bg-[var(--surface)]/50 rounded-[16px]">
+              <p className="text-[var(--text)]">{device.location}</p>
+            </div>
+          ) : (
+            <MiniMap 
+              lat={device.location.lat} 
+              lng={device.location.lng} 
+              name={device.location.name}
+            />
+          )}
         </div>
 
         {/* Active Alerts */}

@@ -12,7 +12,7 @@ interface DeviceRowProps {
     serial: string
     os: string
     version: string
-    location: string
+    location: string | { name: string; lat: number; lng: number }
     room: string
     lastLogin: string
     status: string
@@ -66,7 +66,7 @@ export function DeviceRow({ device }: DeviceRowProps) {
         </div>
         <p className="text-sm text-[var(--muted)] mb-1">{device.serial}</p>
         <div className="flex items-center space-x-2 text-xs text-[var(--muted)]">
-          <span>{device.location}</span>
+          <span>{typeof device.location === 'string' ? device.location : device.location.name}</span>
           <span>•</span>
           <span>{device.room}</span>
           <span>•</span>
