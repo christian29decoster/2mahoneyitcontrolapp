@@ -1,6 +1,7 @@
 'use client'
 
 import TabBar from './TabBar'
+import { GlobalHeader } from './GlobalHeader'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
@@ -10,7 +11,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   
   return (
     <div className="relative min-h-[100dvh]">
-      {children}
+      <GlobalHeader />
+      <div className="pt-12">
+        {children}
+      </div>
       <motion.button
         aria-label="Add Device"
         onClick={() => h.impact('medium')}

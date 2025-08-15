@@ -1,6 +1,6 @@
 'use client'
 
-import { Home, Monitor, Building, User, ShoppingBag } from 'lucide-react'
+import { Home, Monitor, Building, User, ShoppingBag, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -10,6 +10,7 @@ const tabs = [
   { href: '/', icon: Home, label: 'Dashboard' },
   { href: '/devices', icon: Monitor, label: 'Devices' },
   { href: '/company', icon: Building, label: 'Company' },
+  { href: '/contracts', icon: FileText, label: 'Contracts' },
   { href: '/profile', icon: User, label: 'Profile' },
   { href: '/marketplace', icon: ShoppingBag, label: 'Marketplace' }
 ]
@@ -30,7 +31,7 @@ export default function TabBar() {
   return (
     <div className="fixed bottom-2 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[392px]">
       <div className="backdrop-blur-md bg-[rgba(17,23,42,.6)] border border-[var(--border)] rounded-[24px] px-2 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,.45)]">
-        <nav className="grid grid-cols-5">
+        <nav className="grid grid-cols-6">
           {tabs.map(({ href, icon: Icon }) => {
             const active = path === href
             const isDevices = href === '/devices';

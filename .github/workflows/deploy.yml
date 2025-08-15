@@ -1,4 +1,4 @@
-name: Deploy to Vercel
+name: Build and Test
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     
     steps:
@@ -26,11 +26,14 @@ jobs:
       - name: Build application
         run: npm run build
         
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-          working-directory: ./
+      - name: Deploy Instructions
+        run: |
+          echo "✅ Build successful!"
+          echo ""
+          echo "🚀 To deploy to Vercel:"
+          echo "1. Go to https://vercel.com"
+          echo "2. Click 'New Project'"
+          echo "3. Import this GitHub repository"
+          echo "4. Vercel will auto-detect Next.js and deploy"
+          echo ""
+          echo "📱 App is ready for deployment!"
