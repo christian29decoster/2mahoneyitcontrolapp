@@ -1,118 +1,278 @@
+'use client'
+
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { Search, Filter, Plus, MapPin } from 'lucide-react'
 import { Card } from '@/components/Card'
-import { Badge } from '@/components/Badge'
-import { copy } from '@/lib/copy'
-import { devices, staff } from '@/lib/data'
+import { DeviceRow } from '@/components/DeviceRow'
+import { HapticButton } from '@/components/HapticButton'
+import { FormSheet } from '@/components/Sheets'
+import { Toast, ToastType } from '@/components/Toasts'
+import { demoDevices, demoPlan } from '@/lib/demo'
+import { stagger } from '@/lib/ui/motion'
+import { useHaptics } from '@/hooks/useHaptics'
 
 export default function DevicesPage() {
-  const onlineDevices = devices.filter(d => d.status === 'online').length
-  const offlineDevices = devices.filter(d => d.status === 'offline').length
-  const warningDevices = devices.filter(d => d.status === 'warning').length
-  const activeStaff = staff.filter(s => s.status === 'active').length
-
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedFilter, setSelectedFilter] = useState('all')
+  const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false)
+  const [isAddStaffOpen, setIsAddStaffOpen] = useState(false)
+  const [isRemapLoading, setIsRemapLoading] = useState(false)
+  const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
+  const h = useHaptics()
+  
+  const addToast = (type: ToastType, title: string, message?: string) => {
+    const id = Date.now().toString()
+    setToasts(prev => [...prev, { id, type, title, message }])
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id))
+    }, 4000)
+  }
+  
+  const filters = [
+    { key: 'all', label: 'All' },
+    { key: 'server', label: 'Server' },
+    { key: 'pc', label: 'PC' },
+    { key: 'laptop', label: 'Laptop' },
+    { key: 'phone', label: 'Phone' }
+  ]
+  
+  const filteredDevices = demoDevices.filter(device => {
+    const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         device.serial.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         device.location.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = selectedFilter === 'all' || device.type.toLowerCase() === selectedFilter
+    return matchesSearch && matchesFilter
+  })
+  
+  const handleAddDevice = () => {
+    h.impact('medium')
+    addToast('success', 'Device added. Plan & costs updated.')
+    setIsAddDeviceOpen(false)
+  }
+  
+  const handleAddStaff = () => {
+    h.impact('medium')
+    addToast('success', 'Staff added.')
+    setIsAddStaffOpen(false)
+  }
+  
+  const handleRemap = () => {
+    if (demoPlan.current.tier === 'Essential') {
+      addToast('warning', 'Automated discovery requires Professional. Preview upgrade?')
+      return
+    }
+    
+    setIsRemapLoading(true)
+    h.impact('medium')
+    
+    setTimeout(() => {
+      setIsRemapLoading(false)
+      h.success()
+      addToast('success', 'Mapping successful. 24 devices updated.')
+    }, 2000)
+  }
+  
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">{copy.devices.title}</h1>
-        <p className="text-muted-foreground mt-2">{copy.devices.subtitle}</p>
-      </div>
+    <>
+      <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+        {/* Header with Remap */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-[var(--text)]">Devices & Staff</h1>
+          <HapticButton
+            label={isRemapLoading ? "Remapping..." : "Remap"}
+            variant="surface"
+            onClick={isRemapLoading ? undefined : handleRemap}
+          />
+        </div>
 
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <div className="text-center">
-            <p className="text-2xl font-bold">{devices.length}</p>
-            <p className="text-sm text-muted-foreground">{copy.devices.totalDevices}</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-accent">{onlineDevices}</p>
-            <p className="text-sm text-muted-foreground">{copy.devices.onlineDevices}</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-destructive">{offlineDevices}</p>
-            <p className="text-sm text-muted-foreground">{copy.devices.offlineDevices}</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-primary">{activeStaff}</p>
-            <p className="text-sm text-muted-foreground">{copy.devices.activeStaff}</p>
-          </div>
-        </Card>
-      </div>
-
-      {/* Devices List */}
-      <Card>
-        <h2 className="text-xl font-semibold mb-6">Devices</h2>
+        {/* Search and Filter */}
         <div className="space-y-4">
-          {devices.slice(0, 10).map((device) => (
-            <div key={device.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3">
-                  <h3 className="font-medium">{device.name}</h3>
-                  <Badge 
-                    variant={
-                      device.status === 'online' ? 'accent' : 
-                      device.status === 'warning' ? 'secondary' : 'destructive'
-                    }
-                  >
-                    {device.status}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {device.location} • {device.type.replace('_', ' ')}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">
-                  Last seen: {new Date(device.lastSeen).toLocaleTimeString()}
-                </p>
-                {device.battery && (
-                  <p className="text-sm text-muted-foreground">
-                    Battery: {device.battery}%
-                  </p>
-                )}
-              </div>
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+            <input
+              type="text"
+              placeholder="Search devices..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
+          </div>
+          
+          <div className="flex space-x-2 overflow-x-auto pb-2">
+            {filters.map((filter) => (
+              <button
+                key={filter.key}
+                onClick={() => {
+                  h.impact('light')
+                  setSelectedFilter(filter.key)
+                }}
+                className={`px-4 py-2 rounded-[12px] text-sm font-medium whitespace-nowrap transition-colors ${
+                  selectedFilter === filter.key
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-elev)]'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Device Count */}
+        <div className="text-sm text-[var(--muted)]">
+          {filteredDevices.length} of {demoDevices.length} devices
+        </div>
+
+        {/* Device List */}
+        <div className="space-y-3">
+          {filteredDevices.map((device) => (
+            <DeviceRow key={device.serial} device={device} />
           ))}
         </div>
-      </Card>
+      </motion.div>
 
-      {/* Staff List */}
-      <Card>
-        <h2 className="text-xl font-semibold mb-6">Staff</h2>
+      {/* Add Device Sheet */}
+      <FormSheet
+        isOpen={isAddDeviceOpen}
+        onClose={() => setIsAddDeviceOpen(false)}
+        title="Add Device"
+        onSubmit={handleAddDevice}
+        submitLabel="Add Device"
+      >
         <div className="space-y-4">
-          {staff.map((member) => (
-            <div key={member.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                  <span className="text-sm font-medium text-primary-foreground">
-                    {member.name.split(' ').map(n => n[0]).join('')}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="font-medium">{member.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {member.role} • {member.department}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <Badge variant={member.status === 'active' ? 'accent' : 'secondary'}>
-                  {member.status}
-                </Badge>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Last login: {new Date(member.lastLogin).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          ))}
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Type</label>
+            <select className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20">
+              <option>Server</option>
+              <option>PC</option>
+              <option>Laptop</option>
+              <option>Phone</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Name</label>
+            <input
+              type="text"
+              placeholder="Device name"
+              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Serial</label>
+            <input
+              type="text"
+              placeholder="Serial number"
+              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Location</label>
+            <input
+              type="text"
+              placeholder="Office location"
+              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Room</label>
+            <input
+              type="text"
+              placeholder="Room number"
+              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Assign to</label>
+            <input
+              type="text"
+              placeholder="Staff member (optional)"
+              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
+          </div>
         </div>
-      </Card>
-    </div>
+      </FormSheet>
+
+      {/* Add Staff Sheet */}
+      <FormSheet
+        isOpen={isAddStaffOpen}
+        onClose={() => setIsAddStaffOpen(false)}
+        title="Add Staff"
+        onSubmit={handleAddStaff}
+        submitLabel="Add Staff"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Name</label>
+            <input
+              type="text"
+              placeholder="Full name"
+              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Email</label>
+            <input
+              type="email"
+              placeholder="Email address"
+              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Role</label>
+            <select className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20">
+              <option>Security Manager</option>
+              <option>IT Administrator</option>
+              <option>Facility Manager</option>
+              <option>Security Officer</option>
+              <option>System Administrator</option>
+            </select>
+          </div>
+        </div>
+      </FormSheet>
+
+      {/* Action Sheet for FAB */}
+      <FormSheet
+        isOpen={false}
+        onClose={() => {}}
+        title="Add"
+        onSubmit={() => {}}
+      >
+        <div className="space-y-4">
+          <HapticButton
+            label="Add Device"
+            onClick={() => setIsAddDeviceOpen(true)}
+            className="w-full"
+          />
+          <HapticButton
+            label="Add Staff"
+            variant="surface"
+            onClick={() => setIsAddStaffOpen(true)}
+            className="w-full"
+          />
+        </div>
+      </FormSheet>
+
+      {/* Toast Manager */}
+      <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="pointer-events-auto">
+            <Toast
+              type={toast.type}
+              title={toast.title}
+              message={toast.message}
+              onClose={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
+            />
+          </div>
+        ))}
+      </div>
+    </>
   )
 }

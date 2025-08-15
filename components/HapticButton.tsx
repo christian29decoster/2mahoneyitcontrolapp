@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { clsx } from 'clsx'
 
-export default function HapticButton({
+export function HapticButton({
   label,
   onClick,
   variant = 'primary',

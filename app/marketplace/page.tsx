@@ -1,182 +1,286 @@
+'use client'
+
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { ShoppingBag, ArrowRight, Check, Sparkles } from 'lucide-react'
 import { Card } from '@/components/Card'
-import { Badge } from '@/components/Badge'
-import { copy } from '@/lib/copy'
-
-const featuredSolutions = [
-  {
-    id: '1',
-    name: 'Advanced Threat Detection',
-    description: 'AI-powered threat detection with real-time alerts and automated response',
-    category: 'Security',
-    rating: 4.8,
-    price: 'From $299/month',
-    featured: true,
-  },
-  {
-    id: '2',
-    name: 'Cloud Backup & Recovery',
-    description: 'Secure cloud backup with instant recovery and disaster protection',
-    category: 'Backup',
-    rating: 4.9,
-    price: 'From $199/month',
-    featured: true,
-  },
-  {
-    id: '3',
-    name: 'Network Monitoring Pro',
-    description: 'Comprehensive network monitoring with performance analytics',
-    category: 'Monitoring',
-    rating: 4.7,
-    price: 'From $399/month',
-    featured: true,
-  },
-]
-
-const categories = [
-  { name: 'Security', count: 24 },
-  { name: 'Monitoring', count: 18 },
-  { name: 'Backup', count: 12 },
-  { name: 'Analytics', count: 15 },
-  { name: 'Integration', count: 31 },
-  { name: 'Compliance', count: 8 },
-]
-
-const integrations = [
-  { name: 'Slack', status: 'Available', type: 'Communication' },
-  { name: 'Microsoft Teams', status: 'Available', type: 'Communication' },
-  { name: 'Jira', status: 'Available', type: 'Project Management' },
-  { name: 'ServiceNow', status: 'Coming Soon', type: 'ITSM' },
-  { name: 'PagerDuty', status: 'Available', type: 'Incident Management' },
-  { name: 'Zapier', status: 'Available', type: 'Automation' },
-]
+import { HapticButton } from '@/components/HapticButton'
+import { Sheet } from '@/components/Sheets'
+import { Toast, ToastType } from '@/components/Toasts'
+import { demoServices } from '@/lib/demo'
+import { stagger } from '@/lib/ui/motion'
+import { useHaptics } from '@/hooks/useHaptics'
 
 export default function MarketplacePage() {
-  return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">{copy.marketplace.title}</h1>
-        <p className="text-muted-foreground mt-2">{copy.marketplace.subtitle}</p>
-      </div>
-
-      {/* Featured Solutions */}
-      <Card>
-        <h2 className="text-xl font-semibold mb-6">{copy.marketplace.featured}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredSolutions.map((solution) => (
-            <div key={solution.id} className="p-6 bg-muted/30 rounded-lg border border-border">
-              <div className="flex items-start justify-between mb-4">
-                <Badge variant="accent">{solution.category}</Badge>
-                {solution.featured && (
-                  <Badge variant="default">Featured</Badge>
-                )}
+  const [selectedService, setSelectedService] = useState<any>(null)
+  const [checkoutStep, setCheckoutStep] = useState(0)
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
+  const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
+  const h = useHaptics()
+  
+  const addToast = (type: ToastType, title: string, message?: string) => {
+    const id = Date.now().toString()
+    setToasts(prev => [...prev, { id, type, title, message }])
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id))
+    }, 4000)
+  }
+  
+  const handleServiceClick = (service: any) => {
+    h.impact('light')
+    setSelectedService(service)
+  }
+  
+  const handleAddToPlan = () => {
+    h.impact('medium')
+    setSelectedService(null)
+    setIsCheckoutOpen(true)
+    setCheckoutStep(0)
+  }
+  
+  const handleRequestQuote = () => {
+    h.impact('medium')
+    addToast('success', 'Quote Requested', 'Our team will contact you within 24 hours.')
+    setSelectedService(null)
+  }
+  
+  const handleCheckoutNext = () => {
+    h.impact('light')
+    if (checkoutStep < 2) {
+      setCheckoutStep(checkoutStep + 1)
+    } else {
+      // Final step - complete checkout
+      h.success()
+      addToast('success', 'Request Submitted', 'Your request has been submitted. Our team will activate this shortly.')
+      setIsCheckoutOpen(false)
+      setCheckoutStep(0)
+    }
+  }
+  
+  const handleCheckoutBack = () => {
+    h.impact('light')
+    if (checkoutStep > 0) {
+      setCheckoutStep(checkoutStep - 1)
+    } else {
+      setIsCheckoutOpen(false)
+    }
+  }
+  
+  const checkoutSteps = [
+    {
+      title: 'Summary',
+      content: (
+        <div className="space-y-4">
+          <div className="bg-[var(--surface)]/50 rounded-[16px] p-4">
+            <h3 className="font-semibold text-[var(--text)] mb-2">{selectedService?.name}</h3>
+            <p className="text-[var(--primary)] font-medium">{selectedService?.price}</p>
+          </div>
+          <div className="text-sm text-[var(--muted)]">
+            <p>This service will be added to your current plan and billed accordingly.</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Billing',
+      content: (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Card Number</label>
+            <input
+              type="text"
+              placeholder="•••• •••• •••• ••••"
+              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-[var(--text)] mb-2">Expiry</label>
+              <input
+                type="text"
+                placeholder="MM/YY"
+                className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--text)] mb-2">CVC</label>
+              <input
+                type="text"
+                placeholder="123"
+                className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+              />
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: 'Review & Confirm',
+      content: (
+        <div className="space-y-4">
+          <div className="bg-[var(--surface)]/50 rounded-[16px] p-4">
+            <h3 className="font-semibold text-[var(--text)] mb-2">Order Summary</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-[var(--muted)]">Service:</span>
+                <span className="text-[var(--text)]">{selectedService?.name}</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">{solution.name}</h3>
-              <p className="text-muted-foreground mb-4">{solution.description}</p>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-1">
-                  <span className="text-yellow-400">★</span>
-                  <span className="text-sm font-medium">{solution.rating}</span>
-                </div>
-                <span className="text-sm font-medium text-primary">{solution.price}</span>
+              <div className="flex justify-between">
+                <span className="text-[var(--muted)]">Price:</span>
+                <span className="text-[var(--primary)] font-medium">{selectedService?.price}</span>
               </div>
             </div>
+          </div>
+          <div className="text-sm text-[var(--muted)]">
+            <p>By confirming, you agree to add this service to your plan.</p>
+          </div>
+        </div>
+      )
+    }
+  ]
+  
+  return (
+    <>
+      <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <h1 className="text-2xl font-bold text-[var(--text)]">Marketplace</h1>
+          <p className="text-[var(--muted)]">Enhance your security with additional services</p>
+        </div>
+
+        {/* Service Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {demoServices.map((service) => (
+            <Card
+              key={service.key}
+              onClick={() => handleServiceClick(service)}
+              className="cursor-pointer hover:bg-[var(--surface-elev)]/80 transition-colors"
+            >
+              <div className="space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold text-[var(--text)] mb-1">{service.name}</h3>
+                    <p className="text-[var(--primary)] font-medium">{service.price}</p>
+                  </div>
+                  <ShoppingBag className="w-5 h-5 text-[var(--muted)]" />
+                </div>
+                
+                <div className="space-y-2">
+                  {service.bullets.map((bullet, index) => (
+                    <div key={index} className="flex items-start space-x-2">
+                      <Check className="w-4 h-4 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-[var(--muted)]">{bullet}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
           ))}
         </div>
-      </Card>
+      </motion.div>
 
-      {/* Categories and Integrations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <h3 className="text-lg font-semibold mb-4">{copy.marketplace.categories}</h3>
-          <div className="space-y-3">
-            {categories.map((category) => (
-              <div key={category.name} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <span className="font-medium">{category.name}</span>
-                <Badge variant="secondary">{category.count} solutions</Badge>
+      {/* Service Details Sheet */}
+      <Sheet
+        isOpen={!!selectedService}
+        onClose={() => setSelectedService(null)}
+        title={selectedService?.name}
+      >
+        {selectedService && (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-[var(--text)] mb-2">{selectedService.name}</h3>
+              <p className="text-2xl font-bold text-[var(--primary)] mb-4">{selectedService.price}</p>
+              
+              <div className="space-y-3">
+                {selectedService.bullets.map((bullet: string, index: number) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <Check className="w-5 h-5 text-[var(--success)] mt-0.5 flex-shrink-0" />
+                    <p className="text-[var(--muted)]">{bullet}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            
+            <div className="space-y-3">
+              <HapticButton
+                label="Add to Plan"
+                onClick={handleAddToPlan}
+                className="w-full"
+              />
+              <HapticButton
+                label="Request Quote"
+                variant="surface"
+                onClick={handleRequestQuote}
+                className="w-full"
+              />
+            </div>
           </div>
-        </Card>
+        )}
+      </Sheet>
 
-        <Card>
-          <h3 className="text-lg font-semibold mb-4">{copy.marketplace.integrations}</h3>
-          <div className="space-y-3">
-            {integrations.map((integration) => (
-              <div key={integration.name} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div>
-                  <p className="font-medium">{integration.name}</p>
-                  <p className="text-sm text-muted-foreground">{integration.type}</p>
+      {/* Checkout Sheet */}
+      <Sheet
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        title={`Checkout - ${checkoutSteps[checkoutStep]?.title}`}
+        maxHeight="90vh"
+      >
+        <div className="space-y-6">
+          {/* Progress Steps */}
+          <div className="flex items-center justify-between">
+            {checkoutSteps.map((step, index) => (
+              <div key={index} className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  index <= checkoutStep 
+                    ? 'bg-[var(--primary)] text-white' 
+                    : 'bg-[var(--surface)] text-[var(--muted)]'
+                }`}>
+                  {index < checkoutStep ? <Check className="w-4 h-4" /> : index + 1}
                 </div>
-                <Badge 
-                  variant={integration.status === 'Available' ? 'accent' : 'secondary'}
-                >
-                  {integration.status}
-                </Badge>
+                {index < checkoutSteps.length - 1 && (
+                  <div className={`w-12 h-0.5 mx-2 ${
+                    index < checkoutStep ? 'bg-[var(--primary)]' : 'bg-[var(--surface)]'
+                  }`} />
+                )}
               </div>
             ))}
           </div>
-        </Card>
+          
+          {/* Step Content */}
+          <div>
+            {checkoutSteps[checkoutStep]?.content}
+          </div>
+          
+          {/* Navigation */}
+          <div className="flex space-x-3 pt-4">
+            <HapticButton
+              label="Back"
+              variant="surface"
+              onClick={handleCheckoutBack}
+              className="flex-1"
+            />
+                          <HapticButton
+                label={checkoutStep === 2 ? "Confirm" : "Next"}
+                onClick={handleCheckoutNext}
+                className="flex-1"
+              />
+          </div>
+        </div>
+      </Sheet>
+
+      {/* Toast Manager */}
+      <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="pointer-events-auto">
+            <Toast
+              type={toast.type}
+              title={toast.title}
+              message={toast.message}
+              onClose={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
+            />
+          </div>
+        ))}
       </div>
-
-      {/* Personalized Recommendations */}
-      <Card>
-        <h3 className="text-lg font-semibold mb-4">{copy.marketplace.recommendations}</h3>
-        <div className="space-y-4">
-          <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
-              <div>
-                <h4 className="font-medium text-accent">Based on your security profile</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  We recommend Advanced Threat Detection to enhance your current security posture and provide better protection against emerging threats.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-              <div>
-                <h4 className="font-medium text-primary">Performance optimization</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Network Monitoring Pro can help you identify and resolve performance bottlenecks in your security infrastructure.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="p-4 bg-muted/30 border border-border rounded-lg">
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-muted-foreground rounded-full mt-2 flex-shrink-0"></div>
-              <div>
-                <h4 className="font-medium">Compliance enhancement</h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Consider our compliance solutions to ensure your security measures meet industry standards and regulatory requirements.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Quick Actions */}
-      <Card>
-        <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="p-4 bg-primary/10 border border-primary/20 rounded-lg text-left hover:bg-primary/20 transition-colors">
-            <h4 className="font-medium text-primary">Request Demo</h4>
-            <p className="text-sm text-muted-foreground mt-1">Schedule a personalized demo of any solution</p>
-          </button>
-          <button className="p-4 bg-accent/10 border border-accent/20 rounded-lg text-left hover:bg-accent/20 transition-colors">
-            <h4 className="font-medium text-accent">Contact Sales</h4>
-            <p className="text-sm text-muted-foreground mt-1">Get in touch with our sales team</p>
-          </button>
-          <button className="p-4 bg-muted/30 border border-border rounded-lg text-left hover:bg-muted/50 transition-colors">
-            <h4 className="font-medium">View Documentation</h4>
-            <p className="text-sm text-muted-foreground mt-1">Access technical documentation and guides</p>
-          </button>
-        </div>
-      </Card>
-    </div>
+    </>
   )
 }

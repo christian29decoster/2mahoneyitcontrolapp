@@ -1,147 +1,207 @@
+'use client'
+
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { User, Mail, Phone, Bell, Shield, Settings, LogOut } from 'lucide-react'
 import { Card } from '@/components/Card'
-import { Badge } from '@/components/Badge'
-import { copy } from '@/lib/copy'
-import { profileData } from '@/lib/data'
+import { HapticButton } from '@/components/HapticButton'
+import { Toast, ToastType } from '@/components/Toasts'
+import { stagger } from '@/lib/ui/motion'
+import { useHaptics } from '@/hooks/useHaptics'
 
 export default function ProfilePage() {
+  const [notifications, setNotifications] = useState({
+    email: true,
+    push: true,
+    sms: false
+  })
+  const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
+  const h = useHaptics()
+  
+  const addToast = (type: ToastType, title: string, message?: string) => {
+    const id = Date.now().toString()
+    setToasts(prev => [...prev, { id, type, title, message }])
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id))
+    }, 4000)
+  }
+  
+  const handleToggleNotification = (type: keyof typeof notifications) => {
+    h.impact('light')
+    setNotifications(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }))
+    addToast('success', `${type.charAt(0).toUpperCase() + type.slice(1)} notifications ${notifications[type] ? 'disabled' : 'enabled'}`)
+  }
+  
+  const handleLogout = () => {
+    h.impact('medium')
+    addToast('info', 'Logout', 'Logout functionality would be implemented in production.')
+  }
+  
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">{copy.profile.title}</h1>
-        <p className="text-muted-foreground mt-2">{copy.profile.subtitle}</p>
-      </div>
-
-      {/* Profile Information */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Card */}
-        <Card className="lg:col-span-1">
+    <>
+      <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+        {/* Profile Header */}
+        <Card>
           <div className="text-center space-y-4">
-            <div className="w-24 h-24 rounded-full bg-primary mx-auto flex items-center justify-center">
-              <span className="text-2xl font-bold text-primary-foreground">
-                {profileData.name.split(' ').map(n => n[0]).join('')}
-              </span>
+            <div className="w-20 h-20 bg-[var(--primary)] rounded-full flex items-center justify-center mx-auto">
+              <span className="text-2xl font-bold text-white">JD</span>
             </div>
             <div>
-              <h2 className="text-xl font-semibold">{profileData.name}</h2>
-              <p className="text-muted-foreground">{profileData.role}</p>
-            </div>
-            <div className="flex justify-center">
-              <Badge variant="accent">{profileData.department}</Badge>
+              <h1 className="text-2xl font-bold text-[var(--text)]">John Doe</h1>
+              <p className="text-[var(--muted)]">Chief Information Security Officer</p>
             </div>
           </div>
         </Card>
 
-        {/* Details */}
-        <Card className="lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-6">Account Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">{copy.profile.name}</label>
-                <p className="text-lg font-medium">{profileData.name}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">{copy.profile.email}</label>
-                <p className="text-lg font-medium">{profileData.email}</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">{copy.profile.role}</label>
-                <p className="text-lg font-medium">{profileData.role}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">{copy.profile.department}</label>
-                <p className="text-lg font-medium">{profileData.department}</p>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Activity and Settings */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Contact Information */}
         <Card>
-          <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+          <h2 className="text-lg font-semibold text-[var(--text)] mb-4">Contact Information</h2>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <Mail className="w-5 h-5 text-[var(--muted)]" />
               <div>
-                <p className="font-medium">Logged in</p>
-                <p className="text-sm text-muted-foreground">Dashboard accessed</p>
+                <p className="text-[var(--text)]">john.doe@acme.com</p>
+                <p className="text-sm text-[var(--muted)]">Primary email</p>
               </div>
-              <span className="text-sm text-muted-foreground">Just now</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <Phone className="w-5 h-5 text-[var(--muted)]" />
               <div>
-                <p className="font-medium">Device status checked</p>
-                <p className="text-sm text-muted-foreground">Reviewed offline devices</p>
+                <p className="text-[var(--text)]">+1 (555) 123-4567</p>
+                <p className="text-sm text-[var(--muted)]">Mobile</p>
               </div>
-              <span className="text-sm text-muted-foreground">30 min ago</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div>
-                <p className="font-medium">Alert acknowledged</p>
-                <p className="text-sm text-muted-foreground">Unauthorized access attempt</p>
-              </div>
-              <span className="text-sm text-muted-foreground">2 hours ago</span>
             </div>
           </div>
         </Card>
 
+        {/* Notification Settings */}
         <Card>
-          <h3 className="text-lg font-semibold mb-4">Account Settings</h3>
+          <h2 className="text-lg font-semibold text-[var(--text)] mb-4">Notifications</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Two-Factor Authentication</p>
-                <p className="text-sm text-muted-foreground">Enhanced security for your account</p>
+              <div className="flex items-center space-x-3">
+                <Mail className="w-5 h-5 text-[var(--muted)]" />
+                <div>
+                  <p className="text-[var(--text)]">Email Notifications</p>
+                  <p className="text-sm text-[var(--muted)]">Security alerts and updates</p>
+                </div>
               </div>
-              <Badge variant="accent">Enabled</Badge>
+              <button
+                onClick={() => handleToggleNotification('email')}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  notifications.email ? 'bg-[var(--primary)]' : 'bg-[var(--surface)]'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  notifications.email ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
             </div>
+            
             <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Email Notifications</p>
-                <p className="text-sm text-muted-foreground">Receive alerts via email</p>
+              <div className="flex items-center space-x-3">
+                <Bell className="w-5 h-5 text-[var(--muted)]" />
+                <div>
+                  <p className="text-[var(--text)]">Push Notifications</p>
+                  <p className="text-sm text-[var(--muted)]">Real-time alerts</p>
+                </div>
               </div>
-              <Badge variant="accent">Enabled</Badge>
+              <button
+                onClick={() => handleToggleNotification('push')}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  notifications.push ? 'bg-[var(--primary)]' : 'bg-[var(--surface)]'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  notifications.push ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
             </div>
+            
             <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">SMS Notifications</p>
-                <p className="text-sm text-muted-foreground">Receive critical alerts via SMS</p>
+              <div className="flex items-center space-x-3">
+                <Phone className="w-5 h-5 text-[var(--muted)]" />
+                <div>
+                  <p className="text-[var(--text)]">SMS Notifications</p>
+                  <p className="text-sm text-[var(--muted)]">Critical alerts only</p>
+                </div>
               </div>
-              <Badge variant="secondary">Disabled</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Session Timeout</p>
-                <p className="text-sm text-muted-foreground">Auto-logout after inactivity</p>
-              </div>
-              <span className="text-sm font-medium">30 minutes</span>
+              <button
+                onClick={() => handleToggleNotification('sms')}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  notifications.sms ? 'bg-[var(--primary)]' : 'bg-[var(--surface)]'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                  notifications.sms ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
             </div>
           </div>
         </Card>
-      </div>
 
-      {/* Security Status */}
-      <Card>
-        <h3 className="text-lg font-semibold mb-4">Security Status</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <p className="text-2xl font-bold text-accent">98%</p>
-            <p className="text-sm text-muted-foreground">Security Score</p>
+        {/* Security Status */}
+        <Card>
+          <h2 className="text-lg font-semibold text-[var(--text)] mb-4">Security Status</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-[var(--success)]/10 rounded-[16px] border border-[var(--success)]/20">
+              <div className="flex items-center space-x-3">
+                <Shield className="w-5 h-5 text-[var(--success)]" />
+                <div>
+                  <p className="text-[var(--text)] font-medium">Two-Factor Authentication</p>
+                  <p className="text-sm text-[var(--muted)]">Enabled</p>
+                </div>
+              </div>
+              <div className="w-2 h-2 bg-[var(--success)] rounded-full" />
+            </div>
+            
+            <div className="flex items-center justify-between p-3 bg-[var(--success)]/10 rounded-[16px] border border-[var(--success)]/20">
+              <div className="flex items-center space-x-3">
+                <Shield className="w-5 h-5 text-[var(--success)]" />
+                <div>
+                  <p className="text-[var(--text)] font-medium">Last Login</p>
+                  <p className="text-sm text-[var(--muted)]">Today at 9:24 AM</p>
+                </div>
+              </div>
+              <div className="w-2 h-2 bg-[var(--success)] rounded-full" />
+            </div>
           </div>
-          <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <p className="text-2xl font-bold text-primary">256-bit</p>
-            <p className="text-sm text-muted-foreground">Encryption</p>
-          </div>
-          <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <p className="text-2xl font-bold text-accent">Active</p>
-            <p className="text-sm text-muted-foreground">Account Status</p>
-          </div>
+        </Card>
+
+        {/* Account Actions */}
+        <div className="space-y-3">
+          <HapticButton
+            label="Account Settings"
+            variant="surface"
+            onClick={() => addToast('info', 'Account Settings', 'Settings would be available in production.')}
+            className="w-full"
+          />
+          
+          <HapticButton
+            label="Logout"
+            variant="danger"
+            onClick={handleLogout}
+            className="w-full"
+          />
         </div>
-      </Card>
-    </div>
+      </motion.div>
+
+      {/* Toast Manager */}
+      <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="pointer-events-auto">
+            <Toast
+              type={toast.type}
+              title={toast.title}
+              message={toast.message}
+              onClose={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
+            />
+          </div>
+        ))}
+      </div>
+    </>
   )
 }

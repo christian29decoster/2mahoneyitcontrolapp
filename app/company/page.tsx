@@ -1,124 +1,170 @@
+'use client'
+
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { MapPin, Navigation, Plus, FileText, Edit } from 'lucide-react'
 import { Card } from '@/components/Card'
-import { Badge } from '@/components/Badge'
-import { copy } from '@/lib/copy'
-import { companyData } from '@/lib/data'
+import { HapticButton } from '@/components/HapticButton'
+import { FormSheet } from '@/components/Sheets'
+import { Toast, ToastType } from '@/components/Toasts'
+import { demoCompany } from '@/lib/demo'
+import { stagger } from '@/lib/ui/motion'
+import { useHaptics } from '@/hooks/useHaptics'
 
 export default function CompanyPage() {
+  const [isAddLocationOpen, setIsAddLocationOpen] = useState(false)
+  const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
+  const h = useHaptics()
+  
+  const addToast = (type: ToastType, title: string, message?: string) => {
+    const id = Date.now().toString()
+    setToasts(prev => [...prev, { id, type, title, message }])
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id))
+    }, 4000)
+  }
+  
+  const handleAddLocation = () => {
+    h.impact('medium')
+    addToast('success', 'Location added successfully')
+    setIsAddLocationOpen(false)
+  }
+  
+  const handleStartNavigation = (location: any) => {
+    h.impact('light')
+    const url = `https://maps.apple.com/?q=${encodeURIComponent(location.address)}`
+    window.open(url, '_blank')
+  }
+  
+  const handleEditCompany = () => {
+    h.impact('light')
+    addToast('info', 'Edit Company', 'Company details editing would be available in production.')
+  }
+  
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">{copy.company.title}</h1>
-        <p className="text-muted-foreground mt-2">{copy.company.subtitle}</p>
-      </div>
-
-      {/* Company Information */}
-      <Card>
-        <h2 className="text-xl font-semibold mb-6">Company Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">{copy.company.companyName}</label>
-              <p className="text-lg font-medium">{companyData.name}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">{copy.company.industry}</label>
-              <p className="text-lg font-medium">{companyData.industry}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">{copy.company.size}</label>
-              <p className="text-lg font-medium">{companyData.size}</p>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">{copy.company.location}</label>
-              <p className="text-lg font-medium">{companyData.location}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">{copy.company.securityLevel}</label>
-              <div className="flex items-center space-x-2">
-                <Badge variant="accent">{companyData.securityLevel}</Badge>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Security Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <>
+      <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+        {/* Company Details */}
         <Card>
-          <h3 className="text-lg font-semibold mb-4">Security Policies</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span>Access Control</span>
-              <Badge variant="accent">Enabled</Badge>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-[var(--text)] mb-2">{demoCompany.name}</h1>
+              <p className="text-[var(--muted)]">Plan: {demoCompany.plan}</p>
             </div>
-            <div className="flex items-center justify-between">
-              <span>Multi-Factor Auth</span>
-              <Badge variant="accent">Required</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Audit Logging</span>
-              <Badge variant="accent">Active</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Data Encryption</span>
-              <Badge variant="accent">AES-256</Badge>
-            </div>
+            <button
+              onClick={handleEditCompany}
+              className="p-2 rounded-full hover:bg-[var(--surface)]/50 transition-colors"
+            >
+              <Edit className="w-5 h-5 text-[var(--muted)]" />
+            </button>
           </div>
         </Card>
 
-        <Card>
-          <h3 className="text-lg font-semibold mb-4">Compliance Status</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span>ISO 27001</span>
-              <Badge variant="accent">Certified</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>GDPR</span>
-              <Badge variant="accent">Compliant</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>HIPAA</span>
-              <Badge variant="accent">Compliant</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>SOX</span>
-              <Badge variant="accent">Compliant</Badge>
-            </div>
+        {/* Locations */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-[var(--text)]">Locations</h2>
+            <button
+              onClick={() => setIsAddLocationOpen(true)}
+              className="p-2 rounded-full bg-[var(--primary)] text-white hover:bg-[var(--primary-600)] transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
           </div>
-        </Card>
-      </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <h3 className="text-lg font-semibold mb-4">Recent Security Events</h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-            <div>
-              <p className="font-medium">Security policy updated</p>
-              <p className="text-sm text-muted-foreground">Multi-factor authentication now required for all users</p>
-            </div>
-            <span className="text-sm text-muted-foreground">2 hours ago</span>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-            <div>
-              <p className="font-medium">New device registered</p>
-              <p className="text-sm text-muted-foreground">Security camera added to Warehouse B</p>
-            </div>
-            <span className="text-sm text-muted-foreground">1 day ago</span>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-            <div>
-              <p className="font-medium">Access granted</p>
-              <p className="text-sm text-muted-foreground">Sarah Johnson granted admin access to security systems</p>
-            </div>
-            <span className="text-sm text-muted-foreground">3 days ago</span>
+          
+          <div className="space-y-4">
+            {demoCompany.locations.map((location) => (
+              <Card key={location.name}>
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold text-[var(--text)] mb-1">{location.name}</h3>
+                      <p className="text-sm text-[var(--muted)]">{location.address}</p>
+                    </div>
+                    <HapticButton
+                      label="Start Navigation"
+                      variant="surface"
+                      onClick={() => handleStartNavigation(location)}
+                    />
+                  </div>
+                  
+                  {/* Mini Map Placeholder */}
+                  <div className="w-full h-32 bg-[var(--surface)] rounded-[16px] flex items-center justify-center border border-[var(--border)]">
+                    <div className="text-center">
+                      <MapPin className="w-8 h-8 text-[var(--muted)] mx-auto mb-2" />
+                      <p className="text-sm text-[var(--muted)]">Map View</p>
+                      <p className="text-xs text-[var(--muted)]">Lat: {location.lat.toFixed(4)}, Lng: {location.lng.toFixed(4)}</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         </div>
-      </Card>
-    </div>
+
+        {/* Certificates */}
+        <div>
+          <h2 className="text-xl font-semibold text-[var(--text)] mb-4">Certificates</h2>
+          <div className="space-y-3">
+            {demoCompany.certificates.map((cert) => (
+              <Card key={cert.id}>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-[12px] flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-[var(--primary)]" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-[var(--text)]">{cert.name}</h3>
+                    <p className="text-sm text-[var(--muted)]">ID: {cert.id}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Add Location Sheet */}
+      <FormSheet
+        isOpen={isAddLocationOpen}
+        onClose={() => setIsAddLocationOpen(false)}
+        title="Add Location"
+        onSubmit={handleAddLocation}
+        submitLabel="Add Location"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Location Name</label>
+            <input
+              type="text"
+              placeholder="e.g., Berlin Office"
+              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Address</label>
+            <textarea
+              placeholder="Full address"
+              rows={3}
+              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 resize-none"
+            />
+          </div>
+        </div>
+      </FormSheet>
+
+      {/* Toast Manager */}
+      <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="pointer-events-auto">
+            <Toast
+              type={toast.type}
+              title={toast.title}
+              message={toast.message}
+              onClose={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
+            />
+          </div>
+        ))}
+      </div>
+    </>
   )
 }
