@@ -8,7 +8,7 @@ import { DeviceRow } from '@/components/DeviceRow'
 import { HapticButton } from '@/components/HapticButton'
 import { FormSheet } from '@/components/Sheets'
 import { Toast, ToastType } from '@/components/Toasts'
-import { demoDevices, demoPlan } from '@/lib/demo'
+import { devices, demoTenant } from '@/lib/demo'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 
@@ -37,13 +37,13 @@ export default function DevicesPage() {
     { key: 'phone', label: 'Phone' }
   ]
   
-  const filteredDevices = demoDevices.filter(device => {
-    const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         device.serial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         device.location.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = selectedFilter === 'all' || device.type.toLowerCase() === selectedFilter
-    return matchesSearch && matchesFilter
-  })
+          const filteredDevices = devices.filter(device => {
+          const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                               device.serial.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                               device.location.toLowerCase().includes(searchTerm.toLowerCase())
+          const matchesFilter = selectedFilter === 'all' || device.type.toLowerCase() === selectedFilter
+          return matchesSearch && matchesFilter
+        })
   
   const handleAddDevice = () => {
     h.impact('medium')
@@ -57,11 +57,11 @@ export default function DevicesPage() {
     setIsAddStaffOpen(false)
   }
   
-  const handleRemap = () => {
-    if (demoPlan.current.tier === 'Essential') {
-      addToast('warning', 'Automated discovery requires Professional. Preview upgrade?')
-      return
-    }
+          const handleRemap = () => {
+          if (demoTenant.currentPlan.tier === 'Essential') {
+            addToast('warning', 'Automated discovery requires Prime. Preview upgrade?')
+            return
+          }
     
     setIsRemapLoading(true)
     h.impact('medium')
@@ -121,7 +121,7 @@ export default function DevicesPage() {
 
         {/* Device Count */}
         <div className="text-sm text-[var(--muted)]">
-          {filteredDevices.length} of {demoDevices.length} devices
+          {filteredDevices.length} of {devices.length} devices
         </div>
 
         {/* Device List */}

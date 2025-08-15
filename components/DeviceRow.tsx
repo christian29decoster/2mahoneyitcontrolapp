@@ -10,9 +10,11 @@ interface DeviceRowProps {
     type: string
     name: string
     serial: string
+    os: string
+    version: string
     location: string
     room: string
-    assigned: string
+    lastLogin: string
     status: string
   }
 }
@@ -67,12 +69,8 @@ export function DeviceRow({ device }: DeviceRowProps) {
           <span>{device.location}</span>
           <span>•</span>
           <span>{device.room}</span>
-          {device.assigned !== '-' && (
-            <>
-              <span>•</span>
-              <span>{device.assigned}</span>
-            </>
-          )}
+          <span>•</span>
+          <span>{device.lastLogin}</span>
         </div>
       </div>
     </motion.div>

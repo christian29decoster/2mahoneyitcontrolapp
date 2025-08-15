@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { MapPin, Navigation, Plus, FileText, Edit } from 'lucide-react'
+import { MiniMap } from '@/components/MiniMap'
 import { Card } from '@/components/Card'
 import { HapticButton } from '@/components/HapticButton'
 import { FormSheet } from '@/components/Sheets'
 import { Toast, ToastType } from '@/components/Toasts'
-import { demoCompany } from '@/lib/demo'
+import { company, demoTenant } from '@/lib/demo'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 
@@ -48,8 +49,8 @@ export default function CompanyPage() {
         <Card>
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[var(--text)] mb-2">{demoCompany.name}</h1>
-              <p className="text-[var(--muted)]">Plan: {demoCompany.plan}</p>
+              <h1 className="text-2xl font-bold text-[var(--text)] mb-2">{company.name}</h1>
+              <p className="text-[var(--muted)]">Plan: {demoTenant.currentPlan.tier}</p>
             </div>
             <button
               onClick={handleEditCompany}
@@ -72,54 +73,52 @@ export default function CompanyPage() {
             </button>
           </div>
           
-          <div className="space-y-4">
-            {demoCompany.locations.map((location) => (
-              <Card key={location.name}>
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-[var(--text)] mb-1">{location.name}</h3>
-                      <p className="text-sm text-[var(--muted)]">{location.address}</p>
-                    </div>
-                    <HapticButton
-                      label="Start Navigation"
-                      variant="surface"
-                      onClick={() => handleStartNavigation(location)}
-                    />
-                  </div>
-                  
-                  {/* Mini Map Placeholder */}
-                  <div className="w-full h-32 bg-[var(--surface)] rounded-[16px] flex items-center justify-center border border-[var(--border)]">
-                    <div className="text-center">
-                      <MapPin className="w-8 h-8 text-[var(--muted)] mx-auto mb-2" />
-                      <p className="text-sm text-[var(--muted)]">Map View</p>
-                      <p className="text-xs text-[var(--muted)]">Lat: {location.lat.toFixed(4)}, Lng: {location.lng.toFixed(4)}</p>
-                    </div>
-                  </div>
+                          <div className="space-y-4">
+                  {company.locations.map((location) => (
+                    <Card key={location.name}>
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-semibold text-[var(--text)] mb-1">{location.name}</h3>
+                            <p className="text-sm text-[var(--muted)]">{location.address}</p>
+                          </div>
+                          <HapticButton
+                            label="Start Navigation"
+                            variant="surface"
+                            onClick={() => handleStartNavigation(location)}
+                          />
+                        </div>
+
+                        {/* Mini Map */}
+                        <MiniMap 
+                          lat={location.lat} 
+                          lng={location.lng} 
+                          name={location.name}
+                        />
+                      </div>
+                    </Card>
+                  ))}
                 </div>
-              </Card>
-            ))}
-          </div>
         </div>
 
         {/* Certificates */}
         <div>
           <h2 className="text-xl font-semibold text-[var(--text)] mb-4">Certificates</h2>
-          <div className="space-y-3">
-            {demoCompany.certificates.map((cert) => (
-              <Card key={cert.id}>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-[12px] flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-[var(--primary)]" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-[var(--text)]">{cert.name}</h3>
-                    <p className="text-sm text-[var(--muted)]">ID: {cert.id}</p>
-                  </div>
+                          <div className="space-y-3">
+                  {company.certificates.map((cert) => (
+                    <Card key={cert.id}>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-[12px] flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-[var(--primary)]" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium text-[var(--text)]">{cert.name}</h3>
+                          <p className="text-sm text-[var(--muted)]">ID: {cert.id}</p>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
                 </div>
-              </Card>
-            ))}
-          </div>
         </div>
       </motion.div>
 

@@ -8,9 +8,10 @@ import { HapticButton } from '@/components/HapticButton'
 import { Card } from '@/components/Card'
 import { Badge } from '@/components/Badge'
 import { AlertItem } from '@/components/AlertItem'
+import { MiniMap } from '@/components/MiniMap'
 import { Sheet } from '@/components/Sheets'
 import { Toast, ToastType } from '@/components/Toasts'
-import { demoPlan, demoStats, demoRecentAlerts, demoMail } from '@/lib/demo'
+import { demoTenant, stats, alerts, mail } from '@/lib/demo'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 
@@ -28,11 +29,11 @@ export default function DashboardPage() {
     }, 4000)
   }
   
-  const stats = [
-    { label: 'Active Alerts', value: demoStats.activeAlerts, change: `+${demoStats.trend.alerts}`, trend: 'up' as const },
-    { label: 'Offline Devices', value: demoStats.offlineDevices, change: `${demoStats.trend.offline}`, trend: 'down' as const },
-    { label: 'MTTR', value: `${demoStats.mttrHours}h`, change: `${demoStats.trend.mttr}h`, trend: 'down' as const },
-    { label: 'Coverage', value: `${demoStats.coveragePct}%`, change: `+${demoStats.trend.coverage}%`, trend: 'up' as const }
+  const statsData = [
+    { label: 'Active Alerts', value: stats.activeAlerts, change: `+${stats.trend.alerts}`, trend: 'up' as const },
+    { label: 'Offline Devices', value: stats.offlineDevices, change: `${stats.trend.offline}`, trend: 'down' as const },
+    { label: 'MTTR', value: `${stats.mttrHours}h`, change: `${stats.trend.mttr}h`, trend: 'down' as const },
+    { label: 'Coverage', value: `${stats.coveragePct}%`, change: `+${stats.trend.coverage}%`, trend: 'up' as const }
   ]
   
   const handleAlertClick = (alert: any) => {
@@ -60,7 +61,7 @@ export default function DashboardPage() {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <p className="text-sm text-[var(--text)] mb-2">
-                You&apos;re on <strong>{demoPlan.current.tier}</strong>. Upgrade to <strong>Professional</strong> (+${demoPlan.nextTierOffer.deltaMonthly}/mo) to reduce MTTR, enable automated device discovery, and expand mailbox analytics.
+                You&apos;re on <strong>{demoTenant.currentPlan.tier}</strong>. Upgrade to <strong>{demoTenant.upgradeOffer.target.tier}</strong> (+${demoTenant.upgradeOffer.deltaMonthly}/mo) to reduce MTTR, enable automated device discovery, and expand mailbox analytics.
               </p>
               <div className="flex space-x-3">
                 <HapticButton
@@ -86,7 +87,7 @@ export default function DashboardPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4">
-          {stats.map((stat) => (
+          {statsData.map((stat) => (
             <StatTile
               key={stat.label}
               label={stat.label}
@@ -104,7 +105,7 @@ export default function DashboardPage() {
         <Card>
           <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">Recent Alerts</h3>
           <div className="space-y-3">
-            {demoRecentAlerts.map((alert) => (
+            {alerts.map((alert) => (
               <AlertItem
                 key={alert.id}
                 alert={alert}
@@ -119,7 +120,7 @@ export default function DashboardPage() {
           <Card>
             <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">Microsoft 365 Mailboxes</h3>
             <div className="space-y-3">
-              {demoMail.o365.map((mailbox) => (
+              {mail.o365.map((mailbox) => (
                 <div key={mailbox.user} className="flex items-center justify-between p-3 bg-[var(--surface)]/50 rounded-[16px]">
                   <div>
                     <p className="font-medium text-[var(--text)]">{mailbox.user}</p>
@@ -136,7 +137,7 @@ export default function DashboardPage() {
           <Card>
             <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">Exchange On-Prem</h3>
             <div className="space-y-3">
-              {demoMail.exchangeOnPrem.dbs.map((db) => (
+              {mail.exchangeOnPrem.dbs.map((db) => (
                 <div key={db.name} className="p-3 bg-[var(--surface)]/50 rounded-[16px]">
                   <div className="flex items-center justify-between mb-2">
                     <p className="font-medium text-[var(--text)]">{db.name}</p>
@@ -177,8 +178,34 @@ export default function DashboardPage() {
                 <p><strong>Source:</strong> {selectedAlert.source}</p>
                 <p><strong>Time:</strong> {new Date(selectedAlert.time).toLocaleString()}</p>
                 <p><strong>Severity:</strong> {selectedAlert.severity}</p>
+                <p><strong>Device:</strong> {selectedAlert.device}</p>
+                <p><strong>OS:</strong> {selectedAlert.os}</p>
+                <p><strong>IP:</strong> {selectedAlert.ip}</p>
+                <p><strong>Last Login:</strong> {new Date(selectedAlert.lastLogin).toLocaleString()}</p>
+                <p><strong>User:</strong> {selectedAlert.user}</p>
               </div>
             </div>
+            
+            {/* Mini Map */}
+            <div>
+              <h4 className="font-medium text-[var(--text)] mb-3">Location</h4>
+              <MiniMap 
+                lat={selectedAlert.location.lat} 
+                lng={selectedAlert.location.lng} 
+                name={selectedAlert.location.name}
+              />
+            </div>
+            
+            {selectedAlert.notes && (
+              <div>
+                <h4 className="font-medium text-[var(--text)] mb-3">Notes</h4>
+                <div className="space-y-2">
+                  {selectedAlert.notes.map((note: string, index: number) => (
+                    <p key={index} className="text-sm text-[var(--muted)]">• {note}</p>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div>
               <h4 className="font-medium text-[var(--text)] mb-3">Quick Actions</h4>
@@ -208,15 +235,15 @@ export default function DashboardPage() {
       <Sheet
         isOpen={isUpgradeSheetOpen}
         onClose={() => setIsUpgradeSheetOpen(false)}
-        title="Upgrade to Professional"
+        title={`Upgrade to ${demoTenant.upgradeOffer.target.tier}`}
       >
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-semibold text-[var(--text)] mb-4">
-              {demoPlan.nextTierOffer.name}
+              {demoTenant.upgradeOffer.target.name}
             </h3>
             <div className="space-y-3">
-              {demoPlan.nextTierOffer.reason.map((reason, index) => (
+              {demoTenant.upgradeOffer.reasons.map((reason, index) => (
                 <div key={index} className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-[var(--primary)] rounded-full mt-2 flex-shrink-0" />
                   <p className="text-[var(--muted)]">{reason}</p>
@@ -227,7 +254,7 @@ export default function DashboardPage() {
           
           <div className="bg-[var(--surface)]/50 rounded-[16px] p-4">
             <p className="text-sm text-[var(--muted)] mb-2">Additional monthly cost:</p>
-            <p className="text-2xl font-bold text-[var(--text)]">+${demoPlan.nextTierOffer.deltaMonthly}/month</p>
+            <p className="text-2xl font-bold text-[var(--text)]">+${demoTenant.upgradeOffer.deltaMonthly}/month</p>
           </div>
           
           <HapticButton

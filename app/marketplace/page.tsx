@@ -7,7 +7,7 @@ import { Card } from '@/components/Card'
 import { HapticButton } from '@/components/HapticButton'
 import { Sheet } from '@/components/Sheets'
 import { Toast, ToastType } from '@/components/Toasts'
-import { demoServices } from '@/lib/demo'
+import { services } from '@/lib/mahoney'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 
@@ -148,9 +148,9 @@ export default function MarketplacePage() {
           <p className="text-[var(--muted)]">Enhance your security with additional services</p>
         </div>
 
-        {/* Service Grid */}
+                {/* Service Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {demoServices.map((service) => (
+          {services.map((service) => (
             <Card
               key={service.key}
               onClick={() => handleServiceClick(service)}
@@ -164,7 +164,7 @@ export default function MarketplacePage() {
                   </div>
                   <ShoppingBag className="w-5 h-5 text-[var(--muted)]" />
                 </div>
-                
+
                 <div className="space-y-2">
                   {service.bullets.map((bullet, index) => (
                     <div key={index} className="flex items-start space-x-2">
