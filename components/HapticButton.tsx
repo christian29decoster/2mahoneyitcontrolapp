@@ -8,12 +8,14 @@ export function HapticButton({
   label,
   onClick,
   variant = 'primary',
-  className = ''
+  className = '',
+  disabled = false
 }: {
   label: string
   onClick?: () => void
   variant?: 'primary' | 'surface' | 'danger'
   className?: string
+  disabled?: boolean
 }) {
   const h = useHaptics()
   const base = 'px-4 py-3 rounded-2xl text-sm font-medium select-none'
@@ -25,12 +27,14 @@ export function HapticButton({
 
   return (
     <motion.button
-      className={clsx(base, styles, 'active:brightness-95', className)}
-      whileTap={{ scale: 0.96 }}
+      className={clsx(base, styles, 'active:brightness-95', className, disabled && 'opacity-50 cursor-not-allowed')}
+      whileTap={disabled ? {} : { scale: 0.96 }}
       onClick={() => {
+        if (disabled) return
         h.impact('light')
         onClick?.()
       }}
+      disabled={disabled}
     >
       {label}
     </motion.button>

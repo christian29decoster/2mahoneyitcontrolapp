@@ -34,7 +34,7 @@ export function DeviceRow({ device }: DeviceRowProps) {
         return <Monitor className="w-4 h-4" />
     }
   }
-  
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'online':
@@ -47,11 +47,11 @@ export function DeviceRow({ device }: DeviceRowProps) {
         return 'secondary'
     }
   }
-  
+
   return (
     <motion.div
       variants={popIn}
-      className="flex items-center space-x-3 p-4 bg-[var(--surface)]/50 rounded-[16px]"
+      className="flex items-center space-x-3 p-4 bg-[var(--surface)]/50 rounded-[16px] cursor-pointer hover:bg-[var(--surface)]/70 transition-colors"
     >
       <div className="flex-shrink-0 w-8 h-8 bg-[var(--surface-elev)] rounded-[12px] flex items-center justify-center">
         {getDeviceIcon(device.type)}

@@ -12,6 +12,7 @@ import { devices, demoTenant } from '@/lib/demo'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useAuditStore } from '@/lib/store'
+import { DeviceDetailSheet } from '@/components/DeviceDetailSheet'
 
 export default function DevicesPage() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -19,6 +20,7 @@ export default function DevicesPage() {
   const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false)
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false)
   const [isRemapLoading, setIsRemapLoading] = useState(false)
+  const [selectedDevice, setSelectedDevice] = useState<any>(null)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
   const clearAuditCounts = useAuditStore(s => s.clearAuditCounts)
@@ -79,6 +81,29 @@ export default function DevicesPage() {
   useEffect(() => {
     clearAuditCounts()
   }, [clearAuditCounts])
+
+  const handleDeviceClick = (device: any) => {
+    h.impact('light')
+    setSelectedDevice(device)
+  }
+
+  const handleRemoteInvestigation = () => {
+    h.impact('medium')
+    addToast('info', 'Remote Investigation', 'Initiating remote investigation session...')
+    setSelectedDevice(null)
+  }
+
+  const handleSendMessage = () => {
+    h.impact('light')
+    addToast('success', 'Message Sent', 'Message sent to device user.')
+    setSelectedDevice(null)
+  }
+
+  const handleIsolateDevice = () => {
+    h.impact('heavy')
+    addToast('warning', 'Device Isolated', 'Device has been isolated from network.')
+    setSelectedDevice(null)
+  }
   
   return (
     <>
@@ -134,7 +159,9 @@ export default function DevicesPage() {
         {/* Device List */}
         <div className="space-y-3">
           {filteredDevices.map((device) => (
-            <DeviceRow key={device.serial} device={device} />
+            <div key={device.serial} onClick={() => handleDeviceClick(device)}>
+              <DeviceRow device={device} />
+            </div>
           ))}
         </div>
       </motion.div>
@@ -266,6 +293,16 @@ export default function DevicesPage() {
           />
         </div>
       </FormSheet>
+
+      {/* Device Detail Sheet */}
+      <DeviceDetailSheet
+        device={selectedDevice}
+        isOpen={!!selectedDevice}
+        onClose={() => setSelectedDevice(null)}
+        onRemoteInvestigation={handleRemoteInvestigation}
+        onSendMessage={handleSendMessage}
+        onIsolateDevice={handleIsolateDevice}
+      />
 
       {/* Toast Manager */}
       <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
