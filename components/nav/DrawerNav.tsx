@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Home, Shield, Building2, ShoppingBag, FileText, User, FolderOpen, TrendingUp } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
+import LogoutButton from '@/components/auth/LogoutButton'
 
 export default function DrawerNav({
   open,
@@ -50,6 +51,11 @@ export default function DrawerNav({
             </Link>
           ))}
         </nav>
+        
+        {/* Logout Button */}
+        <div className="mt-6 pt-4 border-t border-[var(--border)]">
+          <LogoutButton />
+        </div>
       </aside>
     </div>
   )

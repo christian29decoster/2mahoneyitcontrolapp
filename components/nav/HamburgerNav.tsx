@@ -5,11 +5,16 @@ import Link from "next/link"
 import { Menu, Home, Shield, Building2, ShoppingBag, User, FileText, FolderOpen, TrendingUp } from "lucide-react"
 import { useHaptics } from "@/hooks/useHaptics"
 import { useUIStore } from "@/lib/ui.store"
+import { usePathname } from "next/navigation"
 
 export default function HamburgerNav() {
   const [open, setOpen] = useState(false)
   const h = useHaptics()
   const navVisible = useUIStore((s) => s.navVisible)
+  const pathname = usePathname()
+  
+  // Hide navigation on login page
+  if (pathname.startsWith('/login')) return null
 
   const handleOpen = () => {
     h.impact('medium')

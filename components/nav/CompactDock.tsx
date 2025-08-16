@@ -14,6 +14,9 @@ const TABS = [
 export default function CompactDock() {
   const path = usePathname()
   const navVisible = useUIStore((s) => s.navVisible)
+  
+  // Hide navigation on login page
+  if (path.startsWith('/login')) return null
 
   return (
     <div

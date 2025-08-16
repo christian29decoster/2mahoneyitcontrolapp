@@ -5,11 +5,16 @@ import { Menu } from 'lucide-react'
 import { useUIStore } from '@/lib/ui.store'
 import DrawerNav from './DrawerNav'
 import { useHaptics } from '@/hooks/useHaptics'
+import { usePathname } from 'next/navigation'
 
 export default function TopAppBar() {
   const [open, setOpen] = useState(false)
   const navVisible = useUIStore((s) => s.navVisible)
   const h = useHaptics()
+  const pathname = usePathname()
+  
+  // Hide navigation on login page
+  if (pathname.startsWith('/login')) return null
 
   const handleOpen = () => {
     h.impact('medium')
