@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { checkDemoCredentials } from '@/lib/demo-auth'
 import { useHaptics } from '@/hooks/useHaptics'
 
@@ -36,14 +35,34 @@ export default function LoginPage() {
         
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <Image
-            src="https://mahoney-it.com/wp-content/uploads/2023/02/mahoney-it_341_60.png"
-            alt="Mahoney IT Logo"
-            width={341}
-            height={60}
-            priority
-            className="h-16 w-auto"
-          />
+          <div className="flex items-center space-x-4">
+            {/* SVG Logo */}
+            <svg width="48" height="48" viewBox="0 0 48 48" className="text-white">
+              {/* Central diamond */}
+              <polygon 
+                points="24,8 32,20 24,32 16,20" 
+                fill="currentColor"
+                className="drop-shadow-sm"
+              />
+              {/* Left diamond */}
+              <polygon 
+                points="8,20 16,28 8,36 0,28" 
+                fill="currentColor"
+                className="drop-shadow-sm"
+              />
+              {/* Right diamond */}
+              <polygon 
+                points="40,20 48,28 40,36 32,28" 
+                fill="currentColor"
+                className="drop-shadow-sm"
+              />
+            </svg>
+            {/* Text Logo */}
+            <div className="text-white font-bold text-3xl tracking-wider">
+              <span className="text-white">MAHONEY</span>
+              <span className="text-white ml-3">IT</span>
+            </div>
+          </div>
         </div>
 
         {/* Title + Slogan */}
