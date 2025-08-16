@@ -29,7 +29,7 @@ export default function HamburgerNav() {
       {/* small FAB, right-bottom */}
       <button
         onClick={handleOpen}
-        className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+14px)] z-40 h-11 w-11 rounded-2xl grid place-items-center bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] shadow-[0_10px_28px_rgba(0,0,0,.45)] active:scale-[.98] transition-transform"
+        className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+12px)] z-50 h-11 w-11 rounded-2xl grid place-items-center bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] shadow-[0_10px_28px_rgba(0,0,0,.45)] active:scale-[.98] transition-transform"
         aria-label="Open menu"
       >
         <Menu size={18} />
