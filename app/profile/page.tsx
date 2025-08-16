@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { User, Mail, Phone, Bell, Shield, Settings, LogOut } from 'lucide-react'
+import { User, Mail, Phone, Bell, Shield, Settings, LogOut, Camera, Upload } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { HapticButton } from '@/components/HapticButton'
 import { Toast, ToastType } from '@/components/Toasts'
@@ -15,7 +15,9 @@ export default function ProfilePage() {
     push: true,
     sms: false
   })
+  const [profileImage, setProfileImage] = useState<string | null>(null)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const h = useHaptics()
   
   const addToast = (type: ToastType, title: string, message?: string) => {
@@ -39,6 +41,24 @@ export default function ProfilePage() {
     h.impact('medium')
     addToast('info', 'Logout', 'Logout functionality would be implemented in production.')
   }
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      h.impact('medium')
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setProfileImage(e.target?.result as string)
+        addToast('success', 'Profile Picture Updated', 'Your profile picture has been updated successfully.')
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const triggerFileUpload = () => {
+    h.impact('light')
+    fileInputRef.current?.click()
+  }
   
   return (
     <>
@@ -46,16 +66,45 @@ export default function ProfilePage() {
         {/* Profile Header */}
         <Card>
           <div className="text-center space-y-4">
-            <div className="w-24 h-24 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-600)] rounded-full flex items-center justify-center mx-auto shadow-lg">
+            <div className="relative w-24 h-24 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-600)] rounded-full flex items-center justify-center mx-auto shadow-lg">
               {/* Profile Picture */}
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center overflow-hidden">
-                <svg width="64" height="64" viewBox="0 0 64 64" className="text-[var(--primary)]">
-                  {/* Person Icon */}
-                  <circle cx="32" cy="20" r="8" fill="currentColor" />
-                  <path d="M8 56c0-13.3 10.7-24 24-24s24 10.7 24 24" fill="currentColor" />
-                </svg>
-              </div>
+              {profileImage ? (
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                  <img 
+                    src={profileImage} 
+                    alt="Profile Picture" 
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </div>
+              ) : (
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                  <svg width="64" height="64" viewBox="0 0 64 64" className="text-[var(--primary)]">
+                    {/* Person Icon */}
+                    <circle cx="32" cy="20" r="8" fill="currentColor" />
+                    <path d="M8 56c0-13.3 10.7-24 24-24s24 10.7 24 24" fill="currentColor" />
+                  </svg>
+                </div>
+              )}
+              
+              {/* Upload Button Overlay */}
+              <button
+                onClick={triggerFileUpload}
+                className="absolute -bottom-1 -right-1 w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center shadow-lg hover:bg-[var(--primary-600)] transition-colors"
+                title="Upload Profile Picture"
+              >
+                <Camera size={16} className="text-white" />
+              </button>
             </div>
+            
+            {/* Hidden File Input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+            
             <div>
               <h1 className="text-2xl font-bold text-[var(--text)]">John Doe</h1>
               <p className="text-[var(--muted)]">Chief Information Security Officer</p>

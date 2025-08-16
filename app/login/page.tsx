@@ -18,8 +18,8 @@ export default function LoginPage() {
     h.impact('medium')
 
     if (checkDemoCredentials(u, p)) {
-      // demo cookie for 24h
-      document.cookie = `demo_authed=1; Max-Age=86400; Path=/; SameSite=Lax`
+      // demo cookie for 30 minutes
+      document.cookie = `demo_authed=1; Max-Age=1800; Path=/; SameSite=Lax`
       h.success()
       window.location.assign('/')
     } else {
