@@ -46,8 +46,15 @@ export default function ProfilePage() {
         {/* Profile Header */}
         <Card>
           <div className="text-center space-y-4">
-            <div className="w-20 h-20 bg-[var(--primary)] rounded-full flex items-center justify-center mx-auto">
-              <span className="text-2xl font-bold text-white">JD</span>
+            <div className="w-24 h-24 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-600)] rounded-full flex items-center justify-center mx-auto shadow-lg">
+              {/* Profile Picture */}
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                <svg width="64" height="64" viewBox="0 0 64 64" className="text-[var(--primary)]">
+                  {/* Person Icon */}
+                  <circle cx="32" cy="20" r="8" fill="currentColor" />
+                  <path d="M8 56c0-13.3 10.7-24 24-24s24 10.7 24 24" fill="currentColor" />
+                </svg>
+              </div>
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[var(--text)]">John Doe</h1>
