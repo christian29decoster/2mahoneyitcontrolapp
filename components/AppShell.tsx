@@ -1,6 +1,7 @@
 'use client'
 
-import BottomNav from './nav/BottomNav'
+import CompactDock from './nav/CompactDock'
+import HamburgerNav from './nav/HamburgerNav'
 import { GlobalHeader } from './GlobalHeader'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
@@ -27,7 +28,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <Plus size={18} />
       </motion.button>
       <Copilot />
-      <BottomNav />
+      <CompactDock />
+      <HamburgerNav />
     </div>
   )
 }
