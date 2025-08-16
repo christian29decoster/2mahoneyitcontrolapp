@@ -1,5 +1,6 @@
 'use client'
 
+import TopAppBar from './nav/TopAppBar'
 import CompactDock from './nav/CompactDock'
 import HamburgerNav from './nav/HamburgerNav'
 import { GlobalHeader } from './GlobalHeader'
@@ -13,7 +14,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   
   return (
     <div className="relative min-h-[100dvh]">
-      <GlobalHeader />
+      <TopAppBar />
       <div className="pt-12">
         {children}
       </div>

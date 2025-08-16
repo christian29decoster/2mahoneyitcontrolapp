@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, Shield, Building2 } from "lucide-react"
+import { useUIStore } from "@/lib/ui.store"
 
 const TABS = [
   { href: "/", icon: Home, label: "Home" },
@@ -12,9 +13,14 @@ const TABS = [
 
 export default function CompactDock() {
   const path = usePathname()
+  const navVisible = useUIStore((s) => s.navVisible)
 
   return (
-    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+12px)] left-1/2 -translate-x-1/2 z-50 w-auto">
+    <div
+      className={`fixed bottom-[calc(env(safe-area-inset-bottom)+12px)] left-1/2 -translate-x-1/2 z-30 transition-all duration-200 ${
+        navVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
+      }`}
+    >
       <nav className="flex items-center gap-2 px-2.5 py-1.5 rounded-2xl border border-[var(--border)] bg-[rgba(21,26,44,.68)] backdrop-blur-md shadow-[0_10px_28px_rgba(0,0,0,.45)]">
         {TABS.map(({ href, icon: Icon, label }) => {
           const active = path === href
