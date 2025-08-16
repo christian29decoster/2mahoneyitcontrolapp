@@ -5,6 +5,7 @@ import { GlobalHeader } from './GlobalHeader'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
+import Copilot from './ai/Copilot'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const h = useHaptics()
@@ -25,6 +26,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       >
         <Plus size={18} />
       </motion.button>
+      <Copilot />
       <TabBar />
     </div>
   )

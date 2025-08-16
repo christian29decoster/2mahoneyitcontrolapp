@@ -17,11 +17,14 @@ import { TrendingUp, CheckCircle } from 'lucide-react'
 import { planMonthlyUSD, formatCurrency } from '@/lib/pricing'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
+import ServiceCockpitCard from '@/components/cockpit/ServiceCockpitCard'
+import ServiceCockpitSheet from '@/components/cockpit/ServiceCockpitSheet'
 import { useAuditStore } from '@/lib/store'
 
 export default function DashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<any>(null)
   const [isUpgradeSheetOpen, setIsUpgradeSheetOpen] = useState(false)
+  const [openCockpit, setOpenCockpit] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
@@ -115,6 +118,9 @@ export default function DashboardPage() {
 
         {/* Enhanced Quick Audit Block */}
         <QuickAuditBlock />
+
+        {/* Service Cockpit */}
+        <ServiceCockpitCard onOpen={() => setOpenCockpit(true)} />
 
         {/* Upselling Recommendations */}
         <Card>
@@ -333,6 +339,15 @@ export default function DashboardPage() {
           />
         </div>
       </Sheet>
+
+      {/* Service Cockpit Sheet */}
+      {openCockpit && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end">
+          <div className="w-full max-w-[520px] mx-auto rounded-t-3xl bg-[var(--bg)] border-t border-[var(--border)]">
+            <ServiceCockpitSheet />
+          </div>
+        </div>
+      )}
 
       {/* Toast Manager */}
       <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
