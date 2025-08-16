@@ -57,10 +57,7 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-[var(--text)]">Welcome to Mahoney Control App</h1>
         <p className="text-sm text-[var(--muted)] mt-1">Cybersecurity in your pocket</p>
 
-        {/* Demo credentials hint */}
-        <div className="mt-3 text-[11px] text-[var(--muted)]">
-          Use demo access: <b>demo123</b> / <b>Demo321#</b>
-        </div>
+
 
         {/* Form */}
         <form onSubmit={onSubmit} className="mt-6 space-y-3 text-left">
