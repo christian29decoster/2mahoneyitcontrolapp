@@ -3,7 +3,10 @@ import { listUsers, upsertUser, toggleActive, removeUser } from '@/lib/demo-user
 
 function isAdmin(req: NextRequest){
   const cookie = req.headers.get('cookie') || '';
-  return /demo_role=admin/.test(cookie);
+  console.log('Cookie header:', cookie);
+  const isAdminUser = /demo_role=admin/.test(cookie);
+  console.log('Is admin:', isAdminUser);
+  return isAdminUser;
 }
 
 export async function GET(req: NextRequest){

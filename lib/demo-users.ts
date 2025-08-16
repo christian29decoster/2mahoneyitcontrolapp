@@ -23,9 +23,16 @@ export function findUser(username: string){ return users.find(u => u.username ==
 export function upsertUser(u: Partial<DemoUser> & {username: string, password?: string}){
   const existing = users.find(x => x.username === u.username);
   if (existing) {
-    Object.assign(existing, u);
+    // Update existing user
+    Object.assign(existing, {
+      ...u,
+      id: existing.id, // Keep existing ID
+      createdAtISO: existing.createdAtISO // Keep original creation date
+    });
     return existing;
   }
+  
+  // Create new user
   const nu: DemoUser = {
     id: 'u-' + Math.random().toString(36).slice(2,9),
     username: u.username,

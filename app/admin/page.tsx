@@ -26,42 +26,105 @@ export default function AdminPage(){
 
   async function loadAll(){
     setLoading(true);
-    const [u, a] = await Promise.all([
-      fetch('/api/demo/users').then(r=>r.json()).catch(()=>({items:[]})),
-      fetch('/api/demo/audit').then(r=>r.json()).catch(()=>({items:[]})),
-    ]);
-    setUsers(u.items||[]);
-    setAudit(a.items||[]);
-    setLoading(false);
+    try {
+      const [u, a] = await Promise.all([
+        fetch('/api/demo/users').then(r=>r.json()).catch(()=>({items:[]})),
+        fetch('/api/demo/audit').then(r=>r.json()).catch(()=>({items:[]})),
+      ]);
+      
+      console.log('Users response:', u);
+      console.log('Audit response:', a);
+      
+      setUsers(u.items||[]);
+      setAudit(a.items||[]);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      alert('Failed to load data. Please refresh the page.');
+    } finally {
+      setLoading(false);
+    }
   }
   useEffect(()=>{ loadAll(); }, []);
 
   async function addUser(){
-    await fetch('/api/demo/users', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(form),
-    });
-    setForm({ username:'', password:'Mahoney#1', role:'sales', expiresAtISO:'' });
-    loadAll();
+    if (!form.username.trim()) {
+      alert('Username is required');
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/demo/users', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(form),
+      });
+      
+      if (response.ok) {
+        setForm({ username:'', password:'Mahoney#1', role:'sales', expiresAtISO:'' });
+        await loadAll();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || 'Failed to create user'}`);
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      alert('Failed to create user. Please try again.');
+    }
   }
   async function setActive(id:string, v:boolean){
-    await fetch('/api/demo/users', {
-      method:'PATCH',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ op:'toggle', id, active:v }),
-    });
-    loadAll();
+    try {
+      const response = await fetch('/api/demo/users', {
+        method:'PATCH',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ op:'toggle', id, active:v }),
+      });
+      
+      if (response.ok) {
+        await loadAll();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || 'Failed to update user'}`);
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert('Failed to update user. Please try again.');
+    }
   }
+  
   async function delUser(id:string){
-    await fetch('/api/demo/users?id='+encodeURIComponent(id), { method:'DELETE' });
-    loadAll();
+    if (!confirm('Are you sure you want to delete this user?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/demo/users?id=${encodeURIComponent(id)}`, {
+        method:'DELETE',
+      });
+      
+      if (response.ok) {
+        await loadAll();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error || 'Failed to delete user'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user. Please try again.');
+    }
   }
 
   // guard: only admins
   useEffect(()=>{
     const roleCookie = (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1]||'').toLowerCase();
-    if (roleCookie !== 'admin') window.location.assign('/');
+    console.log('Current role cookie:', roleCookie);
+    console.log('All cookies:', document.cookie);
+    
+    if (roleCookie !== 'admin') {
+      console.log('Access denied. Redirecting...');
+      window.location.assign('/');
+    } else {
+      console.log('Admin access granted');
+    }
   }, []);
 
   return (
