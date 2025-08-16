@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { checkDemoCredentials } from '@/lib/demo-auth'
+import { checkCredentials } from '@/lib/demo-auth'
 import { useHaptics } from '@/hooks/useHaptics'
 
 export default function LoginPage() {
@@ -17,12 +17,29 @@ export default function LoginPage() {
     setBusy(true)
     h.impact('medium')
 
-    if (checkDemoCredentials(u, p)) {
-      // demo cookie for 30 minutes
-      document.cookie = `demo_authed=1; Max-Age=1800; Path=/; SameSite=Lax`
-      h.success()
-      window.location.assign('/')
-    } else {
+          const session = checkCredentials(u, p)
+      if (session) {
+        // demo cookies for 30 minutes
+        document.cookie = `demo_authed=1; Max-Age=1800; Path=/; SameSite=Lax`
+        document.cookie = `demo_user=${u}; Max-Age=1800; Path=/; SameSite=Lax`
+        document.cookie = `demo_role=${session.role}; Max-Age=1800; Path=/; SameSite=Lax`
+        
+        // send audit (timezone + ua). The server will add masked IP.
+        try {
+          await fetch('/api/demo/audit', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+              username: u,
+              tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              ua: navigator.userAgent
+            })
+          });
+        } catch {}
+        
+        h.success()
+        window.location.assign('/')
+      } else {
       setErr('Invalid username or password.')
       h.impact('heavy')
       setBusy(false)

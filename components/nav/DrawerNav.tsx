@@ -50,6 +50,18 @@ export default function DrawerNav({
               <span className="text-sm">{label}</span>
             </Link>
           ))}
+          
+          {/* Admin Link - Only visible for admin users */}
+          {typeof document !== 'undefined' && (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1]||'').toLowerCase() === 'admin' && (
+            <Link
+              href="/admin"
+              onClick={handleNavClick}
+              className="flex items-center gap-3 px-2 py-2 rounded-xl border border-[var(--border)] hover:border-[rgba(59,130,246,.35)] hover:text-[var(--primary)] transition-colors text-[var(--text)]"
+            >
+              <span className="h-5 w-5 grid place-items-center rounded bg-[var(--surface-2)]">🛠️</span>
+              <span className="text-sm">Admin</span>
+            </Link>
+          )}
         </nav>
         
         {/* Logout Button */}
