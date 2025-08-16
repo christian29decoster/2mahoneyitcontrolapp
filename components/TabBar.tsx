@@ -1,85 +1,82 @@
 'use client'
 
-import { Home, Monitor, Building, User, ShoppingBag, FileText, TrendingUp, FolderOpen } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { useAuditStore } from '@/lib/store'
+import { 
+  Home, 
+  Shield, 
+  Building2, 
+  FileText, 
+  FolderOpen, 
+  User,
+  TrendingUp
+} from 'lucide-react'
+import { useHaptics } from '@/hooks/useHaptics'
 
 const tabs = [
-  { href: '/', icon: Home, label: 'Dashboard' },
-  { href: '/devices', icon: Monitor, label: 'Devices' },
-  { href: '/company', icon: Building, label: 'Company' },
-  { href: '/contracts', icon: FileText, label: 'Contracts' },
-  { href: '/projects', icon: FolderOpen, label: 'Projects' },
-  { href: '/upselling', icon: TrendingUp, label: 'Enhance' },
-  { href: '/profile', icon: User, label: 'Profile' },
-  { href: '/marketplace', icon: ShoppingBag, label: 'Marketplace' }
+  { path: '/', icon: Home, label: 'Dashboard' },
+  { path: '/devices', icon: Shield, label: 'Devices' },
+  { path: '/company', icon: Building2, label: 'Company' },
+  { path: '/contracts', icon: FileText, label: 'Contracts' },
+  { path: '/projects', icon: FolderOpen, label: 'Projects' },
+  { path: '/marketplace', icon: TrendingUp, label: 'Marketplace' },
+  { path: '/profile', icon: User, label: 'Profile' },
 ]
 
 export default function TabBar() {
-  const path = usePathname()
-  const { unprotected, stale, quarantined } = useAuditStore(s => s.auditCounts);
+  const pathname = usePathname()
+  const router = useRouter()
+  const h = useHaptics()
 
-  const dangerCount = unprotected + quarantined;
-  const warnCount   = stale;
-  const total       = dangerCount + warnCount;
+  const handleTabClick = (path: string) => {
+    h.impact('light')
+    router.push(path)
+  }
 
-  // Farbe bestimmen
-  const badgeColor = dangerCount > 0 ? 'bg-red-500'
-                   : warnCount   > 0 ? 'bg-yellow-500'
-                   : null;
-  
   return (
-    <div className="fixed bottom-2 left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-[392px]">
-      <div className="backdrop-blur-md bg-[rgba(17,23,42,.6)] border border-[var(--border)] rounded-[24px] px-2 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,.45)]">
-        <nav className="grid grid-cols-8">
-          {tabs.map(({ href, icon: Icon }) => {
-            const active = path === href
-            const isDevices = href === '/devices';
-            const isDashboard = href === '/';
-            const allOk = total === 0;
-
-            return (
-              <Link key={href} href={href} className="relative flex items-center justify-center py-2">
-                <div className="relative">
-                  {active && (
-                    <motion.span
-                      layoutId="tab-blob"
-                      className="absolute inset-0 rounded-full -z-10"
-                      style={{ 
-                        background: 'rgba(79,119,255,.18)', 
-                        boxShadow: '0 0 0 1px rgba(79,119,255,.25)' 
-                      }}
-                    />
-                  )}
-                  <Icon 
-                    size={20} 
-                    className={active ? 'text-[var(--primary)]' : 'text-[var(--muted)]'} 
-                  />
-
-                  {/* Badge nur am Devices-Tab */}
-                  {isDevices && total > 0 && badgeColor && (
-                    <motion.span
-                      initial={{ scale:0, opacity:0 }}
-                      animate={{ scale:1, opacity:1 }}
-                      transition={{ type:'spring', stiffness:420, damping:22 }}
-                      className={`absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full ${badgeColor} text-white text-[10px] leading-[18px] text-center shadow-[0_0_0_1px_rgba(255,255,255,.15)]`}
-                    >
-                      {total > 99 ? '99+' : total}
-                    </motion.span>
-                  )}
-
-                  {/* Grüner Status-Punkt am Dashboard-Tab */}
-                  {isDashboard && allOk && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[var(--success)] shadow-[0_0_0_1px_rgba(255,255,255,.15)]" />
-                  )}
-                </div>
-              </Link>
-            )
-          })}
-        </nav>
+    <motion.div 
+      className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50"
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+    >
+      <div className="flex items-center bg-[#1C1C1E]/90 backdrop-blur-xl border border-[#2C2C2E] rounded-2xl px-2 py-2 shadow-2xl">
+        {tabs.map((tab) => {
+          const isActive = pathname === tab.path
+          const Icon = tab.icon
+          
+          return (
+            <motion.button
+              key={tab.path}
+              onClick={() => handleTabClick(tab.path)}
+              className={`relative p-3 rounded-xl transition-all duration-200 ${
+                isActive 
+                  ? 'text-[#3B82F6] bg-[#3B82F6]/10' 
+                  : 'text-[#8E8E93] hover:text-[#A1A1A6] hover:bg-[#2C2C2E]/50'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Icon size={20} />
+              
+              {/* Active indicator */}
+              {isActive && (
+                <motion.div
+                  className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#3B82F6] rounded-full"
+                  layoutId="activeTab"
+                  initial={false}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
+              
+              {/* Tooltip on hover */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-[#1C1C1E] text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                {tab.label}
+              </div>
+            </motion.button>
+          )
+        })}
       </div>
-    </div>
+    </motion.div>
   )
 }

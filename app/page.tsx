@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { StatTile } from '@/components/StatTile'
 import { Recommendation } from '@/components/Recommendation'
 import { HapticButton } from '@/components/HapticButton'
-import { Card } from '@/components/Card'
+import Card from '@/components/ui/Card'
 import { Badge } from '@/components/Badge'
 import { AlertItem } from '@/components/AlertItem'
 import { MiniMap } from '@/components/MiniMap'
@@ -20,6 +20,9 @@ import { useHaptics } from '@/hooks/useHaptics'
 import ServiceCockpitCard from '@/components/cockpit/ServiceCockpitCard'
 import ServiceCockpitSheet from '@/components/cockpit/ServiceCockpitSheet'
 import { useAuditStore } from '@/lib/store'
+import UpgradeBanner from '@/components/dashboard/UpgradeBanner'
+import KpiGrid from '@/components/dashboard/KpiGrid'
+import FabAudit from '@/components/audit/FabAudit'
 
 export default function DashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<any>(null)
@@ -103,17 +106,9 @@ export default function DashboardPage() {
           </h1>
         </motion.div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          {statsData.map((stat) => (
-            <StatTile
-              key={stat.label}
-              label={stat.label}
-              value={stat.value}
-              change={stat.change}
-              trend={stat.trend}
-            />
-          ))}
+        {/* KPI Grid */}
+        <div className="mt-4">
+          <KpiGrid />
         </div>
 
         {/* Enhanced Quick Audit Block */}
@@ -348,6 +343,9 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* FAB Audit */}
+      <FabAudit />
 
       {/* Toast Manager */}
       <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">

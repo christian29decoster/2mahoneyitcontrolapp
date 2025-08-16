@@ -1,6 +1,6 @@
 'use client'
 
-import TabBar from './TabBar'
+import BottomNav from './nav/BottomNav'
 import { GlobalHeader } from './GlobalHeader'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
@@ -27,7 +27,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <Plus size={18} />
       </motion.button>
       <Copilot />
-      <TabBar />
+      <BottomNav />
     </div>
   )
 }
