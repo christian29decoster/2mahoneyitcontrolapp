@@ -22,6 +22,7 @@ import ServiceCockpitSheet from '@/components/cockpit/ServiceCockpitSheet'
 import { useAuditStore } from '@/lib/store'
 import UpgradeBanner from '@/components/dashboard/UpgradeBanner'
 import KpiGrid from '@/components/dashboard/KpiGrid'
+import CloudTiles from '@/components/dashboard/CloudTiles'
 import FabAudit from '@/components/audit/FabAudit'
 
 export default function DashboardPage() {
@@ -109,6 +110,12 @@ export default function DashboardPage() {
         {/* KPI Grid */}
         <div className="mt-4">
           <KpiGrid />
+        </div>
+
+        {/* Cloud Security Posture */}
+        <div className="mt-4">
+          <div className="text-base font-semibold mb-3">Cloud Security Posture</div>
+          <CloudTiles onOpen={() => window.location.assign('/cloud')} />
         </div>
 
         {/* Enhanced Quick Audit Block */}

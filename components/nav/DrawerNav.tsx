@@ -34,6 +34,7 @@ export default function DrawerNav({
             { href: '/', label: 'Dashboard', icon: Home },
             { href: '/devices', label: 'Devices & Staff', icon: Shield },
             { href: '/company', label: 'Company', icon: Building2 },
+            { href: '/cloud', label: 'Cloud Security', icon: Shield },
             { href: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
             { href: '/contracts', label: 'Contracts', icon: FileText },
             { href: '/projects', label: 'Projects', icon: FolderOpen },
