@@ -52,6 +52,15 @@ export default function MahoneyGrowPage() {
 
   const scenarioLabel = Object.values(applied).some(Boolean) ? 'Optimized' : 'Baseline'
 
+  const technicalInsights = useMemo(
+    () => GROW_INSIGHTS.filter(i => i.category === 'Technical'),
+    []
+  )
+  const businessInsights = useMemo(
+    () => GROW_INSIGHTS.filter(i => i.category === 'Business'),
+    []
+  )
+
   const openInsight = (ins: GrowInsight) => {
     h.impact('light')
     setSelected(ins)
@@ -153,13 +162,15 @@ export default function MahoneyGrowPage() {
         </Card>
       </motion.div>
 
-      <motion.div variants={stagger} className="space-y-3">
+      <motion.div variants={stagger} className="space-y-5">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-[var(--text)]">AI Insights</h2>
+            <h2 className="text-base font-semibold text-[var(--text)]">
+              AI Insights – Technical
+            </h2>
             <p className="text-xs text-[var(--muted)]">
-              Für Unternehmer gedacht: Jede Karte zeigt, wie ein Security-Signal in einen
-              konkreten Effizienz- oder Wachstumshebel übersetzt wird.
+              Wie Security- und Operationsdaten genutzt werden, um das technologische
+              Fundament zu stabilisieren und effizienter zu machen.
             </p>
           </div>
           <div className="text-xs text-[var(--muted)]">
@@ -171,7 +182,7 @@ export default function MahoneyGrowPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {GROW_INSIGHTS.map(ins => {
+          {technicalInsights.map(ins => {
             const isApplied = !!applied[ins.id]
             const primaryValue = metrics[ins.primaryMetric]
             return (
@@ -190,9 +201,11 @@ export default function MahoneyGrowPage() {
                         {ins.short}
                       </div>
                     </div>
-                    <Badge variant={isApplied ? 'accent' : 'secondary'}>
-                      {isApplied ? 'Applied' : 'Demo'}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={isApplied ? 'accent' : 'secondary'}>
+                        {isApplied ? 'Applied' : 'Demo'}
+                      </Badge>
+                    </div>
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-3">
@@ -220,6 +233,70 @@ export default function MahoneyGrowPage() {
               </button>
             )
           })}
+        </div>
+
+        <div className="pt-2">
+          <h2 className="text-base font-semibold text-[var(--text)] mb-1">
+            AI Insights – Business
+          </h2>
+          <p className="text-xs text-[var(--muted)] mb-3">
+            Wie aus denselben Security-/Eventdaten konkrete Hebel für Marge, Auslastung
+            und Wachstum abgeleitet werden.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {businessInsights.map(ins => {
+              const isApplied = !!applied[ins.id]
+              const primaryValue = metrics[ins.primaryMetric]
+              return (
+                <button
+                  key={ins.id}
+                  onClick={() => openInsight(ins)}
+                  className="text-left"
+                >
+                  <Card className="p-4 hover:border-[rgba(59,130,246,.35)] transition-colors">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-[var(--text)] truncate">
+                          {ins.title}
+                        </div>
+                        <div className="mt-1 text-xs text-[var(--muted)]">
+                          {ins.short}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">Business</Badge>
+                        <Badge variant={isApplied ? 'accent' : 'secondary'}>
+                          {isApplied ? 'Applied' : 'Demo'}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-3">
+                      <div>
+                        <div className="text-[10px] uppercase tracking-wide text-[var(--muted)]">
+                          Primary signal
+                        </div>
+                        <div className="text-sm font-medium text-[var(--text)]">
+                          {formatMetricValue(ins.primaryMetric, primaryValue)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] uppercase tracking-wide text-[var(--muted)]">
+                          Expected impact
+                        </div>
+                        <div className="text-sm font-medium text-[var(--text)]">
+                          {ins.impact
+                            .slice(0, 1)
+                            .map(e => `${e.delta > 0 ? '+' : ''}${e.delta}${e.unit ?? ''}`)
+                            .join(', ')}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         <Card className="p-4">

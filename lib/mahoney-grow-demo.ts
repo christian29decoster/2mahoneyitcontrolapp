@@ -33,6 +33,7 @@ export type GrowInsightId =
 
 export type GrowInsight = {
   id: GrowInsightId
+  category: 'Technical' | 'Business'
   title: string
   short: string
   whatOptimizes: string[]
@@ -73,6 +74,7 @@ export const GROW_DEMO_BASELINE: GrowMetrics = {
 export const GROW_INSIGHTS: GrowInsight[] = [
   {
     id: 'reduce-mttr',
+    category: 'Technical',
     title: 'Reduce MTTR with routing + runbooks',
     short: 'Prioritize incidents, shorten handoffs, and standardize response.',
     primaryMetric: 'mttrHours',
@@ -96,6 +98,7 @@ export const GROW_INSIGHTS: GrowInsight[] = [
   },
   {
     id: 'cut-false-positives',
+    category: 'Technical',
     title: 'Cut false positives using correlation + tuning',
     short: 'Reduce analyst load by deduplicating noisy alert sources.',
     primaryMetric: 'falsePositivePct',
@@ -119,6 +122,7 @@ export const GROW_INSIGHTS: GrowInsight[] = [
   },
   {
     id: 'increase-patch-compliance',
+    category: 'Technical',
     title: 'Increase patch compliance to reduce vulnerability pressure',
     short: 'Close exposure windows by tightening patch SLA coverage.',
     primaryMetric: 'patchCompliancePct',
@@ -136,6 +140,7 @@ export const GROW_INSIGHTS: GrowInsight[] = [
   },
   {
     id: 'raise-rmm-automation',
+    category: 'Business',
     title: 'Raise RMM automation for repeatable ops',
     short: 'Automate recurring tickets and cross-system workflows, not just IT tasks.',
     primaryMetric: 'rmmAutomationPct',
@@ -159,6 +164,7 @@ export const GROW_INSIGHTS: GrowInsight[] = [
   },
   {
     id: 'optimize-cost-to-risk',
+    category: 'Business',
     title: 'Optimize cost-to-risk (security spend effectiveness)',
     short: 'Align spend with measured risk drivers and reduce waste.',
     primaryMetric: 'securitySpendPctOfRevenue',
@@ -181,6 +187,7 @@ export const GROW_INSIGHTS: GrowInsight[] = [
   },
   {
     id: 'reduce-churn-risk',
+    category: 'Business',
     title: 'Reduce churn risk via service quality signals',
     short: 'Use operational KPIs to protect recurring revenue.',
     primaryMetric: 'clientChurnPct',
