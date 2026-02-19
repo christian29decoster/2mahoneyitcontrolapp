@@ -1,7 +1,7 @@
-'use client'
+ 'use client'
 
 import Link from 'next/link'
-import { Home, Shield, Building2, ShoppingBag, FileText, User, FolderOpen, TrendingUp } from 'lucide-react'
+import { Home, Shield, Building2, ShoppingBag, FileText, User, FolderOpen, TrendingUp, LineChart } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
 import LogoutButton from '@/components/auth/LogoutButton'
 
@@ -35,6 +35,7 @@ export default function DrawerNav({
             { href: '/devices', label: 'Devices & Staff', icon: Shield },
             { href: '/company', label: 'Company', icon: Building2 },
             { href: '/cloud', label: 'Cloud Security', icon: Shield },
+            { href: '/mahoney-grow', label: 'Mahoney Grow', icon: LineChart },
             { href: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
             { href: '/contracts', label: 'Contracts', icon: FileText },
             { href: '/projects', label: 'Projects', icon: FolderOpen },

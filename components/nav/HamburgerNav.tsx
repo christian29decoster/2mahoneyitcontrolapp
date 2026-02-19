@@ -1,8 +1,8 @@
-"use client"
+ "use client"
 
 import { useState } from "react"
 import Link from "next/link"
-import { Menu, Home, Shield, Building2, ShoppingBag, User, FileText, FolderOpen, TrendingUp } from "lucide-react"
+import { Menu, Home, Shield, Building2, ShoppingBag, User, FileText, FolderOpen, TrendingUp, LineChart } from "lucide-react"
 import { useHaptics } from "@/hooks/useHaptics"
 import { useUIStore } from "@/lib/ui.store"
 import { usePathname } from "next/navigation"
@@ -61,6 +61,7 @@ export default function HamburgerNav() {
                   { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
                   { href: "/contracts", icon: FileText, label: "Contracts" },
                   { href: "/projects", icon: FolderOpen, label: "Projects" },
+                  { href: "/mahoney-grow", icon: LineChart, label: "Mahoney Grow" },
                   { href: "/profile", icon: User, label: "Profile" },
                   { href: "/upselling", icon: TrendingUp, label: "Enhance" },
                 ].map(({ href, icon: Icon, label }) => (

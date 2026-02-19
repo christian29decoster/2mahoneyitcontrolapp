@@ -1,6 +1,6 @@
-"use client"
+ "use client"
 
-import { Home, Shield, Building2, FileText, FolderOpen, User, TrendingUp } from "lucide-react"
+import { Home, Shield, Building2, FileText, FolderOpen, User, TrendingUp, LineChart } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
@@ -13,6 +13,7 @@ const TABS = [
   { href: "/company", icon: Building2, label: "Company" },
   { href: "/contracts", icon: FileText, label: "Contracts" },
   { href: "/projects", icon: FolderOpen, label: "Projects" },
+  { href: "/mahoney-grow", icon: LineChart, label: "Mahoney Grow" },
   { href: "/marketplace", icon: TrendingUp, label: "Marketplace" },
   { href: "/profile", icon: User, label: "Profile" },
 ]
