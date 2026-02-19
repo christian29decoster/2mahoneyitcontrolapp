@@ -24,6 +24,8 @@ import UpgradeBanner from '@/components/dashboard/UpgradeBanner'
 import KpiGrid from '@/components/dashboard/KpiGrid'
 import CloudTiles from '@/components/dashboard/CloudTiles'
 import FabAudit from '@/components/audit/FabAudit'
+import { GROW_DEMO_BASELINE, growAiScore } from '@/lib/mahoney-grow-demo'
+import { LineChart } from 'lucide-react'
 
 export default function DashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<any>(null)
@@ -118,6 +120,35 @@ export default function DashboardPage() {
           <CloudTiles onOpen={() => window.location.assign('/cloud')} />
         </div>
 
+        {/* Mahoney Grow Teaser */}
+        <motion.div variants={stagger}>
+          <Card className="p-4 bg-gradient-to-r from-[var(--primary)]/5 to-[var(--primary-600)]/5 border-[var(--primary)]/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/20 flex items-center justify-center shrink-0">
+                  <LineChart className="w-5 h-5 text-[var(--primary)]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-[var(--text)]">Mahoney Grow</h3>
+                  <p className="text-sm text-[var(--muted)] mt-0.5">
+                    Business Growth powered by Security Data – turn SOC & SIEM signals into growth levers for your customers.
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs text-[var(--muted)]">Security-to-Growth Score:</span>
+                    <Badge variant="accent">{growAiScore(GROW_DEMO_BASELINE).score}/100</Badge>
+                  </div>
+                </div>
+              </div>
+              <HapticButton
+                label="Open Mahoney Grow"
+                onClick={() => window.location.assign('/mahoney-grow')}
+                variant="surface"
+                className="shrink-0"
+              />
+            </div>
+          </Card>
+        </motion.div>
+
         {/* Enhanced Quick Audit Block */}
         <QuickAuditBlock />
 
@@ -169,6 +200,25 @@ export default function DashboardPage() {
               <HapticButton
                 label="Learn More"
                 onClick={() => window.location.href = '/upselling'}
+                variant="surface"
+                className="text-xs"
+              />
+            </div>
+
+            <div className="p-3 bg-gradient-to-r from-[var(--success)]/10 to-[var(--success)]/10 border border-[var(--success)]/20 rounded-[16px]">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-6 h-6 bg-[var(--success)]/20 rounded-[6px] flex items-center justify-center">
+                  <LineChart className="w-3 h-3 text-[var(--success)]" />
+                </div>
+                <span className="text-sm font-medium text-[var(--text)]">Mahoney Grow</span>
+                <Badge variant="accent" className="text-xs">Growth</Badge>
+              </div>
+              <p className="text-xs text-[var(--muted)] mb-2">
+                Business Growth from Security & SIEM data
+              </p>
+              <HapticButton
+                label="Open Grow"
+                onClick={() => window.location.href = '/mahoney-grow'}
                 variant="surface"
                 className="text-xs"
               />
