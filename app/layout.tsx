@@ -22,7 +22,7 @@ export default function RootLayout({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}
-                className="safe p-4 pb-8"
+                className="safe px-4 pt-3 pb-8"
               >
                 {children}
               </motion.main>
