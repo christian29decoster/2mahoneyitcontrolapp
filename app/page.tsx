@@ -91,7 +91,7 @@ export default function DashboardPage() {
     <>
       {viewMode === 'desktop' ? (
         <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
-          {/* Desktop: Header row */}
+          {/* Desktop: Header + Executive summary */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-[var(--text)]">
@@ -129,24 +129,40 @@ export default function DashboardPage() {
 
           {view === 'customer' ? (
             <>
-              {/* KPI row – 6 tiles */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <KpiTile label="Active Alerts" value={String(stats.activeAlerts)} trend={{ delta: `+${stats.trend.alerts}`, positive: false }} />
-                <KpiTile label="Offline Devices" value={String(stats.offlineDevices)} trend={{ delta: String(stats.trend.offline), positive: true }} />
-                <KpiTile label="MTTR" value={`${stats.mttrHours}h`} trend={{ delta: `${stats.trend.mttr}h`, positive: true }} />
-                <KpiTile label="Coverage" value={`${stats.coveragePct}%`} trend={{ delta: `+${stats.trend.coverage}%`, positive: true }} />
-                <KpiTile label="Open Incidents" value="2" trend={{ delta: '0', positive: true }} />
-                <KpiTile label="Compliance" value="78%" trend={{ delta: '+3%', positive: true }} />
+              {/* Executive summary – one line for C-level */}
+              <Card className="card-desktop px-5 py-3 bg-[var(--surface-2)]/50 border-[var(--border)]">
+                <p className="text-sm text-[var(--muted)]">
+                  <span className="text-[var(--text)] font-semibold">At a glance:</span>
+                  {' '}{stats.activeAlerts} active alerts · {stats.offlineDevices} offline devices · MTTR {stats.mttrHours}h · Coverage {stats.coveragePct}% · 2 open incidents · Compliance 78%
+                </p>
+              </Card>
+
+              {/* KPI row – 6 tiles, clear numbers */}
+              <div>
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] mb-3">Key metrics</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  <KpiTile label="Active Alerts" value={String(stats.activeAlerts)} trend={{ delta: `+${stats.trend.alerts}`, positive: false }} />
+                  <KpiTile label="Offline Devices" value={String(stats.offlineDevices)} trend={{ delta: String(stats.trend.offline), positive: true }} />
+                  <KpiTile label="MTTR" value={`${stats.mttrHours}h`} trend={{ delta: `${stats.trend.mttr}h`, positive: true }} />
+                  <KpiTile label="Coverage" value={`${stats.coveragePct}%`} trend={{ delta: `+${stats.trend.coverage}%`, positive: true }} />
+                  <KpiTile label="Open Incidents" value="2" trend={{ delta: '0', positive: true }} />
+                  <KpiTile label="Compliance" value="78%" trend={{ delta: '+3%', positive: true }} />
+                </div>
               </div>
 
-              {/* Charts row */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <AlertsChart />
-                <MttrChart />
+              {/* Charts row – with Y-axis and units */}
+              <div>
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] mb-3">Trends (last 7 days)</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <AlertsChart />
+                  <MttrChart />
+                </div>
               </div>
 
-              {/* SIEM-style grid: Alerts + Cloud | Grow + Audit | Cockpit */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Operational detail */}
+              <div>
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] mb-3">Operational detail</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="card-desktop p-5 lg:col-span-2">
                   <h3 className="text-base font-semibold text-[var(--text)] mb-4">Recent Alerts</h3>
                   <div className="space-y-2">
@@ -161,6 +177,7 @@ export default function DashboardPage() {
                     <CloudTiles onOpen={() => window.location.assign('/cloud')} />
                   </div>
                 </div>
+              </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
