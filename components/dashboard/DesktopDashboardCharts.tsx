@@ -34,9 +34,11 @@ export function AlertsChart() {
   const yMax = yTicks[yTicks.length - 1] || 1
   return (
     <Card className="card-desktop p-5 h-full">
-      <h3 className="text-sm font-semibold text-[var(--text)] mb-1">Alerts (last 7 days)</h3>
-      <p className="text-xs text-[var(--muted)] mb-4">Count per day</p>
-      <div className="flex gap-3">
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-[var(--text)]">Alerts (last 7 days)</h3>
+        <p className="text-xs text-[var(--muted)] mt-0.5">Count per day</p>
+      </div>
+      <div className="flex gap-3 pt-1">
         {/* Y-axis */}
         <div className="flex flex-col justify-between text-[10px] text-[var(--muted)] shrink-0 py-0.5" style={{ height: CHART_HEIGHT_PX }}>
           {[...yTicks].reverse().map((tick) => (
@@ -79,9 +81,11 @@ export function MttrChart() {
   const yRange = yMax - yMin || 0.1
   return (
     <Card className="card-desktop p-5 h-full">
-      <h3 className="text-sm font-semibold text-[var(--text)] mb-1">MTTR trend (h)</h3>
-      <p className="text-xs text-[var(--muted)] mb-4">Mean time to resolve · hours</p>
-      <div className="flex gap-3">
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-[var(--text)]">MTTR trend (h)</h3>
+        <p className="text-xs text-[var(--muted)] mt-0.5">Mean time to resolve</p>
+      </div>
+      <div className="flex gap-3 pt-1">
         {/* Y-axis */}
         <div className="flex flex-col justify-between text-[10px] text-[var(--muted)] shrink-0 py-0.5" style={{ height: CHART_HEIGHT_PX }}>
           {[...yTicks].reverse().map((tick) => (
