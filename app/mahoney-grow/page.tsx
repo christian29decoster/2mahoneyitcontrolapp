@@ -18,6 +18,7 @@ import { Sheet } from '@/components/Sheets'
 import { useHaptics } from '@/hooks/useHaptics'
 import { ToastManager, type ToastType } from '@/components/Toasts'
 import { HapticButton } from '@/components/HapticButton'
+import { useActivityStore } from '@/lib/activity.store'
 
 function formatMetricValue(metric: string, value: number) {
   if (metric.endsWith('USD')) {
@@ -34,6 +35,7 @@ function formatMetricValue(metric: string, value: number) {
 
 export default function MahoneyGrowPage() {
   const h = useHaptics()
+  const addActivity = useActivityStore((s) => s.addActivity)
   const [selected, setSelected] = useState<GrowInsight | null>(null)
   const [applied, setApplied] = useState<Partial<Record<GrowInsightId, boolean>>>({})
   const [businessSheetOpen, setBusinessSheetOpen] = useState(false)
@@ -191,7 +193,8 @@ export default function MahoneyGrowPage() {
                   onClick={() => {
                     h.impact('medium')
                     setAiAnalysisRequested(true)
-                    addToast('success', 'AI analysis requested', 'When you enable analysis, we process your log data and calculate potential. Demo only.')
+                    addActivity({ type: 'changed', title: 'AI-Analyse angefordert', message: 'Communication & Call Analysis' })
+                    addToast('success', 'AI analysis requested', 'When you enable analysis, we process your log data and calculate potential.')
                   }}
                 />
               )}

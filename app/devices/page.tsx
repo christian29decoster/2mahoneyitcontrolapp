@@ -13,6 +13,7 @@ import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { FolderOpen } from 'lucide-react'
 import { useAuditStore } from '@/lib/store'
+import { useActivityStore } from '@/lib/activity.store'
 import { DeviceDetailSheet } from '@/components/DeviceDetailSheet'
 
 export default function DevicesPage() {
@@ -25,6 +26,7 @@ export default function DevicesPage() {
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
   const clearAuditCounts = useAuditStore(s => s.clearAuditCounts)
+  const addActivity = useActivityStore((s) => s.addActivity)
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -52,12 +54,14 @@ export default function DevicesPage() {
   
   const handleAddDevice = () => {
     h.impact('medium')
+    addActivity({ type: 'added', title: 'Gerät hinzugefügt', message: 'Plan & Kosten aktualisiert' })
     addToast('success', 'Device added. Plan & costs updated.')
     setIsAddDeviceOpen(false)
   }
   
   const handleAddStaff = () => {
     h.impact('medium')
+    addActivity({ type: 'added', title: 'Mitarbeiter hinzugefügt' })
     addToast('success', 'Staff added.')
     setIsAddStaffOpen(false)
   }
@@ -74,6 +78,7 @@ export default function DevicesPage() {
     setTimeout(() => {
       setIsRemapLoading(false)
       h.success()
+      addActivity({ type: 'changed', title: 'Geräte-Mapping aktualisiert', message: '24 Geräte zugeordnet' })
       addToast('success', 'Mapping successful. 24 devices updated.')
     }, 2000)
   }
@@ -96,12 +101,14 @@ export default function DevicesPage() {
 
   const handleSendMessage = () => {
     h.impact('light')
+    addActivity({ type: 'changed', title: 'Nachricht an Gerätenutzer gesendet' })
     addToast('success', 'Message Sent', 'Message sent to device user.')
     setSelectedDevice(null)
   }
 
   const handleIsolateDevice = () => {
     h.impact('heavy')
+    addActivity({ type: 'changed', title: 'Gerät isoliert', message: 'Vom Netzwerk getrennt' })
     addToast('warning', 'Device Isolated', 'Device has been isolated from network.')
     setSelectedDevice(null)
   }

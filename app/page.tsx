@@ -20,6 +20,7 @@ import { useHaptics } from '@/hooks/useHaptics'
 import ServiceCockpitCard from '@/components/cockpit/ServiceCockpitCard'
 import ServiceCockpitSheet from '@/components/cockpit/ServiceCockpitSheet'
 import { useAuditStore } from '@/lib/store'
+import { useActivityStore } from '@/lib/activity.store'
 import UpgradeBanner from '@/components/dashboard/UpgradeBanner'
 import KpiGrid from '@/components/dashboard/KpiGrid'
 import CloudTiles from '@/components/dashboard/CloudTiles'
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
+  const addActivity = useActivityStore((s) => s.addActivity)
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -59,12 +61,14 @@ export default function DashboardPage() {
   
   const handleSendMessage = (message: string) => {
     h.success()
+    addActivity({ type: 'changed', title: 'Nachricht an SOC gesendet', message: 'Alert-Konversation' })
     addToast('success', 'Message sent to Mahoney SOC')
     setSelectedAlert(null)
   }
   
   const handleUpgradePreview = () => {
     h.impact('medium')
+    addActivity({ type: 'changed', title: 'Upgrade angefordert', message: 'Tarif-Wechsel initiiert' })
     addToast('info', 'Upgrade Preview', 'This would initiate the upgrade process in production.')
     setIsUpgradeSheetOpen(false)
   }

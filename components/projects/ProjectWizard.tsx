@@ -7,6 +7,7 @@ import { HapticButton } from '../HapticButton'
 import { Badge } from '../Badge'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useProjectsStore } from '@/lib/projects.store'
+import { useActivityStore } from '@/lib/activity.store'
 import { categorySubcategories, projectCostEstimates } from '@/lib/projects'
 import { formatCurrency } from '@/lib/pricing'
 import { 
@@ -70,6 +71,7 @@ export function ProjectWizard({ isOpen, onClose, preselectedCategory }: ProjectW
 
   const h = useHaptics()
   const { addProject } = useProjectsStore()
+  const addActivity = useActivityStore((s) => s.addActivity)
 
   const categories = [
     { key: 'Building Cabling', label: 'Building Cabling', icon: Building },
@@ -131,6 +133,7 @@ export function ProjectWizard({ isOpen, onClose, preselectedCategory }: ProjectW
     }
 
     addProject(newProject)
+    addActivity({ type: 'added', title: 'Projekt angelegt', message: newProject.title })
     onClose()
     setStep(1)
     setForm({

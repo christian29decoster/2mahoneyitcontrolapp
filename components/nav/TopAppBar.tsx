@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Menu } from 'lucide-react'
 import { useUIStore } from '@/lib/ui.store'
 import DrawerNav from './DrawerNav'
+import NotificationBell from '@/components/NotificationBell'
 import { useHaptics } from '@/hooks/useHaptics'
 import { usePathname } from 'next/navigation'
 
@@ -39,8 +40,11 @@ export default function TopAppBar() {
 
         {/* Branding / SOC */}
         <div className="text-xs text-[var(--muted)]">Secured by Mahoney IT Group</div>
-        <div className="text-[10px] px-2 py-1 rounded-full bg-emerald-600/20 text-emerald-300 border border-emerald-500/30">
-          SOC-III-US-Team
+        <div className="flex items-center gap-2">
+          <div className="text-[10px] px-2 py-1 rounded-full bg-emerald-600/20 text-emerald-300 border border-emerald-500/30">
+            SOC-III-US-Team
+          </div>
+          <NotificationBell />
         </div>
       </div>
 

@@ -11,6 +11,7 @@ import { UpsellingCard } from '@/components/upselling/UpsellingCard'
 import { BundleCard } from '@/components/upselling/BundleCard'
 import { useContract } from '@/hooks/useContract'
 import { useHaptics } from '@/hooks/useHaptics'
+import { useActivityStore } from '@/lib/activity.store'
 import { 
   upsellingServices, 
   crossSellingBundles, 
@@ -28,6 +29,7 @@ export default function UpsellingPage() {
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const { contract } = useContract()
   const h = useHaptics()
+  const addActivity = useActivityStore((s) => s.addActivity)
 
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -49,6 +51,8 @@ export default function UpsellingPage() {
 
   const handleAddToContract = () => {
     h.success()
+    const name = selectedService?.name ?? selectedBundle?.name
+    addActivity({ type: 'added', title: 'Service / Bundle angefragt', message: name })
     addToast('success', 'Service Added', 'Your request has been submitted for approval.')
     setSelectedService(null)
     setSelectedBundle(null)

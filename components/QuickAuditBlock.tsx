@@ -8,6 +8,7 @@ import { HapticButton } from './HapticButton'
 import { Badge } from './Badge'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useAuditStore } from '@/lib/store'
+import { useActivityStore } from '@/lib/activity.store'
 
 interface AuditResult {
   summary: {
@@ -35,6 +36,7 @@ export function QuickAuditBlock() {
   const [error, setError] = useState<string | null>(null)
   const h = useHaptics()
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
+  const addActivity = useActivityStore((s) => s.addActivity)
 
   const runQuickAudit = async (): Promise<AuditResult> => {
     // Simulate audit process
@@ -108,7 +110,7 @@ export function QuickAuditBlock() {
 
   const handleSendToSOC = () => {
     h.impact('medium')
-    // Simulate sending to SOC
+    addActivity({ type: 'changed', title: 'Audit-Ergebnis an SOC gesendet' })
     setTimeout(() => {
       h.success()
     }, 1000)

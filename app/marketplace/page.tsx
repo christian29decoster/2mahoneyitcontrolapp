@@ -12,6 +12,7 @@ import ServiceDetailsSheet from '@/components/marketplace/ServiceDetailsSheet'
 import CheckoutSummary from '@/components/marketplace/CheckoutSummary'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
+import { useActivityStore } from '@/lib/activity.store'
 
 export default function MarketplacePage() {
   const [selectedService, setSelectedService] = useState<any>(null)
@@ -21,6 +22,7 @@ export default function MarketplacePage() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
+  const addActivity = useActivityStore((s) => s.addActivity)
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -38,6 +40,7 @@ export default function MarketplacePage() {
   
   const handleAddToPlan = (payload: { qty: number; monthlyUSD: number; proratedUSD: number }) => {
     h.impact('medium')
+    addActivity({ type: 'added', title: 'Service in Warenkorb', message: selectedService?.name })
     const newItem = {
       ...selectedService,
       qty: payload.qty,
@@ -53,6 +56,7 @@ export default function MarketplacePage() {
   
   const handleRequestQuote = (payload: { qty: number; monthlyUSD: number; proratedUSD: number }) => {
     h.impact('medium')
+    addActivity({ type: 'changed', title: 'Angebot angefordert', message: selectedService?.name })
     addToast('success', 'Quote Requested', 'Our team will contact you within 24 hours.')
     setSelectedService(null)
     setIsServiceDetailsOpen(false)
@@ -65,6 +69,7 @@ export default function MarketplacePage() {
     } else {
       // Final step - complete checkout
       h.success()
+      addActivity({ type: 'changed', title: 'Bestellung abgeschickt', message: 'Aktivierung durch Team' })
       addToast('success', 'Request Submitted', 'Your request has been submitted. Our team will activate this shortly.')
       setIsCheckoutOpen(false)
       setCheckoutStep(0)

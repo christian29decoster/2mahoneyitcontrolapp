@@ -12,6 +12,7 @@ import { ServiceRow } from '@/components/contracts/ServiceRow'
 import { RequestsList } from '@/components/contracts/RequestsList'
 import { useContract } from '@/hooks/useContract'
 import { useHaptics } from '@/hooks/useHaptics'
+import { useActivityStore } from '@/lib/activity.store'
 import { formatCurrency } from '@/lib/pricing'
 import { stagger } from '@/lib/ui/motion'
 import { TrendingUp } from 'lucide-react'
@@ -23,6 +24,7 @@ export default function ContractsPage() {
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const { contract, requests, loading, submitRequest, withdrawRequest } = useContract()
   const h = useHaptics()
+  const addActivity = useActivityStore((s) => s.addActivity)
 
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -208,6 +210,7 @@ export default function ContractsPage() {
                 label="Withdraw Request"
                 onClick={() => {
                   withdrawRequest(selectedRequest.id)
+                  addActivity({ type: 'changed', title: 'Vertragsanfrage zurückgezogen', message: selectedRequest.reference })
                   setSelectedRequest(null)
                   addToast('info', 'Request Withdrawn', 'Your request has been withdrawn.')
                 }}

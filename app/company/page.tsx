@@ -11,11 +11,13 @@ import { Toast, ToastType } from '@/components/Toasts'
 import { company, demoTenant } from '@/lib/demo'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
+import { useActivityStore } from '@/lib/activity.store'
 
 export default function CompanyPage() {
   const [isAddLocationOpen, setIsAddLocationOpen] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
+  const addActivity = useActivityStore((s) => s.addActivity)
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -27,6 +29,7 @@ export default function CompanyPage() {
   
   const handleAddLocation = () => {
     h.impact('medium')
+    addActivity({ type: 'added', title: 'Standort hinzugefügt' })
     addToast('success', 'Location added successfully')
     setIsAddLocationOpen(false)
   }

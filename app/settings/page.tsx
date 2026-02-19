@@ -6,6 +6,7 @@ import Card from '@/components/ui/Card'
 import { Badge } from '@/components/Badge'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
+import { useActivityStore } from '@/lib/activity.store'
 import { HapticButton } from '@/components/HapticButton'
 import { ConnectorLogo } from '@/components/settings/ConnectorLogo'
 import {
@@ -80,6 +81,7 @@ function SettingsRow({
 export default function SettingsPage() {
   const [connectDialogProvider, setConnectDialogProvider] = useState<string | null>(null)
   const h = useHaptics()
+  const addActivity = useActivityStore((s) => s.addActivity)
 
   const connector = connectDialogProvider ? CONNECTORS.find((c) => c.id === connectDialogProvider) : null
   const providerName = connector?.name ?? connectDialogProvider ?? ''
@@ -157,6 +159,7 @@ export default function SettingsPage() {
                   className="shrink-0 py-2 px-3 text-xs"
                   onClick={() => {
                     h.impact('light')
+                    addActivity({ type: 'changed', title: 'Connect angefordert', message: name })
                     setConnectDialogProvider(id)
                   }}
                 />
