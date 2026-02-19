@@ -26,11 +26,14 @@ import CloudTiles from '@/components/dashboard/CloudTiles'
 import FabAudit from '@/components/audit/FabAudit'
 import { GROW_DEMO_BASELINE, growAiScore } from '@/lib/mahoney-grow-demo'
 import { LineChart } from 'lucide-react'
+import { partnerCustomers, partnerSummary, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
 
 export default function DashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<any>(null)
   const [isUpgradeSheetOpen, setIsUpgradeSheetOpen] = useState(false)
   const [openCockpit, setOpenCockpit] = useState(false)
+  const [view, setView] = useState<'customer' | 'partner'>('customer')
+  const [selectedPartnerCustomer, setSelectedPartnerCustomer] = useState<PartnerCustomer | null>(null)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
@@ -103,57 +106,169 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* Hero Section */}
-        <motion.div className="text-center space-y-3" variants={stagger}>
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--text)]">
-            Your security posture at a glance.
-          </h1>
+        <motion.div className="space-y-4" variants={stagger}>
+          <div className="text-center space-y-3">
+            <h1 className="text-3xl font-bold tracking-tight text-[var(--text)]">
+              Your Mahoney Control Dashboard.
+            </h1>
+            <p className="text-sm text-[var(--muted)]">
+              Switch between a single-customer view and a partner view across all of your
+              customers.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <div className="inline-flex rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+              <button
+                className={`px-4 py-2 text-xs font-medium ${
+                  view === 'customer'
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'text-[var(--text)] hover:bg-[var(--surface-2)]'
+                }`}
+                onClick={() => setView('customer')}
+              >
+                Customer view
+              </button>
+              <button
+                className={`px-4 py-2 text-xs font-medium border-l border-[var(--border)] ${
+                  view === 'partner'
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'text-[var(--text)] hover:bg-[var(--surface-2)]'
+                }`}
+                onClick={() => setView('partner')}
+              >
+                Partner view (MSSP/MSP)
+              </button>
+            </div>
+          </div>
         </motion.div>
 
-        {/* KPI Grid */}
-        <div className="mt-4">
-          <KpiGrid />
-        </div>
+        {view === 'customer' ? (
+          <>
+            {/* KPI Grid */}
+            <div className="mt-4">
+              <KpiGrid />
+            </div>
 
-        {/* Cloud Security Posture */}
-        <div className="mt-4">
-          <div className="text-base font-semibold mb-3">Cloud Security Posture</div>
-          <CloudTiles onOpen={() => window.location.assign('/cloud')} />
-        </div>
+            {/* Cloud Security Posture */}
+            <div className="mt-4">
+              <div className="text-base font-semibold mb-3">Cloud Security Posture</div>
+              <CloudTiles onOpen={() => window.location.assign('/cloud')} />
+            </div>
 
-        {/* Mahoney Grow Teaser */}
-        <motion.div variants={stagger}>
-          <Card className="p-4 bg-gradient-to-r from-[var(--primary)]/5 to-[var(--primary-600)]/5 border-[var(--primary)]/20">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/20 flex items-center justify-center shrink-0">
-                  <LineChart className="w-5 h-5 text-[var(--primary)]" />
+            {/* Mahoney Grow Teaser */}
+            <motion.div variants={stagger}>
+              <Card className="p-4 bg-gradient-to-r from-[var(--primary)]/5 to-[var(--primary-600)]/5 border-[var(--primary)]/20">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/20 flex items-center justify-center shrink-0">
+                      <LineChart className="w-5 h-5 text-[var(--primary)]" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-[var(--text)]">Mahoney Grow</h3>
+                      <p className="text-sm text-[var(--muted)] mt-0.5">
+                        Business Growth powered by Security Data – turn SOC &amp; SIEM signals into growth levers for your customers.
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs text-[var(--muted)]">Security-to-Growth Score:</span>
+                        <Badge variant="accent">{growAiScore(GROW_DEMO_BASELINE).score}/100</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <HapticButton
+                    label="Open Mahoney Grow"
+                    onClick={() => window.location.assign('/mahoney-grow')}
+                    variant="surface"
+                    className="shrink-0"
+                  />
                 </div>
+              </Card>
+            </motion.div>
+
+            {/* Enhanced Quick Audit Block */}
+            <QuickAuditBlock />
+
+            {/* Service Cockpit */}
+            <ServiceCockpitCard onOpen={() => setOpenCockpit(true)} />
+          </>
+        ) : (
+          <>
+            {/* Partner overview */}
+            <Card className="p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-base font-semibold text-[var(--text)]">Mahoney Grow</h3>
-                  <p className="text-sm text-[var(--muted)] mt-0.5">
-                    Business Growth powered by Security Data – turn SOC & SIEM signals into growth levers for your customers.
+                  <h2 className="text-base font-semibold text-[var(--text)]">Partner overview (demo)</h2>
+                  <p className="text-xs text-[var(--muted)] mt-1">
+                    Aggregated view across all managed customers – combining security posture with
+                    commercial metrics.
                   </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs text-[var(--muted)]">Security-to-Growth Score:</span>
-                    <Badge variant="accent">{growAiScore(GROW_DEMO_BASELINE).score}/100</Badge>
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <div className="text-[var(--muted)]">Managed customers</div>
+                    <div className="text-lg font-semibold text-[var(--text)]">
+                      {partnerSummary.totalCustomers}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[var(--muted)]">Total MRR</div>
+                    <div className="text-lg font-semibold text-[var(--text)]">
+                      ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[var(--muted)]">Avg Grow score</div>
+                    <div className="text-lg font-semibold text-[var(--text)]">
+                      {partnerSummary.avgGrowScore}/100
+                    </div>
                   </div>
                 </div>
               </div>
-              <HapticButton
-                label="Open Mahoney Grow"
-                onClick={() => window.location.assign('/mahoney-grow')}
-                variant="surface"
-                className="shrink-0"
-              />
-            </div>
-          </Card>
-        </motion.div>
+            </Card>
 
-        {/* Enhanced Quick Audit Block */}
-        <QuickAuditBlock />
-
-        {/* Service Cockpit */}
-        <ServiceCockpitCard onOpen={() => setOpenCockpit(true)} />
+            {/* Partner customer list */}
+            <Card className="p-4">
+              <h3 className="text-base font-semibold text-[var(--text)] mb-3">
+                Customers – security &amp; growth signals
+              </h3>
+              <div className="space-y-2">
+                {partnerCustomers.map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => {
+                      h.impact('light')
+                      setSelectedPartnerCustomer(c)
+                    }}
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] hover:border-[rgba(59,130,246,.45)] transition-colors">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-[var(--text)] truncate">
+                            {c.name}
+                          </span>
+                          <Badge variant="secondary" className="text-[10px]">
+                            {c.segment}
+                          </Badge>
+                        </div>
+                        <div className="text-[11px] text-[var(--muted)]">
+                          {c.country} • Grow score {c.growScore}/100 • MTTR {c.mttrHours.toFixed(1)}h
+                        </div>
+                      </div>
+                      <div className="text-right text-[11px] text-[var(--muted)]">
+                        <div>MRR ${c.monthlyRecurringRevenueUSD.toLocaleString('en-US')}</div>
+                        <div>Churn risk {c.churnRiskPct.toFixed(1)}%</div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-3 text-[11px] text-[var(--muted)]">
+                In the full product you would jump from here directly into each customer&apos;s
+                tenant and open Mahoney Grow in that context.
+              </p>
+            </Card>
+          </>
+        )}
 
         {/* Upselling Recommendations */}
         <Card>
@@ -355,6 +470,75 @@ export default function DashboardPage() {
                 />
               </div>
             </div>
+          </div>
+        )}
+      </Sheet>
+
+      {/* Partner customer detail sheet (demo) */}
+      <Sheet
+        isOpen={!!selectedPartnerCustomer}
+        onClose={() => setSelectedPartnerCustomer(null)}
+        title={selectedPartnerCustomer ? selectedPartnerCustomer.name : 'Customer'}
+      >
+        {selectedPartnerCustomer && (
+          <div className="space-y-5">
+            <div>
+              <div className="text-sm text-[var(--muted)] mb-1">
+                Segment &amp; commercial summary
+              </div>
+              <div className="text-sm text-[var(--text)]">
+                {selectedPartnerCustomer.segment} • {selectedPartnerCustomer.country}
+              </div>
+              <div className="mt-1 text-sm text-[var(--muted)]">
+                Monthly recurring revenue:{' '}
+                <span className="font-medium text-[var(--text)]">
+                  ${selectedPartnerCustomer.monthlyRecurringRevenueUSD.toLocaleString('en-US')}
+                </span>
+              </div>
+            </div>
+
+            <Card className="p-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <div className="text-[11px] text-[var(--muted)]">Grow score</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">
+                    {selectedPartnerCustomer.growScore}/100
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-[var(--muted)]">Churn risk</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">
+                    {selectedPartnerCustomer.churnRiskPct.toFixed(1)}%
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-[var(--muted)]">Automation score</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">
+                    {selectedPartnerCustomer.automationScorePct}%
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-[var(--muted)]">MTTR</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">
+                    {selectedPartnerCustomer.mttrHours.toFixed(1)}h
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <p className="text-xs text-[var(--muted)]">
+              This is a demo aggregation. In a real tenant you could jump from here
+              directly into the customer&apos;s Mahoney Grow workspace, trigger actions with
+              your SOC and track the business impact over time.
+            </p>
+
+            <HapticButton
+              label="Open Mahoney Grow (demo context)"
+              onClick={() => {
+                h.impact('medium')
+                window.location.assign('/mahoney-grow')
+              }}
+            />
           </div>
         )}
       </Sheet>
