@@ -17,9 +17,14 @@ import {
   Wrench,
   Scale,
   DollarSign,
+  PinOff,
+  Pin,
 } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
+import { useViewModeStore } from '@/lib/viewMode.store'
 import LogoutButton from '@/components/auth/LogoutButton'
+
+export const SIDEBAR_WIDTH_PX = 260
 
 const linkClass =
   'flex items-center gap-3 px-2 py-2 rounded-xl border border-[var(--border)] hover:border-[rgba(59,130,246,.35)] hover:text-[var(--primary)] transition-colors text-[var(--text)]'
@@ -59,23 +64,58 @@ export default function DrawerNav({
   onOpenChange: (v: boolean) => void
 }) {
   const h = useHaptics()
+  const viewMode = useViewModeStore((s) => s.viewMode)
+  const menuPinned = useViewModeStore((s) => s.menuPinned)
+  const setMenuPinned = useViewModeStore((s) => s.setMenuPinned)
 
-  if (!open) return null
+  const isPinnedSidebar = viewMode === 'desktop' && menuPinned
+  const showDrawer = open && !isPinnedSidebar
 
   const handleNavClick = () => {
     h.impact('light')
+    if (!isPinnedSidebar) onOpenChange(false)
+  }
+
+  const handleUnpin = () => {
+    h.impact('light')
+    setMenuPinned(false)
+  }
+
+  const handlePin = () => {
+    h.impact('light')
+    setMenuPinned(true)
     onOpenChange(false)
   }
 
-  return (
-    <div className="fixed inset-0 z-50" onClick={() => onOpenChange(false)}>
-      <div className="absolute inset-0 bg-black/45 backdrop-blur-sm" />
-      <aside
-        onClick={(e) => e.stopPropagation()}
-        className="absolute left-0 top-0 bottom-0 w-[80%] max-w-[340px] bg-[var(--surface)] border-r border-[var(--border)] p-4 overflow-y-auto"
-      >
-        <div className="text-sm font-semibold mb-1 text-[var(--text)]">Menu</div>
-        <nav className="grid gap-1">
+  const sidebarContent = (
+    <>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <span className="text-sm font-semibold text-[var(--text)]">Menu</span>
+        {isPinnedSidebar ? (
+          <button
+            type="button"
+            onClick={handleUnpin}
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
+            aria-label="Menü loslösen"
+          >
+            <PinOff size={14} />
+            Unpin
+          </button>
+        ) : (
+          viewMode === 'desktop' && (
+            <button
+              type="button"
+              onClick={handlePin}
+              className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+              aria-label="Menü anpinnen"
+            >
+              <Pin size={14} />
+              Pin
+            </button>
+          )
+        )}
+      </div>
+      <nav className="grid gap-1">
           <SectionTitle>Operations (Technik)</SectionTitle>
           <NavLink href="/" label="Dashboard" icon={Home} onClick={handleNavClick} />
           <NavLink href="/devices" label="Devices & Staff" icon={Shield} onClick={handleNavClick} />
@@ -109,9 +149,33 @@ export default function DrawerNav({
             )}
         </nav>
 
-        <div className="mt-6 pt-4 border-t border-[var(--border)]">
-          <LogoutButton />
-        </div>
+      <div className="mt-6 pt-4 border-t border-[var(--border)]">
+        <LogoutButton />
+      </div>
+    </>
+  )
+
+  if (isPinnedSidebar) {
+    return (
+      <aside
+        className="fixed left-0 top-12 bottom-0 z-30 w-[260px] bg-[var(--surface)] border-r border-[var(--border)] p-4 overflow-y-auto"
+        style={{ width: SIDEBAR_WIDTH_PX }}
+      >
+        {sidebarContent}
+      </aside>
+    )
+  }
+
+  if (!showDrawer) return null
+
+  return (
+    <div className="fixed inset-0 z-50" onClick={() => onOpenChange(false)}>
+      <div className="absolute inset-0 bg-black/45 backdrop-blur-sm" />
+      <aside
+        onClick={(e) => e.stopPropagation()}
+        className="absolute left-0 top-0 bottom-0 w-[80%] max-w-[340px] bg-[var(--surface)] border-r border-[var(--border)] p-4 overflow-y-auto"
+      >
+        {sidebarContent}
       </aside>
     </div>
   )
