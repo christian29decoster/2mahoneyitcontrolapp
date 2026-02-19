@@ -137,13 +137,19 @@ export const GROW_INSIGHTS: GrowInsight[] = [
   {
     id: 'raise-rmm-automation',
     title: 'Raise RMM automation for repeatable ops',
-    short: 'Automate common tasks and reduce manual maintenance.',
+    short: 'Automate recurring tickets and cross-system workflows, not just IT tasks.',
     primaryMetric: 'rmmAutomationPct',
-    dataSources: ['RMM system', 'Service utilization', 'Incident history'],
-    whatOptimizes: ['Automation coverage', 'Ops labor', 'Standardization'],
+    dataSources: ['RMM system', 'Service utilization', 'Incident history', 'SOC event stream'],
+    whatOptimizes: [
+      'Automation coverage',
+      'Ops labor across service desk & backoffice',
+      'Standardization of onboarding / offboarding',
+      'Elimination of repetitive ticket categories',
+    ],
     why: [
-      'Manual workflows drive inconsistent outcomes across clients and devices.',
-      'Automation directly improves utilization by reducing effort per ticket.',
+      'Event and ticket logs show high volumes of repetitive activities (password resets, onboarding checklists, report exports).',
+      'These patterns are ideal candidates for runbooks, RMM scripts or workflow automation.',
+      'Automation directly improves utilization by reducing effort per ticket and per onboarding.',
     ],
     impact: [
       { metric: 'rmmAutomationPct', label: 'RMM automation', unit: '%', delta: +22 },

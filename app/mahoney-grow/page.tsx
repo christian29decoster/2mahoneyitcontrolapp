@@ -83,21 +83,29 @@ export default function MahoneyGrowPage() {
           Mahoney Grow
         </Badge>
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[var(--text)]">
-          Mahoney Grow – AI-Driven Security &amp; Business Intelligence Platform
+          From Security Telemetry to Growth Levers
         </h1>
         <p className="text-sm md:text-base text-[var(--muted)] max-w-2xl">
-          Interactive demo: click an insight to see <strong>what gets optimized</strong>,{' '}
-          <strong>why</strong>, and <strong>which data sources</strong> support the
-          recommendation. Apply optimizations to instantly compare baseline vs. optimized
-          scenario outcomes.
+          Mahoney Grow zeigt, wie <strong>Security-Daten</strong> direkt in{' '}
+          <strong>Unternehmenseffizienz</strong> und <strong>Wachstum</strong> übersetzt
+          werden. Die Demo verbindet SOC- und SIEM-Signale mit Umsatz-, Margin- und
+          Churn-Kennzahlen – wie ein Steering-Cockpit für den Unternehmer.
         </p>
+        <div className="inline-flex flex-wrap gap-2 mt-1 text-[11px]">
+          <span className="px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)]">
+            Security Posture → Operational Efficiency → Growth
+          </span>
+          <span className="px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)]">
+            From SOC events to EBIT impact
+          </span>
+        </div>
       </motion.div>
 
       <motion.div variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-              AI Growth Score
+              Security-to-Growth Score
             </div>
             <Badge
               variant={score.label === 'High' ? 'accent' : score.label === 'Balanced' ? 'secondary' : 'destructive'}
@@ -112,6 +120,10 @@ export default function MahoneyGrowPage() {
           <div className="mt-2 text-xs text-[var(--muted)]">
             Scenario: <span className="text-[var(--text)] font-medium">{scenarioLabel}</span>
           </div>
+          <p className="mt-3 text-[11px] text-[var(--muted)]">
+            Bewertet, wie gut Ihr aktuelles Security-Setup Wachstumsziele stützt – basierend
+            auf MTTR, Rauschen, Automatisierung, Risikoexposure und Margin.
+          </p>
         </Card>
 
         <Card className="p-4">
@@ -122,7 +134,8 @@ export default function MahoneyGrowPage() {
             {formatMetricValue('mttrHours', metrics.mttrHours)}
           </div>
           <div className="mt-2 text-xs text-[var(--muted)]">
-            Driver: escalations &amp; playbook coverage
+            Security-Ebene: Wie schnell Incidents geschlossen werden.
+            Direkter Effekt auf Ticketkosten, SLA-Qualität und Kundenzufriedenheit.
           </div>
         </Card>
 
@@ -134,7 +147,8 @@ export default function MahoneyGrowPage() {
             {formatMetricValue('riskExposureUSD', metrics.riskExposureUSD)}
           </div>
           <div className="mt-2 text-xs text-[var(--muted)]">
-            Driver: patch compliance + noisy detections + response speed
+            Business-Ebene: Was ein „Worst-Case-Jahr“ an Schaden bedeuten könnte.
+            Je niedriger, desto stabiler planbar sind Wachstum und Cashflow.
           </div>
         </Card>
       </motion.div>
@@ -144,7 +158,8 @@ export default function MahoneyGrowPage() {
           <div>
             <h2 className="text-base font-semibold text-[var(--text)]">AI Insights</h2>
             <p className="text-xs text-[var(--muted)]">
-              Click an insight card to open the AI explanation.
+              Für Unternehmer gedacht: Jede Karte zeigt, wie ein Security-Signal in einen
+              konkreten Effizienz- oder Wachstumshebel übersetzt wird.
             </p>
           </div>
           <div className="text-xs text-[var(--muted)]">
@@ -206,6 +221,46 @@ export default function MahoneyGrowPage() {
             )
           })}
         </div>
+
+        <Card className="p-4">
+          <h3 className="text-sm font-semibold text-[var(--text)] mb-1">
+            Detected manual workflows (Demo)
+          </h3>
+          <p className="text-xs text-[var(--muted)] mb-3">
+            Beispielhaft zeigt Mahoney Grow hier nicht nur Security-Themen, sondern auch
+            manuelle Geschäftsprozesse, die sich aus Event- und Ticket-Logs ableiten
+            lassen – ideale Kandidaten für Automatisierung.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-[var(--text)]">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
+              <div className="text-xs font-medium text-[var(--muted)] mb-1">
+                Password-Reset Tickets
+              </div>
+              <p>27% aller Service-Desk-Tickets sind wiederkehrende Passwort-Resets.</p>
+              <p className="mt-2 text-[11px] text-[var(--muted)]">
+                Empfehlung: Self-Service-Flow + Automatisierung im RMM / IdM-System.
+              </p>
+            </div>
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
+              <div className="text-xs font-medium text-[var(--muted)] mb-1">
+                Mitarbeiter-Onboarding
+              </div>
+              <p>Onboarding läuft über 3 Systeme mit 9 manuellen Schritten pro User.</p>
+              <p className="mt-2 text-[11px] text-[var(--muted)]">
+                Empfehlung: Standardisiertes Onboarding-Playbook + Workflow-Automation.
+              </p>
+            </div>
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
+              <div className="text-xs font-medium text-[var(--muted)] mb-1">
+                Monatliche Reports
+              </div>
+              <p>Security- &amp; Operations-Reports werden manuell aus Logs exportiert.</p>
+              <p className="mt-2 text-[11px] text-[var(--muted)]">
+                Empfehlung: Automatisierte Report-Jobs + Versand an Management.
+              </p>
+            </div>
+          </div>
+        </Card>
       </motion.div>
 
       <motion.div
@@ -268,21 +323,21 @@ export default function MahoneyGrowPage() {
               Strategic Purpose
             </h2>
             <p className="text-xs text-[var(--muted)] mb-3">
-              Mahoney Grow bridges the gap between technical cybersecurity operations
-              and executive business strategy:
+              Mahoney Grow schlägt die Brücke von technischen Security-Operationen zur
+              Geschäftsführungsebene:
             </p>
             <ul className="space-y-2 text-sm text-[var(--text)]">
               <li className="flex gap-2">
                 <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
-                <span>Transforms raw event logs and SIEM data into executive dashboards</span>
+                <span>Verwandelt Rohdaten aus Event- &amp; SIEM-Logs in Executive-Dashboards</span>
               </li>
               <li className="flex gap-2">
                 <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
-                <span>Delivers growth-oriented risk analytics and predictive modeling</span>
+                <span>Lieferung wachstumsorientierter Risiko-Analysen und Prognosen</span>
               </li>
               <li className="flex gap-2">
                 <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
-                <span>Provides AI-supported recommendations for security and growth decisions</span>
+                <span>AI-gestützte Empfehlungen für Security-Investitionen und Wachstum</span>
               </li>
             </ul>
           </Card>
