@@ -76,22 +76,41 @@ export function deriveROIInputs(simple: SimpleROIInputs): ROISimulatorInputs {
 
 export const defaultROIInputs: ROISimulatorInputs = deriveROIInputs(defaultSimpleROIInputs)
 
-/** ROI Simulator outputs. */
+const AVG_INCIDENT_DURATION_HOURS = 6
+
+/** ROI Simulator outputs – includes breakdown for potential, downtime, risks. */
 export interface ROISimulatorOutputs {
   estimatedAnnualRiskCostUsd: number
   estimatedCostReductionViaAutomationUsd: number
   estimatedSavingsFromAIRecommendationsUsd: number
+  /** Manual workflow hours per month (total). */
+  manualWorkflowHoursPerMonth: number
+  /** Estimated downtime hours per year (incidents × avg duration). */
+  downtimeHoursPerYear: number
+  /** Downtime cost component (USD/year). */
+  downtimeCostUsd: number
+  /** Manual labor cost component (USD/year). */
+  manualLaborCostUsd: number
+  /** Incident count per year. */
+  incidentFrequencyPerYear: number
 }
 
 export function computeROIOutputs(inputs: ROISimulatorInputs): ROISimulatorOutputs {
-  const incidentCost = inputs.incidentFrequencyPerYear * 6 * inputs.avgDowntimeCostPerHourUsd
-  const manualCost = inputs.manualWorkflowHoursPerMonth * 12 * inputs.avgHourlyEmployeeCostUsd
-  const estimatedAnnualRiskCostUsd = Math.round(incidentCost + manualCost * 0.4)
-  const estimatedCostReductionViaAutomationUsd = Math.round(manualCost * 0.35)
+  const downtimeHoursPerYear = inputs.incidentFrequencyPerYear * AVG_INCIDENT_DURATION_HOURS
+  const downtimeCostUsd = Math.round(downtimeHoursPerYear * inputs.avgDowntimeCostPerHourUsd)
+  const manualLaborAnnualHours = inputs.manualWorkflowHoursPerMonth * 12
+  const manualLaborCostUsd = Math.round(manualLaborAnnualHours * inputs.avgHourlyEmployeeCostUsd * 0.4)
+  const estimatedAnnualRiskCostUsd = downtimeCostUsd + manualLaborCostUsd
+  const estimatedCostReductionViaAutomationUsd = Math.round(manualLaborAnnualHours * inputs.avgHourlyEmployeeCostUsd * 0.35)
   const estimatedSavingsFromAIRecommendationsUsd = Math.round(estimatedAnnualRiskCostUsd * 0.15)
   return {
     estimatedAnnualRiskCostUsd,
     estimatedCostReductionViaAutomationUsd,
     estimatedSavingsFromAIRecommendationsUsd,
+    manualWorkflowHoursPerMonth: inputs.manualWorkflowHoursPerMonth,
+    downtimeHoursPerYear,
+    downtimeCostUsd,
+    manualLaborCostUsd,
+    incidentFrequencyPerYear: inputs.incidentFrequencyPerYear,
   }
 }

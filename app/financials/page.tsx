@@ -116,23 +116,23 @@ export default function FinancialsPage() {
         />
       </div>
 
-      {/* ROI Simulator – einfache Eingaben für CFO/CEO */}
+      {/* ROI Simulator – potential, downtime, risks, ROI (all English) */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-[var(--text)] mb-1">Security ROI Simulator</h2>
         <p className="text-sm text-[var(--muted)] mb-4">
-          Nur zwei Angaben – den Rest berechnen wir für Sie anhand typischer Kennzahlen.
+          Two inputs – we derive manual workload, downtime exposure, and risk drivers. With Mahoney Grow we collect these metrics for you.
         </p>
         <div className="rounded-xl bg-[var(--surface-2)]/50 border border-[var(--border)] p-3 mb-4 flex gap-2">
           <Info size={18} className="shrink-0 text-[var(--primary)] mt-0.5" />
           <p className="text-xs text-[var(--muted)]">
-            <strong className="text-[var(--text)]">Hinweis:</strong> Sofern Sie Mahoney Grow gebucht haben, erfassen wir diese Kennzahlen bei Ihnen – die Eingabe dient hier der groben Einschätzung oder dem Vergleich.
+            <strong className="text-[var(--text)]">Note:</strong> If you have Mahoney Grow, we capture these figures for you; this form is for a quick estimate or comparison.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-[var(--muted)] mb-1">
-                Anzahl Mitarbeiter bzw. User
+                Number of employees / users
               </label>
               <input
                 type="number"
@@ -144,7 +144,7 @@ export default function FinancialsPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-[var(--muted)] mb-1">
-                Durchschnittliche Personalkosten pro Kopf und Monat (USD)
+                Average personnel cost per head per month (USD)
               </label>
               <input
                 type="number"
@@ -155,38 +155,54 @@ export default function FinancialsPage() {
                 className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text)]"
               />
               <p className="text-[10px] text-[var(--muted)] mt-1">
-                z. B. Lohn + Lohnnebenkosten, grob geschätzt
+                e.g. salary + overhead, rough estimate
               </p>
             </div>
             <div className="pt-2 border-t border-[var(--border)]">
-              <p className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wide mb-2">Vom System berechnet</p>
+              <p className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wide mb-2">Derived by system</p>
               <ul className="text-xs text-[var(--muted)] space-y-1">
-                <li>Stündliche Personalkosten: {formatCurrency(derivedInputs.avgHourlyEmployeeCostUsd)}/h</li>
-                <li>Ausfallkosten (typ. Faktor): {formatCurrency(derivedInputs.avgDowntimeCostPerHourUsd)}/h</li>
-                <li>Incidents/Jahr (Richtwert): {derivedInputs.incidentFrequencyPerYear}</li>
-                <li>Manuelle Stunden/Monat (Richtwert): {derivedInputs.manualWorkflowHoursPerMonth} h</li>
+                <li>Hourly personnel cost: {formatCurrency(derivedInputs.avgHourlyEmployeeCostUsd)}/h</li>
+                <li>Downtime cost (typical factor): {formatCurrency(derivedInputs.avgDowntimeCostPerHourUsd)}/h</li>
+                <li>Incidents/year (guideline): {derivedInputs.incidentFrequencyPerYear}</li>
+                <li>Manual hours/month (guideline): {derivedInputs.manualWorkflowHoursPerMonth} h</li>
               </ul>
             </div>
           </div>
-          <div className="space-y-3">
-            <p className="text-xs font-medium text-[var(--muted)]">Ergebnis</p>
-            <p className="text-sm text-[var(--text)]">
-              <strong>Geschätzte jährliche Risikokosten:</strong>{' '}
-              {formatCurrency(roiOutputs.estimatedAnnualRiskCostUsd)}
-            </p>
-            <p className="text-sm text-[var(--text)]">
-              <strong>Kostenreduktion durch Automatisierung:</strong>{' '}
-              {formatCurrency(roiOutputs.estimatedCostReductionViaAutomationUsd)}
-            </p>
-            <p className="text-sm text-[var(--text)]">
-              <strong>Einsparung durch AI-Empfehlungen:</strong>{' '}
-              {formatCurrency(roiOutputs.estimatedSavingsFromAIRecommendationsUsd)}
-            </p>
-            <HapticButton
-              label="Optimierungsplan anwenden"
-              onClick={() => h.impact('medium')}
-              className="mt-4"
-            />
+          <div className="space-y-4">
+            <div>
+              <p className="text-xs font-medium text-[var(--muted)] mb-2">Potential & risk breakdown</p>
+              <ul className="space-y-3 text-sm">
+                <li className="border-b border-[var(--border)] pb-2">
+                  <p className="text-[var(--muted)] font-medium">Manual workflow (per employee)</p>
+                  <p className="text-[var(--text)] mt-0.5">{roiOutputs.manualWorkflowHoursPerMonth} h/month total · {(roiOutputs.manualWorkflowHoursPerMonth / Math.max(1, simpleInputs.employeeCount)).toFixed(1)} h/employee → {formatCurrency(roiOutputs.manualLaborCostUsd)}/yr at risk</p>
+                </li>
+                <li className="border-b border-[var(--border)] pb-2">
+                  <p className="text-[var(--muted)] font-medium">Potential downtime</p>
+                  <p className="text-[var(--text)] mt-0.5">{roiOutputs.downtimeHoursPerYear} h/yr ({roiOutputs.incidentFrequencyPerYear} incidents × ~6 h) → {formatCurrency(roiOutputs.downtimeCostUsd)}/yr</p>
+                </li>
+                <li className="border-b border-[var(--border)] pb-2">
+                  <p className="text-[var(--muted)] font-medium">Risk drivers</p>
+                  <p className="text-[var(--text)] mt-0.5">Incident-related downtime · manual steps · labor cost</p>
+                </li>
+              </ul>
+            </div>
+            <div className="pt-2 border-t border-[var(--border)]">
+              <p className="text-xs font-medium text-[var(--muted)] mb-2">ROI summary</p>
+              <p className="text-sm text-[var(--text)]">
+                <strong>Estimated annual risk cost:</strong> {formatCurrency(roiOutputs.estimatedAnnualRiskCostUsd)}
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                <strong>Cost reduction via automation:</strong> {formatCurrency(roiOutputs.estimatedCostReductionViaAutomationUsd)}
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                <strong>Savings from AI recommendations:</strong> {formatCurrency(roiOutputs.estimatedSavingsFromAIRecommendationsUsd)}
+              </p>
+              <HapticButton
+                label="Apply optimization plan"
+                onClick={() => h.impact('medium')}
+                className="mt-4"
+              />
+            </div>
           </div>
         </div>
       </Card>
