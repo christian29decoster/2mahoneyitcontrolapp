@@ -27,6 +27,9 @@ import CloudTiles from '@/components/dashboard/CloudTiles'
 import { GROW_DEMO_BASELINE, growAiScore } from '@/lib/mahoney-grow-demo'
 import { LineChart } from 'lucide-react'
 import { partnerCustomers, partnerSummary, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
+import { useViewModeStore } from '@/lib/viewMode.store'
+import { AlertsChart, MttrChart } from '@/components/dashboard/DesktopDashboardCharts'
+import KpiTile from '@/components/dashboard/KpiTile'
 
 export default function DashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<any>(null)
@@ -38,6 +41,7 @@ export default function DashboardPage() {
   const h = useHaptics()
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)
+  const viewMode = useViewModeStore((s) => s.viewMode)
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -85,6 +89,156 @@ export default function DashboardPage() {
   
   return (
     <>
+      {viewMode === 'desktop' ? (
+        <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+          {/* Desktop: Header row */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-[var(--text)]">
+                Control Dashboard
+              </h1>
+              <p className="text-sm text-[var(--muted)] mt-0.5">
+                {view === 'customer' ? 'Single-tenant view' : 'Partner overview'}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-[var(--muted)]">
+                <strong className="text-[var(--text)]">{demoTenant.currentPlan.tier}</strong>
+                {' '}({formatCurrency(planMonthlyUSD('Essential', 5, 25))}/mo)
+                {' · '}
+                <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-[var(--primary)] hover:underline">
+                  Upgrade
+                </button>
+              </p>
+              <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-2)] overflow-hidden">
+                <button
+                  className={`px-4 py-2 text-sm font-medium ${view === 'customer' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
+                  onClick={() => setView('customer')}
+                >
+                  Customer
+                </button>
+                <button
+                  className={`px-4 py-2 text-sm font-medium border-l border-[var(--border)] ${view === 'partner' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
+                  onClick={() => setView('partner')}
+                >
+                  Partner
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {view === 'customer' ? (
+            <>
+              {/* KPI row – 6 tiles */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <KpiTile label="Active Alerts" value={String(stats.activeAlerts)} trend={{ delta: `+${stats.trend.alerts}`, positive: false }} />
+                <KpiTile label="Offline Devices" value={String(stats.offlineDevices)} trend={{ delta: String(stats.trend.offline), positive: true }} />
+                <KpiTile label="MTTR" value={`${stats.mttrHours}h`} trend={{ delta: `${stats.trend.mttr}h`, positive: true }} />
+                <KpiTile label="Coverage" value={`${stats.coveragePct}%`} trend={{ delta: `+${stats.trend.coverage}%`, positive: true }} />
+                <KpiTile label="Open Incidents" value="2" trend={{ delta: '0', positive: true }} />
+                <KpiTile label="Compliance" value="78%" trend={{ delta: '+3%', positive: true }} />
+              </div>
+
+              {/* Charts row */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <AlertsChart />
+                <MttrChart />
+              </div>
+
+              {/* SIEM-style grid: Alerts + Cloud | Grow + Audit | Cockpit */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="card-desktop p-5 lg:col-span-2">
+                  <h3 className="text-base font-semibold text-[var(--text)] mb-4">Recent Alerts</h3>
+                  <div className="space-y-2">
+                    {alerts.map((alert) => (
+                      <AlertItem key={alert.id} alert={alert} onClick={() => handleAlertClick(alert)} />
+                    ))}
+                  </div>
+                </Card>
+                <div className="space-y-6">
+                  <div>
+                    <div className="text-sm font-semibold text-[var(--text)] mb-2">Cloud Security Posture</div>
+                    <CloudTiles onOpen={() => window.location.assign('/cloud')} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="card-desktop p-5 bg-gradient-to-r from-[var(--primary)]/5 to-transparent border-[var(--primary)]/20">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-base font-semibold text-[var(--text)]">AI Growth & Risk</h3>
+                      <p className="text-sm text-[var(--muted)] mt-1">Security-to-Growth Score: <Badge variant="accent" className="ml-1">{growAiScore(GROW_DEMO_BASELINE).score}/100</Badge></p>
+                    </div>
+                    <HapticButton label="Open" variant="surface" onClick={() => window.location.assign('/mahoney-grow')} />
+                  </div>
+                </Card>
+                <div className="lg:col-span-2">
+                  <QuickAuditBlock />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ServiceCockpitCard onOpen={() => setOpenCockpit(true)} />
+                <Card className="card-desktop p-5">
+                  <h3 className="text-base font-semibold text-[var(--text)] mb-4">Microsoft 365 Mailboxes</h3>
+                  <div className="space-y-2">
+                    {mail.o365.map((mb) => (
+                      <div key={mb.user} className="flex justify-between items-center py-2 border-b border-[var(--border)] last:border-0">
+                        <span className="text-sm text-[var(--text)] truncate">{mb.user}</span>
+                        <Badge variant={mb.status === 'Healthy' ? 'accent' : 'secondary'}>{mb.status}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
+              <Card className="card-desktop p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-semibold text-[var(--text)]">Security Enhancements</h3>
+                  <HapticButton label="View All" onClick={() => window.location.href = '/upselling'} variant="surface" className="text-sm" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl border border-[var(--primary)]/20 bg-[var(--primary)]/5">
+                    <span className="text-sm font-medium text-[var(--text)]">Virtual CISO</span>
+                    <p className="text-xs text-[var(--muted)] mt-1">Strategic security leadership</p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-[var(--warn)]/20 bg-[var(--warn)]/5">
+                    <span className="text-sm font-medium text-[var(--text)]">Compliance Package</span>
+                    <p className="text-xs text-[var(--muted)] mt-1">Stay ahead of regulatory changes</p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-[var(--success)]/20 bg-[var(--success)]/5">
+                    <span className="text-sm font-medium text-[var(--text)]">Mahoney Grow</span>
+                    <p className="text-xs text-[var(--muted)] mt-1">Growth from Security & SIEM data</p>
+                  </div>
+                </div>
+              </Card>
+            </>
+          ) : (
+            <>
+              <Card className="card-desktop p-5">
+                <h2 className="text-base font-semibold text-[var(--text)]">Partner overview</h2>
+                <div className="grid grid-cols-3 gap-6 mt-4">
+                  <div><div className="text-xs text-[var(--muted)]">Managed customers</div><div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.totalCustomers}</div></div>
+                  <div><div className="text-xs text-[var(--muted)]">Total MRR</div><div className="text-xl font-semibold text-[var(--text)]">${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })}</div></div>
+                  <div><div className="text-xs text-[var(--muted)]">Avg Grow score</div><div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.avgGrowScore}/100</div></div>
+                </div>
+              </Card>
+              <Card className="card-desktop p-5">
+                <h3 className="text-base font-semibold text-[var(--text)] mb-4">Customers</h3>
+                <div className="space-y-2">
+                  {partnerCustomers.map((c) => (
+                    <button key={c.id} onClick={() => { h.impact('light'); setSelectedPartnerCustomer(c) }} className="w-full text-left flex items-center justify-between px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] hover:border-[var(--primary)]/40 transition-colors">
+                      <div><span className="font-medium text-[var(--text)]">{c.name}</span> <Badge variant="secondary" className="ml-2">{c.segment}</Badge></div>
+                      <div className="text-sm text-[var(--muted)]">MRR ${c.monthlyRecurringRevenueUSD.toLocaleString()} · Grow {c.growScore}/100</div>
+                    </button>
+                  ))}
+                </div>
+              </Card>
+            </>
+          )}
+        </motion.div>
+      ) : (
       <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
         {/* Upgrade hint (subtle) */}
         <motion.div variants={stagger} className="text-center">
@@ -402,6 +556,7 @@ export default function DashboardPage() {
           </Card>
         </div>
       </motion.div>
+      )}
 
       {/* Alert Details Sheet */}
       <Sheet

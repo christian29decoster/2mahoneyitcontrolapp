@@ -52,11 +52,44 @@ body {
   background: var(--bg);
 }
 
+/* Desktop: breiter Container, bessere Typo & Karten */
+.desktop-frame .safe {
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
 @media (min-width: 1024px) {
   .desktop-frame .safe {
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 1400px;
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: 24px;
+    padding-bottom: 48px;
+  }
+  .desktop-frame {
+    font-size: 15px;
+  }
+  .desktop-frame .card-desktop {
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  .desktop-frame h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .desktop-frame h2,
+  .desktop-frame h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  .desktop-frame .text-muted-desktop {
+    font-size: 0.8125rem;
+    color: var(--muted);
   }
 }
 
