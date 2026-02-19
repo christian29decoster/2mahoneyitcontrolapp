@@ -23,7 +23,6 @@ import { useAuditStore } from '@/lib/store'
 import UpgradeBanner from '@/components/dashboard/UpgradeBanner'
 import KpiGrid from '@/components/dashboard/KpiGrid'
 import CloudTiles from '@/components/dashboard/CloudTiles'
-import FabAudit from '@/components/audit/FabAudit'
 import { GROW_DEMO_BASELINE, growAiScore } from '@/lib/mahoney-grow-demo'
 import { LineChart } from 'lucide-react'
 import { partnerCustomers, partnerSummary, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
@@ -83,26 +82,19 @@ export default function DashboardPage() {
   return (
     <>
       <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
-        {/* Service Banner */}
-        <motion.div variants={stagger} className="bg-gradient-to-r from-[var(--primary)]/10 to-[var(--primary-600)]/10 border border-[var(--primary)]/20 rounded-[22px] p-4">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm text-[var(--text)] mb-2">
-                You&apos;re on <strong>{demoTenant.currentPlan.tier}</strong> ({formatCurrency(planMonthlyUSD('Essential', 5, 25))}/mo). Upgrade to <strong>{demoTenant.upgradeOffer.target.tier}</strong> (+${demoTenant.upgradeOffer.deltaMonthly}/mo) to reduce MTTR, enable automated device discovery, and expand mailbox analytics.
-              </p>
-              <div className="flex space-x-3">
-                <HapticButton
-                  label="See Upgrade Details"
-                  variant="surface"
-                  onClick={() => setIsUpgradeSheetOpen(true)}
-                />
-                <HapticButton
-                  label="Upgrade Preview"
-                  onClick={handleUpgradePreview}
-                />
-              </div>
-            </div>
-          </div>
+        {/* Upgrade hint (subtle) */}
+        <motion.div variants={stagger} className="text-center">
+          <p className="text-sm text-[var(--muted)]">
+            You&apos;re on <strong className="text-[var(--text)]">{demoTenant.currentPlan.tier}</strong> ({formatCurrency(planMonthlyUSD('Essential', 5, 25))}/mo).
+            {' '}
+            <button
+              type="button"
+              onClick={() => setIsUpgradeSheetOpen(true)}
+              className="underline underline-offset-2 text-[var(--primary)] hover:opacity-90"
+            >
+              Upgrade to {demoTenant.upgradeOffer.target.tier} (+${demoTenant.upgradeOffer.deltaMonthly}/mo)
+            </button>
+          </p>
         </motion.div>
 
         {/* Hero Section */}
@@ -584,9 +576,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-
-      {/* FAB Audit */}
-      <FabAudit />
 
       {/* Toast Manager */}
       <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
