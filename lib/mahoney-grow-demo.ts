@@ -259,3 +259,41 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n))
 }
 
+// ——— Opportunities (use-case style: log data → with customer → AI potential) ———
+
+export type GrowOpportunity = {
+  id: string
+  title: string
+  subtitle: string
+  /** What we see in your logs (objective evidence) */
+  fromLogs: string[]
+  /** How we derived the number with you / process owners */
+  howWeDerived: string
+  /** Key metric (e.g. hours per FTE per day) */
+  metricLabel: string
+  metricValue: string
+  /** Potential savings or gain if automation is implemented */
+  potentialLabel: string
+  potentialValue: string
+  /** Data sources (SIEM, RMM, telephony, etc.) */
+  dataSources: string[]
+}
+
+export const GROW_OPPORTUNITY_COMMS: GrowOpportunity = {
+  id: 'comms-calls',
+  title: 'Communication & call analysis',
+  subtitle: 'From telephony and email logs we derive time spent per employee; with you we interpret and calculate automation potential.',
+  fromLogs: [
+    'Call volume and duration (incl. short calls <30 s)',
+    'Email send/receive volume per mailbox',
+    'Correlation with headcount and business days',
+  ],
+  howWeDerived:
+    'Together with your process owners we attributed calls and email traffic to daily operations. Result: **3.16 hours per employee per day** spent on calls and email coordination.',
+  metricLabel: 'Time per employee per day (calls + email)',
+  metricValue: '3.16 h',
+  potentialLabel: 'Estimated monthly saving (60 FTE, app + automation)',
+  potentialValue: 'Demo',
+  dataSources: ['SIEM logs', 'RMM / telephony', 'Mailbox metadata'],
+}
+

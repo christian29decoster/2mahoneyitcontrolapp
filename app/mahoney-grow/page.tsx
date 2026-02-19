@@ -9,6 +9,7 @@ import {
   applyInsightEffects,
   GROW_DEMO_BASELINE,
   GROW_INSIGHTS,
+  GROW_OPPORTUNITY_COMMS,
   growAiScore,
   type GrowInsight,
   type GrowInsightId,
@@ -36,6 +37,7 @@ export default function MahoneyGrowPage() {
   const [selected, setSelected] = useState<GrowInsight | null>(null)
   const [applied, setApplied] = useState<Partial<Record<GrowInsightId, boolean>>>({})
   const [businessSheetOpen, setBusinessSheetOpen] = useState(false)
+  const [aiAnalysisRequested, setAiAnalysisRequested] = useState(false)
   const [toasts, setToasts] = useState<
     Array<{ id: string; type: ToastType; title: string; message?: string }>
   >([])
@@ -94,22 +96,108 @@ export default function MahoneyGrowPage() {
           Mahoney Grow
         </Badge>
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[var(--text)]">
-          Business Growth powered by Security Data
+          Your opportunities from log data
         </h1>
         <p className="text-sm md:text-base text-[var(--muted)] max-w-2xl">
-          Mahoney Grow zeigt Ihren Kunden, wie <strong>Security- und SIEM-Daten</strong>{' '}
-          direkt in <strong>Business-Wachstum</strong> übersetzt werden können. Die Demo
-          verbindet Security-Telemetrie mit Umsatz-, Margin- und Churn-Kennzahlen – als
-          Steuerungs-Cockpit für das Management des Kundenunternehmens.
+          We use <strong>SIEM and RMM log data</strong> (calls, emails, usage) as objective
+          evidence. Together with you and your process owners we interpret what it means;
+          <strong> AI in the background</strong> calculates automation potential and savings.
+          When you want it, we run the analysis for your company.
         </p>
         <div className="inline-flex flex-wrap gap-2 mt-1 text-[11px]">
           <span className="px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)]">
-            Security Posture → Effizienz → Business Growth
-          </span>
-          <span className="px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)]">
-            From SOC/SIEM events to P&amp;L impact
+            Log data (objective) → with you → AI potential → savings
           </span>
         </div>
+      </motion.div>
+
+      {/* How Grow works */}
+      <motion.div variants={stagger}>
+        <Card className="p-4 bg-[var(--surface)]/50 border-[var(--primary)]/20">
+          <h2 className="text-sm font-semibold text-[var(--text)] mb-3">How Grow works</h2>
+          <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm text-[var(--text)]">
+            <li className="flex gap-2">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)]/20 text-[var(--primary)] flex items-center justify-center text-xs font-bold">1</span>
+              <span><strong>Your data:</strong> SIEM, RMM, telephony and mailbox logs – we only see what you allow.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)]/20 text-[var(--primary)] flex items-center justify-center text-xs font-bold">2</span>
+              <span><strong>With you:</strong> We review the numbers with you and process owners (e.g. what are these calls about?).</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)]/20 text-[var(--primary)] flex items-center justify-center text-xs font-bold">3</span>
+              <span><strong>AI analysis:</strong> When you request it, AI calculates automation potential and estimated savings.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)]/20 text-[var(--primary)] flex items-center justify-center text-xs font-bold">4</span>
+              <span><strong>Opportunities:</strong> Concrete levers (apps, automation) so you save time and cost – with objective proof from logs.</span>
+            </li>
+          </ol>
+        </Card>
+      </motion.div>
+
+      {/* Opportunity from the use case: Communication & calls */}
+      <motion.div variants={stagger}>
+        <h2 className="text-base font-semibold text-[var(--text)] mb-2">
+          Opportunities (from your data)
+        </h2>
+        <p className="text-xs text-[var(--muted)] mb-3">
+          Example of what we can derive from your logs when you opt in to AI analysis. Numbers are based on real engagements (anonymized).
+        </p>
+        <Card className="p-4 border-[var(--primary)]/30">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-[var(--text)]">{GROW_OPPORTUNITY_COMMS.title}</h3>
+              <p className="text-xs text-[var(--muted)] mt-1">{GROW_OPPORTUNITY_COMMS.subtitle}</p>
+              <div className="mt-3 space-y-2">
+                <div className="text-[11px] uppercase tracking-wide text-[var(--muted)]">What we see in your logs</div>
+                <ul className="text-sm text-[var(--text)] space-y-1">
+                  {GROW_OPPORTUNITY_COMMS.fromLogs.map((x, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] mt-1.5 flex-shrink-0" />
+                      {x}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                  <div className="text-[11px] uppercase tracking-wide text-[var(--muted)]">With you we derived</div>
+                  <p className="text-sm text-[var(--text)] mt-1" dangerouslySetInnerHTML={{ __html: GROW_OPPORTUNITY_COMMS.howWeDerived.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <div className="text-[10px] uppercase text-[var(--muted)]">{GROW_OPPORTUNITY_COMMS.metricLabel}</div>
+                    <div className="text-lg font-semibold text-[var(--text)]">{GROW_OPPORTUNITY_COMMS.metricValue}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase text-[var(--muted)]">{GROW_OPPORTUNITY_COMMS.potentialLabel}</div>
+                    <div className="text-lg font-semibold text-[var(--primary)]">{GROW_OPPORTUNITY_COMMS.potentialValue}</div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {GROW_OPPORTUNITY_COMMS.dataSources.map(s => (
+                    <span key={s} className="px-2 py-0.5 rounded-lg bg-[var(--surface-2)] text-[10px] text-[var(--muted)]">{s}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              {aiAnalysisRequested ? (
+                <div className="rounded-xl border border-[var(--success)]/30 bg-[var(--success)]/10 px-4 py-3 text-sm text-[var(--text)]">
+                  AI analysis requested. In production we would run the analysis and send you a report.
+                </div>
+              ) : (
+                <HapticButton
+                  label="Request AI analysis"
+                  onClick={() => {
+                    h.impact('medium')
+                    setAiAnalysisRequested(true)
+                    addToast('success', 'AI analysis requested', 'When you enable analysis, we process your log data and calculate potential. Demo only.')
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </Card>
       </motion.div>
 
       <motion.div variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -132,8 +220,8 @@ export default function MahoneyGrowPage() {
             Scenario: <span className="text-[var(--text)] font-medium">{scenarioLabel}</span>
           </div>
           <p className="mt-3 text-[11px] text-[var(--muted)]">
-            Bewertet, wie gut Ihr aktuelles Security-Setup Wachstumsziele stützt – basierend
-            auf MTTR, Rauschen, Automatisierung, Risikoexposure und Margin.
+            Scores how well your current setup supports efficiency and growth – from
+            MTTR, noise, automation and risk exposure (all from your log data when you opt in).
           </p>
         </Card>
 
@@ -145,9 +233,8 @@ export default function MahoneyGrowPage() {
             {formatMetricValue('mttrHours', metrics.mttrHours)}
           </div>
           <div className="mt-2 text-xs text-[var(--muted)]">
-            Security-Ebene beim Kunden: Wie schnell Incidents in seiner Umgebung
-            geschlossen werden – mit direktem Einfluss auf Ticketkosten, SLA-Qualität und
-            Zufriedenheit der Fachbereiche.
+            How quickly incidents are closed in your environment – with direct impact on
+            ticket cost, SLA quality and satisfaction of your teams.
           </div>
         </Card>
 
@@ -159,8 +246,8 @@ export default function MahoneyGrowPage() {
             {formatMetricValue('riskExposureUSD', metrics.riskExposureUSD)}
           </div>
           <div className="mt-2 text-xs text-[var(--muted)]">
-            Business-Ebene: Was ein „Worst-Case-Jahr“ an Schaden bedeuten könnte.
-            Je niedriger, desto stabiler planbar sind Wachstum und Cashflow.
+            What a worst-case year could mean in terms of impact. The lower, the more
+            predictable your growth and cashflow.
           </div>
         </Card>
       </motion.div>
@@ -172,8 +259,8 @@ export default function MahoneyGrowPage() {
               AI Insights – Technical
             </h2>
             <p className="text-xs text-[var(--muted)]">
-              Wie Security- und Operationsdaten in den Kundenumgebungen genutzt werden,
-              um das technologische Fundament zu stabilisieren und effizienter zu machen.
+              From your SIEM/RMM and operations data we identify technical levers to
+              stabilize and streamline your environment – so you spend less time on firefighting.
             </p>
           </div>
           <div className="text-xs text-[var(--muted)]">
@@ -243,9 +330,8 @@ export default function MahoneyGrowPage() {
             AI Insights – Business
           </h2>
           <p className="text-xs text-[var(--muted)] mb-3">
-            Wie aus denselben Security-/Eventdaten konkrete Hebel für Marge, Auslastung
-            und Wachstum im Kundenunternehmen abgeleitet werden – über alle Mandanten
-            hinweg.
+            From the same log and event data we derive concrete levers for efficiency and
+            growth in your company – e.g. automation potential and time savings.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {businessInsights.map(ins => {
@@ -308,10 +394,10 @@ export default function MahoneyGrowPage() {
             Detected manual workflows (Demo)
           </h3>
           <p className="text-xs text-[var(--muted)] mb-3">
-            In this demo Mahoney Grow highlights not only security topics, but also
-            manual business workflows inside the customer environment that surface in
-            event and ticket logs – ideal candidates for automation and growth without
-            adding headcount.
+            When we analyze your SIEM and RMM logs, we often find manual workflows
+            (e.g. repeated calls, email volume, ticket patterns). With you we interpret
+            them and AI calculates where automation can save time and cost – with
+            objective evidence from your data.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-[var(--text)]">
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
