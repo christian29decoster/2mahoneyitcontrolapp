@@ -11,6 +11,7 @@ import {
   StickyNote,
   Check,
   Circle,
+  Lock,
 } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import { useGroupAdminFeature } from '@/hooks/useGroupAdminFeature'
@@ -24,6 +25,9 @@ import {
   type OnboardingTopic,
 } from '@/lib/groupAdmin'
 
+const GROUP_ADMIN_PASSWORD = 'SuperMario64!'
+const GROUP_ADMIN_STORAGE_KEY = 'group_admin_unlocked'
+
 const TAB_STAMMDATEN = 'stammdaten'
 const TAB_UMSATZ = 'umsatz'
 const TAB_THEMEN = 'themen'
@@ -33,10 +37,30 @@ function formatEur(n: number) {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
 }
 
+function useGroupAdminUnlocked() {
+  const [unlocked, setUnlocked] = useState(false)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setUnlocked(sessionStorage.getItem(GROUP_ADMIN_STORAGE_KEY) === '1')
+    }
+  }, [])
+  const setUnlockedState = (v: boolean) => {
+    if (typeof window !== 'undefined') {
+      if (v) sessionStorage.setItem(GROUP_ADMIN_STORAGE_KEY, '1')
+      else sessionStorage.removeItem(GROUP_ADMIN_STORAGE_KEY)
+      setUnlocked(v)
+    }
+  }
+  return [unlocked, setUnlockedState] as const
+}
+
 export default function GroupAdminPage() {
   const { showGroupAdmin, loading } = useGroupAdminFeature()
+  const [unlocked, setUnlocked] = useGroupAdminUnlocked()
   const [customerId, setCustomerId] = useState<string | null>(null)
   const [tab, setTab] = useState(TAB_STAMMDATEN)
+  const [password, setPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
   const h = useHaptics()
 
   const customers = getGroupAdminCustomers()
@@ -52,6 +76,18 @@ export default function GroupAdminPage() {
     if (customer && !customerId) setCustomerId(customer.id)
   }, [customer, customerId])
 
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    h.impact('light')
+    setPasswordError('')
+    if (password === GROUP_ADMIN_PASSWORD) {
+      setUnlocked(true)
+      setPassword('')
+    } else {
+      setPasswordError('Falsches Passwort.')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
@@ -61,6 +97,39 @@ export default function GroupAdminPage() {
   }
 
   if (!showGroupAdmin) return null
+
+  if (!unlocked) {
+    return (
+      <div className="mx-auto w-full max-w-[400px] px-4 py-8">
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Lock className="w-5 h-5 text-[var(--muted)]" />
+            <h1 className="text-xl font-bold text-[var(--text)]">Group Admin</h1>
+          </div>
+          <p className="text-sm text-[var(--muted)] mb-4">Bitte Passwort eingeben, um die Mahoney IT Group Admin-Ansicht zu öffnen.</p>
+          <p className="text-xs text-[var(--muted)] mb-4">Hinweis: Nintendo</p>
+          <form onSubmit={handlePasswordSubmit} className="space-y-3">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setPasswordError('') }}
+              placeholder="Passwort"
+              className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-3 text-[var(--text)] placeholder:text-[var(--muted)]"
+              autoFocus
+              autoComplete="current-password"
+            />
+            {passwordError && <p className="text-xs text-red-400">{passwordError}</p>}
+            <button
+              type="submit"
+              className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-medium"
+            >
+              Entsperren
+            </button>
+          </form>
+        </Card>
+      </div>
+    )
+  }
 
   const tabs = [
     { id: TAB_STAMMDATEN, label: 'Stammdaten', icon: FileText },
