@@ -48,24 +48,30 @@ export interface ROISimulatorInputs {
   manualWorkflowHoursPerMonth: number
 }
 
-/** Einfache Eingaben für CFO/CEO: nur Mitarbeiterzahl und Kostenstufe. */
+/** Simple inputs: employee count, cost per head, optional manual hours override. */
 export interface SimpleROIInputs {
   employeeCount: number
   avgMonthlyCostPerHeadUsd: number
+  /** Manual workflow hours per month. If 0, derived from employee count. */
+  manualWorkflowHoursPerMonth: number
 }
 
 export const defaultSimpleROIInputs: SimpleROIInputs = {
   employeeCount: 50,
   avgMonthlyCostPerHeadUsd: 6500,
+  manualWorkflowHoursPerMonth: 0,
 }
 
-/** Leitet aus wenigen Angaben die ROI-Simulator-Inputs ab (typische Branchenkennzahlen). */
+/** Derives ROI inputs. If manualWorkflowHoursPerMonth > 0, uses it; else derives from employee count. */
 export function deriveROIInputs(simple: SimpleROIInputs): ROISimulatorInputs {
   const annualHoursPerHead = 2080
   const avgHourlyEmployeeCostUsd = (simple.avgMonthlyCostPerHeadUsd * 12) / annualHoursPerHead
-  const avgDowntimeCostPerHourUsd = Math.round(avgHourlyEmployeeCostUsd * 8) // typ. Faktor Ausfallkosten
+  const avgDowntimeCostPerHourUsd = Math.round(avgHourlyEmployeeCostUsd * 8)
   const incidentFrequencyPerYear = Math.max(1, Math.round(simple.employeeCount * 0.14))
-  const manualWorkflowHoursPerMonth = Math.max(5, Math.round(simple.employeeCount * 0.9))
+  const manualWorkflowHoursPerMonth =
+    simple.manualWorkflowHoursPerMonth > 0
+      ? simple.manualWorkflowHoursPerMonth
+      : Math.max(5, Math.round(simple.employeeCount * 0.9))
   return {
     avgHourlyEmployeeCostUsd: Math.round(avgHourlyEmployeeCostUsd * 100) / 100,
     avgDowntimeCostPerHourUsd,

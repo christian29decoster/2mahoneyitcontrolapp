@@ -158,13 +158,37 @@ export default function FinancialsPage() {
                 e.g. salary + overhead, rough estimate
               </p>
             </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1">
+                Manual hours per month
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={simpleInputs.manualWorkflowHoursPerMonth || ''}
+                onChange={(e) => setSimpleInputs((s) => ({ ...s, manualWorkflowHoursPerMonth: Math.max(0, +e.target.value || 0) }))}
+                placeholder={String(derivedInputs.manualWorkflowHoursPerMonth)}
+                className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--muted)]"
+              />
+              <p className="text-[10px] text-[var(--muted)] mt-1">
+                Leave empty or 0 to use guideline from employee count ({derivedInputs.manualWorkflowHoursPerMonth} h)
+              </p>
+            </div>
+            <div className="pt-2 border-t border-[var(--border)]">
+              <p className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wide mb-2">Manual hours breakdown</p>
+              <p className="text-xs text-[var(--text)]">
+                {roiOutputs.manualWorkflowHoursPerMonth} h/month = <strong>{simpleInputs.employeeCount}</strong> people × <strong>{(roiOutputs.manualWorkflowHoursPerMonth / Math.max(1, simpleInputs.employeeCount)).toFixed(1)}</strong> h/person
+              </p>
+              <p className="text-xs text-[var(--muted)] mt-1">
+                Avg cost per person: {formatCurrency(derivedInputs.avgHourlyEmployeeCostUsd)}/h → {formatCurrency(roiOutputs.manualLaborCostUsd)}/yr at risk
+              </p>
+            </div>
             <div className="pt-2 border-t border-[var(--border)]">
               <p className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wide mb-2">Derived by system</p>
               <ul className="text-xs text-[var(--muted)] space-y-1">
                 <li>Hourly personnel cost: {formatCurrency(derivedInputs.avgHourlyEmployeeCostUsd)}/h</li>
                 <li>Downtime cost (typical factor): {formatCurrency(derivedInputs.avgDowntimeCostPerHourUsd)}/h</li>
                 <li>Incidents/year (guideline): {derivedInputs.incidentFrequencyPerYear}</li>
-                <li>Manual hours/month (guideline): {derivedInputs.manualWorkflowHoursPerMonth} h</li>
               </ul>
             </div>
           </div>
