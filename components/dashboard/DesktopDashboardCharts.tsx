@@ -8,8 +8,8 @@ const mttrByDay = [2.8, 2.5, 2.2, 2.4, 2.3, 2.1, 2.3]
 const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const CHART_HEIGHT_PX = 160
-const CHART_HEADER_MIN_HEIGHT_PX = 52
-const CHART_GAP_PX = 16
+const CHART_HEADER_MIN_HEIGHT_PX = 64
+const CHART_GAP_PX = 24
 
 /** Y-axis ticks for alerts: 0 to max (rounded up) */
 function getAlertTicks(max: number): number[] {

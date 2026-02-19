@@ -7,6 +7,7 @@ import DrawerNav from './DrawerNav'
 import NotificationBell from '@/components/NotificationBell'
 import { useHaptics } from '@/hooks/useHaptics'
 import { usePathname } from 'next/navigation'
+import { DEMO_APP_VERSION } from '@/lib/version'
 
 export default function TopAppBar() {
   const [open, setOpen] = useState(false)
@@ -46,6 +47,9 @@ export default function TopAppBar() {
           <div className="text-[10px] px-2 py-1 rounded-full bg-emerald-600/20 text-emerald-300 border border-emerald-500/30">
             SOC-III-US-Team
           </div>
+          <span className="text-[10px] text-[var(--muted)] hidden sm:inline" title="Demo-App-Version">
+            {DEMO_APP_VERSION}
+          </span>
           <NotificationBell />
         </div>
       </div>

@@ -1,7 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Shield, Wifi } from 'lucide-react'
+import { Shield } from 'lucide-react'
+import { DEMO_APP_VERSION } from '@/lib/version'
 
 interface GlobalHeaderProps {
   socStatus?: 'online' | 'warning' | 'offline'
@@ -30,6 +31,7 @@ export function GlobalHeader({ socStatus = 'online' }: GlobalHeaderProps) {
         </div>
         
         <div className="flex items-center space-x-2">
+          <span className="text-[10px] text-[var(--muted)]">{DEMO_APP_VERSION}</span>
           <div className="flex items-center space-x-1 px-2 py-1 bg-[var(--surface)]/50 rounded-[8px]">
             <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
             <span className="text-xs text-[var(--text)]">SOC-III-US-Team</span>

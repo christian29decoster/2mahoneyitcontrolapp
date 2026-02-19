@@ -23,7 +23,6 @@ import {
 } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useViewModeStore } from '@/lib/viewMode.store'
-import { useGroupAdminFeature } from '@/hooks/useGroupAdminFeature'
 import LogoutButton from '@/components/auth/LogoutButton'
 
 export const SIDEBAR_WIDTH_PX = 260
@@ -69,7 +68,6 @@ export default function DrawerNav({
   const viewMode = useViewModeStore((s) => s.viewMode)
   const menuPinned = useViewModeStore((s) => s.menuPinned)
   const setMenuPinned = useViewModeStore((s) => s.setMenuPinned)
-  const { showGroupAdmin } = useGroupAdminFeature()
 
   const isPinnedSidebar = viewMode === 'desktop' && menuPinned
   const showDrawer = open && !isPinnedSidebar
@@ -140,12 +138,8 @@ export default function DrawerNav({
           <NavLink href="/settings" label="Settings" icon={Settings} onClick={handleNavClick} />
           <NavLink href="/profile" label="Profile" icon={User} onClick={handleNavClick} />
 
-          {showGroupAdmin && (
-            <>
-              <SectionTitle>Mahoney IT Group</SectionTitle>
-              <NavLink href="/group-admin" label="Group Admin (Onboarding)" icon={UsersRound} onClick={handleNavClick} />
-            </>
-          )}
+          <SectionTitle>Mahoney IT Group</SectionTitle>
+          <NavLink href="/group-admin" label="Group Admin (Onboarding)" icon={UsersRound} onClick={handleNavClick} />
 
           {typeof document !== 'undefined' &&
             (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1] || '').toLowerCase() === 'admin' && (
