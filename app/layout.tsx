@@ -1,9 +1,10 @@
 'use client'
 
-import type { Metadata } from 'next'
 import './globals.css'
 import { AnimatePresence, motion } from 'framer-motion'
 import AppShell from '@/components/AppShell'
+import ViewModeWrapper from '@/components/ViewModeWrapper'
+import ViewModeToggle from '@/components/ViewModeToggle'
 
 export default function RootLayout({
   children,
@@ -13,7 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="iphone-frame">
+        <ViewModeWrapper>
           <AppShell>
             <AnimatePresence mode="wait">
               <motion.main
@@ -28,7 +29,8 @@ export default function RootLayout({
               </motion.main>
             </AnimatePresence>
           </AppShell>
-        </div>
+        </ViewModeWrapper>
+        <ViewModeToggle />
       </body>
     </html>
   )

@@ -42,6 +42,24 @@ body {
   background: var(--bg);
 }
 
+.desktop-frame {
+  max-width: 100%;
+  margin: 0 auto;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+@media (min-width: 1024px) {
+  .desktop-frame .safe {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
