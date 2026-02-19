@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -68,6 +69,11 @@ export default function DrawerNav({
   const viewMode = useViewModeStore((s) => s.viewMode)
   const menuPinned = useViewModeStore((s) => s.menuPinned)
   const setMenuPinned = useViewModeStore((s) => s.setMenuPinned)
+  const [showAdminLink, setShowAdminLink] = useState(false)
+  useEffect(() => {
+    const role = (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1] || '').toLowerCase()
+    setShowAdminLink(role === 'admin')
+  }, [])
 
   const isPinnedSidebar = viewMode === 'desktop' && menuPinned
   const showDrawer = open && !isPinnedSidebar
@@ -141,16 +147,15 @@ export default function DrawerNav({
           <SectionTitle>Mahoney IT Group</SectionTitle>
           <NavLink href="/group-admin" label="Group Admin (Onboarding)" icon={UsersRound} onClick={handleNavClick} />
 
-          {typeof document !== 'undefined' &&
-            (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1] || '').toLowerCase() === 'admin' && (
-              <>
-                <SectionTitle>Admin</SectionTitle>
-                <Link href="/admin" onClick={handleNavClick} className={linkClass}>
-                  <Wrench size={18} />
-                  <span className="text-sm">Admin</span>
-                </Link>
-              </>
-            )}
+          {showAdminLink && (
+            <>
+              <SectionTitle>Admin</SectionTitle>
+              <Link href="/admin" onClick={handleNavClick} className={linkClass}>
+                <Wrench size={18} />
+                <span className="text-sm">Admin</span>
+              </Link>
+            </>
+          )}
         </nav>
 
       <div className="mt-6 pt-4 border-t border-[var(--border)]">

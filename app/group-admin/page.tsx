@@ -66,11 +66,7 @@ export default function GroupAdminPage() {
   const customers = getGroupAdminCustomers()
   const customer = customerId ? customers.find((c) => c.id === customerId) ?? customers[0] : customers[0]
 
-  useEffect(() => {
-    if (!loading && !showGroupAdmin) {
-      window.location.replace('/')
-    }
-  }, [loading, showGroupAdmin])
+  // Nicht mehr weiterleiten – stattdessen Hinweis anzeigen, damit der Klick sichtbar reagiert
 
   useEffect(() => {
     if (customer && !customerId) setCustomerId(customer.id)
@@ -96,7 +92,17 @@ export default function GroupAdminPage() {
     )
   }
 
-  if (!showGroupAdmin) return null
+  if (!showGroupAdmin) {
+    return (
+      <div className="mx-auto w-full max-w-[400px] px-4 py-8">
+        <Card className="p-6 text-center">
+          <Lock className="w-10 h-10 text-[var(--muted)] mx-auto mb-3" />
+          <h1 className="text-lg font-bold text-[var(--text)] mb-2">Group Admin</h1>
+          <p className="text-sm text-[var(--muted)]">Dieser Bereich ist derzeit nicht verfügbar (Feature nicht aktiv).</p>
+        </Card>
+      </div>
+    )
+  }
 
   if (!unlocked) {
     return (
