@@ -8,6 +8,8 @@ const mttrByDay = [2.8, 2.5, 2.2, 2.4, 2.3, 2.1, 2.3]
 const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const CHART_HEIGHT_PX = 160
+const CHART_HEADER_MIN_HEIGHT_PX = 52
+const CHART_GAP_PX = 16
 
 /** Y-axis ticks for alerts: 0 to max (rounded up) */
 function getAlertTicks(max: number): number[] {
@@ -34,11 +36,14 @@ export function AlertsChart() {
   const yMax = yTicks[yTicks.length - 1] || 1
   return (
     <Card className="card-desktop p-5 h-full">
-      <div className="mb-5 pb-1">
+      <div
+        className="shrink-0"
+        style={{ minHeight: CHART_HEADER_MIN_HEIGHT_PX, marginBottom: CHART_GAP_PX }}
+      >
         <h3 className="text-sm font-semibold text-[var(--text)]">Alerts (last 7 days)</h3>
         <p className="text-xs text-[var(--muted)] mt-0.5">Count per day</p>
       </div>
-      <div className="flex gap-3 pt-3" style={{ minHeight: CHART_HEIGHT_PX }}>
+      <div className="flex gap-3 shrink-0" style={{ height: CHART_HEIGHT_PX }}>
         {/* Y-axis */}
         <div className="flex flex-col justify-between text-[10px] text-[var(--muted)] shrink-0 py-0.5" style={{ height: CHART_HEIGHT_PX }}>
           {[...yTicks].reverse().map((tick) => (
@@ -47,7 +52,7 @@ export function AlertsChart() {
         </div>
         {/* Chart area */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-end gap-1.5" style={{ height: CHART_HEIGHT_PX }}>
+          <div className="flex items-end gap-1.5 w-full" style={{ height: CHART_HEIGHT_PX }}>
             {alertsByDay.map((val, i) => {
               const barHeight = yMax ? (val / yMax) * (CHART_HEIGHT_PX - 4) : 0
               return (
@@ -81,20 +86,23 @@ export function MttrChart() {
   const yRange = yMax - yMin || 0.1
   return (
     <Card className="card-desktop p-5 h-full">
-      <div className="mb-5 pb-1">
+      <div
+        className="shrink-0"
+        style={{ minHeight: CHART_HEADER_MIN_HEIGHT_PX, marginBottom: CHART_GAP_PX }}
+      >
         <h3 className="text-sm font-semibold text-[var(--text)]">MTTR trend (h)</h3>
         <p className="text-xs text-[var(--muted)] mt-0.5">Mean time to resolve</p>
       </div>
-      <div className="flex gap-3 pt-3" style={{ minHeight: CHART_HEIGHT_PX }}>
+      <div className="flex gap-3 shrink-0" style={{ height: CHART_HEIGHT_PX }}>
         {/* Y-axis */}
         <div className="flex flex-col justify-between text-[10px] text-[var(--muted)] shrink-0 py-0.5" style={{ height: CHART_HEIGHT_PX }}>
           {[...yTicks].reverse().map((tick) => (
             <span key={tick}>{tick.toFixed(1)}h</span>
           ))}
         </div>
-        {/* Chart area */}
+        {/* Chart area - bars sit in dedicated row below header gap */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-end gap-1.5" style={{ height: CHART_HEIGHT_PX }}>
+          <div className="flex items-end gap-1.5 w-full" style={{ height: CHART_HEIGHT_PX }}>
             {mttrByDay.map((val, i) => {
               const barHeight = ((val - yMin) / yRange) * (CHART_HEIGHT_PX - 4)
               return (
