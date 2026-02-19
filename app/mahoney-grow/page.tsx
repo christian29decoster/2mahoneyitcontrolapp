@@ -306,37 +306,37 @@ export default function MahoneyGrowPage() {
             Detected manual workflows (Demo)
           </h3>
           <p className="text-xs text-[var(--muted)] mb-3">
-            Beispielhaft zeigt Mahoney Grow hier nicht nur Security-Themen, sondern auch
-            manuelle Geschäftsprozesse beim Kunden, die sich aus Event- und Ticket-Logs
-            ableiten lassen – ideale Kandidaten für Automatisierung und Wachstum ohne
-            zusätzliche Köpfe.
+            In this demo Mahoney Grow highlights not only security topics, but also
+            manual business workflows inside the customer environment that surface in
+            event and ticket logs – ideal candidates for automation and growth without
+            adding headcount.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-[var(--text)]">
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
               <div className="text-xs font-medium text-[var(--muted)] mb-1">
                 Password-Reset Tickets
               </div>
-              <p>27% aller Service-Desk-Tickets sind wiederkehrende Passwort-Resets.</p>
+              <p>27% of all service desk tickets are repetitive password reset requests.</p>
               <p className="mt-2 text-[11px] text-[var(--muted)]">
-                Empfehlung: Self-Service-Flow + Automatisierung im RMM / IdM-System.
+                Recommendation: self-service password flow + automation in RMM / IdM.
               </p>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
               <div className="text-xs font-medium text-[var(--muted)] mb-1">
                 Mitarbeiter-Onboarding
               </div>
-              <p>Onboarding läuft über 3 Systeme mit 9 manuellen Schritten pro User.</p>
+              <p>Employee onboarding touches 3 systems with 9 manual steps per user.</p>
               <p className="mt-2 text-[11px] text-[var(--muted)]">
-                Empfehlung: Standardisiertes Onboarding-Playbook + Workflow-Automation.
+                Recommendation: standardized onboarding playbook + workflow automation.
               </p>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
               <div className="text-xs font-medium text-[var(--muted)] mb-1">
                 Monatliche Reports
               </div>
-              <p>Security- &amp; Operations-Reports werden manuell aus Logs exportiert.</p>
+              <p>Security &amp; operations reports are exported manually from logs.</p>
               <p className="mt-2 text-[11px] text-[var(--muted)]">
-                Empfehlung: Automatisierte Report-Jobs + Versand an Management.
+                Recommendation: automated report jobs + scheduled delivery to management.
               </p>
             </div>
           </div>
