@@ -4,7 +4,6 @@ import './globals.css'
 import { AnimatePresence, motion } from 'framer-motion'
 import AppShell from '@/components/AppShell'
 import ViewModeWrapper from '@/components/ViewModeWrapper'
-import ViewModeToggle from '@/components/ViewModeToggle'
 
 export default function RootLayout({
   children,
@@ -30,7 +29,6 @@ export default function RootLayout({
             </AnimatePresence>
           </AppShell>
         </ViewModeWrapper>
-        <ViewModeToggle />
       </body>
     </html>
   )

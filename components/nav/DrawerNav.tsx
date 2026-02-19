@@ -21,9 +21,13 @@ import {
   PinOff,
   Pin,
   UsersRound,
+  Smartphone,
+  Monitor,
+  MessageSquare,
 } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useViewModeStore } from '@/lib/viewMode.store'
+import { useCopilotStore } from '@/lib/copilot.store'
 import LogoutButton from '@/components/auth/LogoutButton'
 
 export const SIDEBAR_WIDTH_PX = 260
@@ -69,6 +73,8 @@ export default function DrawerNav({
   const viewMode = useViewModeStore((s) => s.viewMode)
   const menuPinned = useViewModeStore((s) => s.menuPinned)
   const setMenuPinned = useViewModeStore((s) => s.setMenuPinned)
+  const viewModeSet = useViewModeStore((s) => s.setViewMode)
+  const setCopilotOpen = useCopilotStore((s) => s.setOpen)
   const [showAdminLink, setShowAdminLink] = useState(false)
   useEffect(() => {
     const role = (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1] || '').toLowerCase()
@@ -158,7 +164,35 @@ export default function DrawerNav({
           )}
         </nav>
 
-      <div className="mt-6 pt-4 border-t border-[var(--border)]">
+      <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-3">
+        <div className="flex rounded-xl border border-[var(--border)] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => { h.impact('light'); viewModeSet('app'); if (!isPinnedSidebar) onOpenChange(false) }}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium ${viewMode === 'app' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:bg-[var(--surface-2)]'}`}
+            aria-label="Als App anzeigen"
+          >
+            <Smartphone size={14} />
+            App
+          </button>
+          <button
+            type="button"
+            onClick={() => { h.impact('light'); viewModeSet('desktop'); if (!isPinnedSidebar) onOpenChange(false) }}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium ${viewMode === 'desktop' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:bg-[var(--surface-2)]'}`}
+            aria-label="Als Desktop anzeigen"
+          >
+            <Monitor size={14} />
+            Desktop
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={() => { h.impact('light'); setCopilotOpen(true); if (!isPinnedSidebar) onOpenChange(false) }}
+          className={linkClass + ' w-full'}
+        >
+          <MessageSquare size={18} />
+          <span className="text-sm">AI Co-Pilot</span>
+        </button>
         <LogoutButton />
       </div>
     </>

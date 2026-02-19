@@ -1,15 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { MessageSquare } from 'lucide-react'
-import { motion } from 'framer-motion'
 import SheetBody from '@/components/SheetBody'
 import { HapticButton } from '@/components/HapticButton'
 import { aiShortAnswer } from '@/lib/ai'
 import { useHaptics } from '@/hooks/useHaptics'
+import { useCopilotStore } from '@/lib/copilot.store'
 
 export default function Copilot() {
-  const [open, setOpen] = useState(false)
+  const open = useCopilotStore((s) => s.open)
+  const setOpen = useCopilotStore((s) => s.setOpen)
   const [q, setQ] = useState('')
   const [a, setA] = useState<string | null>(null)
   const h = useHaptics()
@@ -27,22 +27,7 @@ export default function Copilot() {
 
   return (
     <>
-      {/* FAB */}
-      <motion.button
-        aria-label="AI Co-Pilot"
-        className="fixed bottom-20 left-6 rounded-2xl px-3 py-3 bg-[var(--surface)] border border-[var(--border)] shadow-[0_8px_24px_rgba(0,0,0,.35)] z-40"
-        initial={{ y: 24, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        whileTap={{ scale: .96 }}
-        onClick={() => {
-          h.impact('medium')
-          setOpen(true)
-        }}
-      >
-        <MessageSquare size={18} className="text-[var(--text)]" />
-      </motion.button>
-
-      {/* Sheet (simple) */}
+      {/* Sheet – wird über Menü (AI Co-Pilot) geöffnet */}
       {open && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end">
           <div className="w-full max-w-[520px] mx-auto rounded-t-3xl bg-[var(--bg)] border-t border-[var(--border)]">

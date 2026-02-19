@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Menu } from 'lucide-react'
+import { Menu, Plus } from 'lucide-react'
 import { useUIStore } from '@/lib/ui.store'
 import DrawerNav from './DrawerNav'
 import NotificationBell from '@/components/NotificationBell'
@@ -44,6 +44,14 @@ export default function TopAppBar() {
           Unified Risk, Operations & Growth Control Surface
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Hinzufügen"
+            onClick={() => h.impact('medium')}
+            className="h-9 w-9 grid place-items-center rounded-xl border border-[var(--border)] bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-colors"
+          >
+            <Plus size={18} />
+          </button>
           <div className="text-[10px] px-2 py-1 rounded-full bg-emerald-600/20 text-emerald-300 border border-emerald-500/30">
             SOC-III-US-Team
           </div>
