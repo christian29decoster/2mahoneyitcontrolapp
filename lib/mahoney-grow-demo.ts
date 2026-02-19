@@ -297,3 +297,23 @@ export const GROW_OPPORTUNITY_COMMS: GrowOpportunity = {
   dataSources: ['SIEM logs', 'RMM / telephony', 'Mailbox metadata'],
 }
 
+/** Predictive Risk Engine – risk probability next 30 / 90 days. */
+export const PREDICTIVE_RISK = {
+  riskScore30: 24,
+  riskScore90: 31,
+  highRiskTrendDetected: false,
+  forecastData: [
+    { label: 'Now', value: 22 },
+    { label: '+30d', value: 24 },
+    { label: '+60d', value: 27 },
+    { label: '+90d', value: 31 },
+  ],
+}
+
+/** Manual workflow detection with time waste, difficulty, ROI. */
+export const MANUAL_WORKFLOWS_ENHANCED = [
+  { id: 'pw-reset', name: 'Password-Reset Tickets', estimatedTimeWasteHours: 12, automationDifficultyScore: 3, automationROIEstimateUsd: 8400 },
+  { id: 'onboarding', name: 'Mitarbeiter-Onboarding', estimatedTimeWasteHours: 28, automationDifficultyScore: 6, automationROIEstimateUsd: 18200 },
+  { id: 'reports', name: 'Monatliche Reports', estimatedTimeWasteHours: 8, automationDifficultyScore: 2, automationROIEstimateUsd: 5200 },
+]
+

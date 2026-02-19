@@ -11,6 +11,8 @@ import {
   GROW_INSIGHTS,
   GROW_OPPORTUNITY_COMMS,
   growAiScore,
+  PREDICTIVE_RISK,
+  MANUAL_WORKFLOWS_ENHANCED,
   type GrowInsight,
   type GrowInsightId,
 } from '@/lib/mahoney-grow-demo'
@@ -40,6 +42,7 @@ export default function MahoneyGrowPage() {
   const [applied, setApplied] = useState<Partial<Record<GrowInsightId, boolean>>>({})
   const [businessSheetOpen, setBusinessSheetOpen] = useState(false)
   const [aiAnalysisRequested, setAiAnalysisRequested] = useState(false)
+  const [boardReportOpen, setBoardReportOpen] = useState(false)
   const [toasts, setToasts] = useState<
     Array<{ id: string; type: ToastType; title: string; message?: string }>
   >([])
@@ -95,7 +98,7 @@ export default function MahoneyGrowPage() {
     >
       <motion.div variants={stagger} className="space-y-3">
         <Badge variant="accent" className="mb-1">
-          Mahoney Grow
+          AI Growth & Risk Intelligence
         </Badge>
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[var(--text)]">
           Your opportunities from log data
@@ -113,10 +116,47 @@ export default function MahoneyGrowPage() {
         </div>
       </motion.div>
 
+      {/* Predictive Risk Engine */}
+      <motion.div variants={stagger}>
+        <Card className="p-4 border-[var(--primary)]/20">
+          <h2 className="text-sm font-semibold text-[var(--text)] mb-2">Predictive Risk Engine</h2>
+          <p className="text-xs text-[var(--muted)] mb-4">
+            Uses historical incident patterns, device vulnerability age, patch latency and user behavior anomalies.
+          </p>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <div className="text-[10px] uppercase text-[var(--muted)]">Risk probability (next 30 days)</div>
+              <div className="text-2xl font-bold text-[var(--text)]">{PREDICTIVE_RISK.riskScore30}%</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase text-[var(--muted)]">Risk probability (next 90 days)</div>
+              <div className="text-2xl font-bold text-[var(--text)]">{PREDICTIVE_RISK.riskScore90}%</div>
+            </div>
+          </div>
+          {PREDICTIVE_RISK.highRiskTrendDetected && (
+            <div className="rounded-xl bg-amber-500/20 border border-amber-500/40 px-4 py-3 text-sm text-[var(--text)] mb-4">
+              High Risk Trend Detected – consider preventive actions.
+            </div>
+          )}
+          <div className="flex items-end gap-2 h-16">
+            {PREDICTIVE_RISK.forecastData.map((d, i) => (
+              <div key={d.label} className="flex-1 flex flex-col items-center">
+                <div
+                  className="w-full rounded-t bg-[var(--primary)]/40"
+                  style={{ height: `${Math.max(8, (d.value / 40) * 100)}%` }}
+                />
+                <span className="text-[10px] text-[var(--muted)] mt-1">{d.label}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-[var(--muted)] mt-2">Forecast (risk probability %)</p>
+        </Card>
+      </motion.div>
+
       {/* How Grow works */}
       <motion.div variants={stagger}>
         <Card className="p-4 bg-[var(--surface)]/50 border-[var(--primary)]/20">
-          <h2 className="text-sm font-semibold text-[var(--text)] mb-3">How Grow works</h2>
+          <h2 className="text-sm font-semibold text-[var(--text)] mb-3">How it works</h2>
           <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm text-[var(--text)]">
             <li className="flex gap-2">
               <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)]/20 text-[var(--primary)] flex items-center justify-center text-xs font-bold">1</span>
@@ -394,45 +434,58 @@ export default function MahoneyGrowPage() {
 
         <Card className="p-4">
           <h3 className="text-sm font-semibold text-[var(--text)] mb-1">
-            Detected manual workflows (Demo)
+            Detected manual workflows
           </h3>
           <p className="text-xs text-[var(--muted)] mb-3">
-            When we analyze your SIEM and RMM logs, we often find manual workflows
-            (e.g. repeated calls, email volume, ticket patterns). With you we interpret
-            them and AI calculates where automation can save time and cost – with
-            objective evidence from your data.
+            When we analyze your SIEM and RMM logs, we find manual workflows and estimate time waste, automation difficulty and ROI.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-[var(--text)]">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
-              <div className="text-xs font-medium text-[var(--muted)] mb-1">
-                Password-Reset Tickets
+            {MANUAL_WORKFLOWS_ENHANCED.map((w) => (
+              <div key={w.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
+                <div className="text-xs font-medium text-[var(--muted)] mb-1">{w.name}</div>
+                <p className="text-xs">Est. time waste: <strong>{w.estimatedTimeWasteHours} h/month</strong></p>
+                <p className="text-xs mt-1">Automation difficulty: <strong>{w.automationDifficultyScore}/10</strong></p>
+                <p className="text-xs mt-1">Automation ROI estimate: <strong>${(w.automationROIEstimateUsd / 1000).toFixed(1)}k</strong></p>
+                <p className="mt-2 text-[11px] text-[var(--muted)]">
+                  Recommendation: see blueprint for automation steps.
+                </p>
               </div>
-              <p>27% of all service desk tickets are repetitive password reset requests.</p>
-              <p className="mt-2 text-[11px] text-[var(--muted)]">
-                Recommendation: self-service password flow + automation in RMM / IdM.
-              </p>
-            </div>
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
-              <div className="text-xs font-medium text-[var(--muted)] mb-1">
-                Mitarbeiter-Onboarding
-              </div>
-              <p>Employee onboarding touches 3 systems with 9 manual steps per user.</p>
-              <p className="mt-2 text-[11px] text-[var(--muted)]">
-                Recommendation: standardized onboarding playbook + workflow automation.
-              </p>
-            </div>
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
-              <div className="text-xs font-medium text-[var(--muted)] mb-1">
-                Monatliche Reports
-              </div>
-              <p>Security &amp; operations reports are exported manually from logs.</p>
-              <p className="mt-2 text-[11px] text-[var(--muted)]">
-                Recommendation: automated report jobs + scheduled delivery to management.
-              </p>
-            </div>
+            ))}
+          </div>
+          <div className="mt-4">
+            <HapticButton label="Generate Automation Blueprint" onClick={() => h.impact('medium')} variant="surface" />
           </div>
         </Card>
+
+        {/* Generate Board Report */}
+        <Card className="p-4">
+          <h3 className="text-sm font-semibold text-[var(--text)] mb-1">AI Executive Summary</h3>
+          <p className="text-xs text-[var(--muted)] mb-4">
+            AI-generated board report: security posture, governance gaps, financial exposure, risk forecast, growth opportunities.
+          </p>
+          <HapticButton
+            label="Generate Board Report"
+            onClick={() => { h.impact('medium'); setBoardReportOpen(true) }}
+          />
+        </Card>
       </motion.div>
+
+      <Sheet isOpen={boardReportOpen} onClose={() => setBoardReportOpen(false)} title="Board Report" maxHeight="85vh">
+        <div className="space-y-4">
+          <p className="text-sm text-[var(--muted)]">AI-generated summary:</p>
+          <ul className="text-sm text-[var(--text)] space-y-2 list-disc pl-4">
+            <li><strong>Security posture:</strong> Balanced – patch compliance 78%, EDR coverage improving.</li>
+            <li><strong>Governance gaps:</strong> 2 controls partially compliant; audit readiness At Risk.</li>
+            <li><strong>Financial exposure:</strong> Estimated annual risk cost in range; automation savings opportunity identified.</li>
+            <li><strong>Risk forecast:</strong> Predictive risk 24% (30d) / 31% (90d); no high-risk trend.</li>
+            <li><strong>Growth opportunities:</strong> Communication &amp; call analysis; manual workflow automation (password reset, onboarding, reports).</li>
+          </ul>
+          <div className="flex flex-wrap gap-2 pt-4">
+            <HapticButton label="Export as PDF" variant="surface" onClick={() => { h.impact('light'); window.print?.(); setBoardReportOpen(false) }} />
+            <HapticButton label="Export PowerPoint-ready" variant="surface" onClick={() => { h.impact('light'); setBoardReportOpen(false) }} />
+          </div>
+        </div>
+      </Sheet>
 
       <motion.div
         variants={stagger}

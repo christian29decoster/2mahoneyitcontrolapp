@@ -38,8 +38,10 @@ export default function TopAppBar() {
           <Menu size={18} />
         </button>
 
-        {/* Branding / SOC */}
-        <div className="text-xs text-[var(--muted)]">Secured by Mahoney IT Group</div>
+        {/* Branding / tagline */}
+        <div className="text-[10px] sm:text-xs text-[var(--muted)] text-center max-w-[140px] sm:max-w-none truncate sm:truncate-none">
+          Unified Risk, Operations & Growth Control Surface
+        </div>
         <div className="flex items-center gap-2">
           <div className="text-[10px] px-2 py-1 rounded-full bg-emerald-600/20 text-emerald-300 border border-emerald-500/30">
             SOC-III-US-Team
