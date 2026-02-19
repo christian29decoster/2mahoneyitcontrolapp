@@ -40,7 +40,7 @@ export function getTopExpensiveIncidents(n: number): ClosedIncidentCost[] {
   return [...incidentCostHistory].sort((a, b) => b.totalCostUsd - a.totalCostUsd).slice(0, n)
 }
 
-/** ROI Simulator inputs. */
+/** ROI Simulator – interne abgeleitete Werte (für Berechnung). */
 export interface ROISimulatorInputs {
   avgHourlyEmployeeCostUsd: number
   avgDowntimeCostPerHourUsd: number
@@ -48,12 +48,33 @@ export interface ROISimulatorInputs {
   manualWorkflowHoursPerMonth: number
 }
 
-export const defaultROIInputs: ROISimulatorInputs = {
-  avgHourlyEmployeeCostUsd: 65,
-  avgDowntimeCostPerHourUsd: 1800,
-  incidentFrequencyPerYear: 8,
-  manualWorkflowHoursPerMonth: 40,
+/** Einfache Eingaben für CFO/CEO: nur Mitarbeiterzahl und Kostenstufe. */
+export interface SimpleROIInputs {
+  employeeCount: number
+  avgMonthlyCostPerHeadUsd: number
 }
+
+export const defaultSimpleROIInputs: SimpleROIInputs = {
+  employeeCount: 50,
+  avgMonthlyCostPerHeadUsd: 6500,
+}
+
+/** Leitet aus wenigen Angaben die ROI-Simulator-Inputs ab (typische Branchenkennzahlen). */
+export function deriveROIInputs(simple: SimpleROIInputs): ROISimulatorInputs {
+  const annualHoursPerHead = 2080
+  const avgHourlyEmployeeCostUsd = (simple.avgMonthlyCostPerHeadUsd * 12) / annualHoursPerHead
+  const avgDowntimeCostPerHourUsd = Math.round(avgHourlyEmployeeCostUsd * 8) // typ. Faktor Ausfallkosten
+  const incidentFrequencyPerYear = Math.max(1, Math.round(simple.employeeCount * 0.14))
+  const manualWorkflowHoursPerMonth = Math.max(5, Math.round(simple.employeeCount * 0.9))
+  return {
+    avgHourlyEmployeeCostUsd: Math.round(avgHourlyEmployeeCostUsd * 100) / 100,
+    avgDowntimeCostPerHourUsd,
+    incidentFrequencyPerYear,
+    manualWorkflowHoursPerMonth,
+  }
+}
+
+export const defaultROIInputs: ROISimulatorInputs = deriveROIInputs(defaultSimpleROIInputs)
 
 /** ROI Simulator outputs. */
 export interface ROISimulatorOutputs {
@@ -63,7 +84,7 @@ export interface ROISimulatorOutputs {
 }
 
 export function computeROIOutputs(inputs: ROISimulatorInputs): ROISimulatorOutputs {
-  const incidentCost = inputs.incidentFrequencyPerYear * 6 * inputs.avgDowntimeCostPerHourUsd // assume 6h avg per incident
+  const incidentCost = inputs.incidentFrequencyPerYear * 6 * inputs.avgDowntimeCostPerHourUsd
   const manualCost = inputs.manualWorkflowHoursPerMonth * 12 * inputs.avgHourlyEmployeeCostUsd
   const estimatedAnnualRiskCostUsd = Math.round(incidentCost + manualCost * 0.4)
   const estimatedCostReductionViaAutomationUsd = Math.round(manualCost * 0.35)

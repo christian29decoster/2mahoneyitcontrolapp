@@ -11,12 +11,13 @@ import {
   financialKpis,
   incidentCostHistory,
   getTopExpensiveIncidents,
-  defaultROIInputs,
+  defaultSimpleROIInputs,
+  deriveROIInputs,
   computeROIOutputs,
-  type ROISimulatorInputs,
+  type SimpleROIInputs,
   type ROISimulatorOutputs,
 } from '@/lib/financials'
-import { DollarSign, TrendingUp, TrendingDown, HelpCircle } from 'lucide-react'
+import { DollarSign, TrendingUp, TrendingDown, HelpCircle, Info } from 'lucide-react'
 
 function KpiCard({
   label,
@@ -65,8 +66,9 @@ function KpiCard({
 }
 
 export default function FinancialsPage() {
-  const [roiInputs, setRoiInputs] = useState<ROISimulatorInputs>(defaultROIInputs)
-  const roiOutputs = useMemo(() => computeROIOutputs(roiInputs), [roiInputs])
+  const [simpleInputs, setSimpleInputs] = useState<SimpleROIInputs>(defaultSimpleROIInputs)
+  const derivedInputs = useMemo(() => deriveROIInputs(simpleInputs), [simpleInputs])
+  const roiOutputs = useMemo(() => computeROIOutputs(derivedInputs), [derivedInputs])
   const topIncidents = useMemo(() => getTopExpensiveIncidents(5), [])
   const h = useHaptics()
 
@@ -114,64 +116,74 @@ export default function FinancialsPage() {
         />
       </div>
 
-      {/* ROI Simulator */}
+      {/* ROI Simulator – einfache Eingaben für CFO/CEO */}
       <Card className="p-6">
-        <h2 className="text-lg font-semibold text-[var(--text)] mb-4">Security ROI Simulator</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)] mb-1">Security ROI Simulator</h2>
+        <p className="text-sm text-[var(--muted)] mb-4">
+          Nur zwei Angaben – den Rest berechnen wir für Sie anhand typischer Kennzahlen.
+        </p>
+        <div className="rounded-xl bg-[var(--surface-2)]/50 border border-[var(--border)] p-3 mb-4 flex gap-2">
+          <Info size={18} className="shrink-0 text-[var(--primary)] mt-0.5" />
+          <p className="text-xs text-[var(--muted)]">
+            <strong className="text-[var(--text)]">Hinweis:</strong> Sofern Sie Mahoney Grow gebucht haben, erfassen wir diese Kennzahlen bei Ihnen – die Eingabe dient hier der groben Einschätzung oder dem Vergleich.
+          </p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <label className="block text-xs font-medium text-[var(--muted)]">
-              Average hourly employee cost (USD)
-            </label>
-            <input
-              type="number"
-              value={roiInputs.avgHourlyEmployeeCostUsd}
-              onChange={(e) => setRoiInputs((s) => ({ ...s, avgHourlyEmployeeCostUsd: +e.target.value || 0 }))}
-              className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-2 text-sm text-[var(--text)]"
-            />
-            <label className="block text-xs font-medium text-[var(--muted)]">
-              Avg downtime cost per hour (USD)
-            </label>
-            <input
-              type="number"
-              value={roiInputs.avgDowntimeCostPerHourUsd}
-              onChange={(e) => setRoiInputs((s) => ({ ...s, avgDowntimeCostPerHourUsd: +e.target.value || 0 }))}
-              className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-2 text-sm text-[var(--text)]"
-            />
-            <label className="block text-xs font-medium text-[var(--muted)]">
-              Incident frequency per year
-            </label>
-            <input
-              type="number"
-              value={roiInputs.incidentFrequencyPerYear}
-              onChange={(e) => setRoiInputs((s) => ({ ...s, incidentFrequencyPerYear: +e.target.value || 0 }))}
-              className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-2 text-sm text-[var(--text)]"
-            />
-            <label className="block text-xs font-medium text-[var(--muted)]">
-              Manual workflow hours per month
-            </label>
-            <input
-              type="number"
-              value={roiInputs.manualWorkflowHoursPerMonth}
-              onChange={(e) => setRoiInputs((s) => ({ ...s, manualWorkflowHoursPerMonth: +e.target.value || 0 }))}
-              className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-2 text-sm text-[var(--text)]"
-            />
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1">
+                Anzahl Mitarbeiter bzw. User
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={simpleInputs.employeeCount}
+                onChange={(e) => setSimpleInputs((s) => ({ ...s, employeeCount: Math.max(1, +e.target.value || 0) }))}
+                className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text)]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1">
+                Durchschnittliche Personalkosten pro Kopf und Monat (USD)
+              </label>
+              <input
+                type="number"
+                min={0}
+                step={100}
+                value={simpleInputs.avgMonthlyCostPerHeadUsd}
+                onChange={(e) => setSimpleInputs((s) => ({ ...s, avgMonthlyCostPerHeadUsd: Math.max(0, +e.target.value || 0) }))}
+                className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text)]"
+              />
+              <p className="text-[10px] text-[var(--muted)] mt-1">
+                z. B. Lohn + Lohnnebenkosten, grob geschätzt
+              </p>
+            </div>
+            <div className="pt-2 border-t border-[var(--border)]">
+              <p className="text-[10px] font-medium text-[var(--muted)] uppercase tracking-wide mb-2">Vom System berechnet</p>
+              <ul className="text-xs text-[var(--muted)] space-y-1">
+                <li>Stündliche Personalkosten: {formatCurrency(derivedInputs.avgHourlyEmployeeCostUsd)}/h</li>
+                <li>Ausfallkosten (typ. Faktor): {formatCurrency(derivedInputs.avgDowntimeCostPerHourUsd)}/h</li>
+                <li>Incidents/Jahr (Richtwert): {derivedInputs.incidentFrequencyPerYear}</li>
+                <li>Manuelle Stunden/Monat (Richtwert): {derivedInputs.manualWorkflowHoursPerMonth} h</li>
+              </ul>
+            </div>
           </div>
           <div className="space-y-3">
-            <p className="text-xs font-medium text-[var(--muted)]">Outputs</p>
+            <p className="text-xs font-medium text-[var(--muted)]">Ergebnis</p>
             <p className="text-sm text-[var(--text)]">
-              <strong>Estimated annual risk cost:</strong>{' '}
+              <strong>Geschätzte jährliche Risikokosten:</strong>{' '}
               {formatCurrency(roiOutputs.estimatedAnnualRiskCostUsd)}
             </p>
             <p className="text-sm text-[var(--text)]">
-              <strong>Estimated cost reduction via automation:</strong>{' '}
+              <strong>Kostenreduktion durch Automatisierung:</strong>{' '}
               {formatCurrency(roiOutputs.estimatedCostReductionViaAutomationUsd)}
             </p>
             <p className="text-sm text-[var(--text)]">
-              <strong>Estimated savings through AI recommendations:</strong>{' '}
+              <strong>Einsparung durch AI-Empfehlungen:</strong>{' '}
               {formatCurrency(roiOutputs.estimatedSavingsFromAIRecommendationsUsd)}
             </p>
             <HapticButton
-              label="Apply Optimization Plan"
+              label="Optimierungsplan anwenden"
               onClick={() => h.impact('medium')}
               className="mt-4"
             />
