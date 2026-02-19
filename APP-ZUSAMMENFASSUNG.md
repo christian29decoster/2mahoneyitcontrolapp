@@ -80,10 +80,22 @@ Die **Mahoney Control App** ist die zentrale Steuerungs- und Sichtoberfläche f�
 
 ---
 
+### Mahoney IT Group Admins (intern, Backend-gesteuert)
+
+- **Group Admin (Onboarding)**  
+  Eigene Ansicht neben der Partner-Ansicht, nur für Mahoney IT Group Admins. **In der Live-Umgebung standardmäßig ausgeblendet**; Sichtbarkeit wird im Backend über die Umgebungsvariable `SHOW_GROUP_ADMIN=true` freigegeben.
+
+  - **Kunden-Onboarding:** Stammdaten (Firma, Rechtsform, Branche, Adresse, Steuer/USt-IdNr., Haupt- und techn. Ansprechpartner), Vertrag (Beginn/Ende, Tarif, Seats/Geräte, gebuchte Services, MSA/AV-Vertrag), Audit & Governance (Status, nächstes Audit, Framework).
+  - **Umsatz:** Umsatz der letzten Monate pro Kunde (EUR/USD), Summe und Durchschnitt, Aufschlüsselung nach Services.
+  - **Onboarding-Themen:** Anmeldung zu Themen für das Onboarding: Audit-Grundlagen, IT-Governance & Compliance, Sicherheits-Basics, Compliance-Frameworks (ISO, BSI), Incident-Handling, Verträge & Abrechnung, Partner-Portal, Eskalation. Status „Angemeldet“/„Offen“ und optional Abschlussdatum.
+  - **Admin-Infos:** Interne Notizen, Nächste Schritte, Übergabe/Eskalation, letzte Aktualisierung.
+
+---
+
 ## Technische Besonderheiten
 
 - **Rollen**  
-  Kunden- vs. Partner-Ansicht; Admin-Bereich nur für Nutzer mit Admin-Rolle.
+  Kunden- vs. Partner-Ansicht; Admin-Bereich nur für Nutzer mit Admin-Rolle. Group-Admin-Ansicht nur sichtbar, wenn Backend `SHOW_GROUP_ADMIN=true` setzt (z. B. in .env oder Server-Config).
 
 - **Haptik & UX**  
   Klickbare Zeilen, Haptic Feedback wo sinnvoll, Toasts für Aktionen, Sheets/Modals für Details.
