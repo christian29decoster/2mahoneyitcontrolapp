@@ -16,6 +16,7 @@ import {
 import { Sheet } from '@/components/Sheets'
 import { useHaptics } from '@/hooks/useHaptics'
 import { ToastManager, type ToastType } from '@/components/Toasts'
+import { HapticButton } from '@/components/HapticButton'
 
 function formatMetricValue(metric: string, value: number) {
   if (metric.endsWith('USD')) {
@@ -34,6 +35,7 @@ export default function MahoneyGrowPage() {
   const h = useHaptics()
   const [selected, setSelected] = useState<GrowInsight | null>(null)
   const [applied, setApplied] = useState<Partial<Record<GrowInsightId, boolean>>>({})
+  const [businessSheetOpen, setBusinessSheetOpen] = useState(false)
   const [toasts, setToasts] = useState<
     Array<{ id: string; type: ToastType; title: string; message?: string }>
   >([])
@@ -348,7 +350,7 @@ export default function MahoneyGrowPage() {
         className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)] gap-4"
       >
         <div className="space-y-4">
-          <Card>
+          <Card className="p-4">
             <h2 className="text-sm font-semibold text-[var(--text)] mb-2">
               Unified Security &amp; Operations Data
             </h2>
@@ -373,7 +375,7 @@ export default function MahoneyGrowPage() {
             </ul>
           </Card>
 
-          <Card>
+          <Card className="p-4">
             <h2 className="text-sm font-semibold text-[var(--text)] mb-2">
               Cybersecurity Intelligence Layer
             </h2>
@@ -398,7 +400,7 @@ export default function MahoneyGrowPage() {
             </ul>
           </Card>
 
-          <Card>
+          <Card className="p-4">
             <h2 className="text-sm font-semibold text-[var(--text)] mb-2">
               Strategic Purpose
             </h2>
@@ -424,7 +426,7 @@ export default function MahoneyGrowPage() {
         </div>
 
         <div className="space-y-4">
-          <Card>
+          <Card className="p-4">
             <h2 className="text-sm font-semibold text-[var(--text)] mb-2">
               Business Intelligence Integration
             </h2>
@@ -451,9 +453,18 @@ export default function MahoneyGrowPage() {
               This unlocks views on how security posture, service quality and growth
               targets influence each other across clients, locations and services.
             </p>
+            <div className="mt-4">
+              <HapticButton
+                label="Open Business Growth Analyst (Demo)"
+                onClick={() => {
+                  h.impact('medium')
+                  setBusinessSheetOpen(true)
+                }}
+              />
+            </div>
           </Card>
 
-          <Card>
+          <Card className="p-4">
             <h2 className="text-sm font-semibold text-[var(--text)] mb-2">
               Outcomes for Leadership
             </h2>
@@ -477,7 +488,7 @@ export default function MahoneyGrowPage() {
             </ul>
           </Card>
 
-          <Card>
+          <Card className="p-4">
             <h2 className="text-sm font-semibold text-[var(--text)] mb-2">
               Positioning
             </h2>
@@ -606,6 +617,77 @@ export default function MahoneyGrowPage() {
             </div>
           </div>
         )}
+      </Sheet>
+
+      <Sheet
+        isOpen={businessSheetOpen}
+        onClose={() => setBusinessSheetOpen(false)}
+        title="Business Growth Analyst – Demo intake"
+      >
+        <div className="space-y-5">
+          <p className="text-sm text-[var(--muted)]">
+            In a real engagement Mahoney would combine your customers&apos; security
+            telemetry with key commercial data points to build a tailored growth model.
+            This demo sheet illustrates which kind of information is typically used.
+          </p>
+
+          <Card className="p-4">
+            <div className="text-sm font-semibold text-[var(--text)] mb-2">
+              Example commercial inputs per customer
+            </div>
+            <ul className="space-y-2 text-sm text-[var(--text)]">
+              <li className="flex gap-2">
+                <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+                <span>Annual contract value &amp; contract term</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+                <span>Service mix (managed security, workplace, cloud, projects)</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+                <span>Target growth per segment (SMB, mid-market, enterprise)</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+                <span>Current margin band and utilization of your service teams</span>
+              </li>
+            </ul>
+          </Card>
+
+          <Card className="p-4">
+            <div className="text-sm font-semibold text-[var(--text)] mb-2">
+              How Mahoney Grow uses this (Demo)
+            </div>
+            <p className="text-xs text-[var(--muted)] mb-3">
+              The Business Growth Analyst combines these inputs with the signals on this
+              page (MTTR, noise, automation, risk exposure) to:
+            </p>
+            <ul className="space-y-2 text-sm text-[var(--text)]">
+              <li className="flex gap-2">
+                <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+                <span>
+                  Prioritize which customers offer the strongest upside from security-led
+                  optimization.
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+                <span>
+                  Quantify impact on margin and recurring revenue if automation and
+                  service quality are improved.
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+                <span>
+                  Prepare board-ready narratives that link security investments directly
+                  to growth plans.
+                </span>
+              </li>
+            </ul>
+          </Card>
+        </div>
       </Sheet>
 
       <ToastManager toasts={toasts as any} removeToast={removeToast} />
