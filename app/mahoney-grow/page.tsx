@@ -92,20 +92,20 @@ export default function MahoneyGrowPage() {
           Mahoney Grow
         </Badge>
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[var(--text)]">
-          From Security Telemetry to Growth Levers
+          Business Growth powered by Security Data
         </h1>
         <p className="text-sm md:text-base text-[var(--muted)] max-w-2xl">
-          Mahoney Grow zeigt, wie <strong>Security-Daten</strong> direkt in{' '}
-          <strong>Unternehmenseffizienz</strong> und <strong>Wachstum</strong> übersetzt
-          werden. Die Demo verbindet SOC- und SIEM-Signale mit Umsatz-, Margin- und
-          Churn-Kennzahlen – wie ein Steering-Cockpit für den Unternehmer.
+          Mahoney Grow zeigt Ihren Kunden, wie <strong>Security- und SIEM-Daten</strong>{' '}
+          direkt in <strong>Business-Wachstum</strong> übersetzt werden können. Die Demo
+          verbindet Security-Telemetrie mit Umsatz-, Margin- und Churn-Kennzahlen – als
+          Steuerungs-Cockpit für das Management des Kundenunternehmens.
         </p>
         <div className="inline-flex flex-wrap gap-2 mt-1 text-[11px]">
           <span className="px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)]">
-            Security Posture → Operational Efficiency → Growth
+            Security Posture → Effizienz → Business Growth
           </span>
           <span className="px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)]">
-            From SOC events to EBIT impact
+            From SOC/SIEM events to P&amp;L impact
           </span>
         </div>
       </motion.div>
@@ -143,8 +143,9 @@ export default function MahoneyGrowPage() {
             {formatMetricValue('mttrHours', metrics.mttrHours)}
           </div>
           <div className="mt-2 text-xs text-[var(--muted)]">
-            Security-Ebene: Wie schnell Incidents geschlossen werden.
-            Direkter Effekt auf Ticketkosten, SLA-Qualität und Kundenzufriedenheit.
+            Security-Ebene beim Kunden: Wie schnell Incidents in seiner Umgebung
+            geschlossen werden – mit direktem Einfluss auf Ticketkosten, SLA-Qualität und
+            Zufriedenheit der Fachbereiche.
           </div>
         </Card>
 
@@ -169,8 +170,8 @@ export default function MahoneyGrowPage() {
               AI Insights – Technical
             </h2>
             <p className="text-xs text-[var(--muted)]">
-              Wie Security- und Operationsdaten genutzt werden, um das technologische
-              Fundament zu stabilisieren und effizienter zu machen.
+              Wie Security- und Operationsdaten in den Kundenumgebungen genutzt werden,
+              um das technologische Fundament zu stabilisieren und effizienter zu machen.
             </p>
           </div>
           <div className="text-xs text-[var(--muted)]">
@@ -241,7 +242,8 @@ export default function MahoneyGrowPage() {
           </h2>
           <p className="text-xs text-[var(--muted)] mb-3">
             Wie aus denselben Security-/Eventdaten konkrete Hebel für Marge, Auslastung
-            und Wachstum abgeleitet werden.
+            und Wachstum im Kundenunternehmen abgeleitet werden – über alle Mandanten
+            hinweg.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {businessInsights.map(ins => {
@@ -305,8 +307,9 @@ export default function MahoneyGrowPage() {
           </h3>
           <p className="text-xs text-[var(--muted)] mb-3">
             Beispielhaft zeigt Mahoney Grow hier nicht nur Security-Themen, sondern auch
-            manuelle Geschäftsprozesse, die sich aus Event- und Ticket-Logs ableiten
-            lassen – ideale Kandidaten für Automatisierung.
+            manuelle Geschäftsprozesse beim Kunden, die sich aus Event- und Ticket-Logs
+            ableiten lassen – ideale Kandidaten für Automatisierung und Wachstum ohne
+            zusätzliche Köpfe.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-[var(--text)]">
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
