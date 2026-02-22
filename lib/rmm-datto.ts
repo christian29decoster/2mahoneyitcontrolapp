@@ -35,8 +35,12 @@ export interface DattoDevicesPage {
     nextPageURL?: string | null
     count?: number
     totalCount?: number
+    total?: number
   }
   devices?: DattoRmmDevice[]
+  /** Manche APIs liefern totalCount auf Top-Level */
+  totalCount?: number
+  total?: number
 }
 
 /** Zusätzliche Datto-RMM-Felder für Detailansicht. */
@@ -187,6 +191,8 @@ export async function getDattoRmmDevices(
   let nextUrl: string | null = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=1`
   let pageNum = 1
   const maxPages = 100
+  /** totalCount aus erster Antwort – wenn gesetzt, so lange nachladen bis all.length >= totalCount */
+  let totalCount: number | null = null
 
   while (nextUrl && pageNum <= maxPages) {
     const res: Response = await fetch(nextUrl, {
@@ -210,6 +216,19 @@ export async function getDattoRmmDevices(
       if (d && typeof d === 'object' && d.uid) all.push(mapDattoDeviceToApp(d))
     }
 
+    if (totalCount == null) {
+      const rawObj = raw as Record<string, unknown>
+      const pageDetails = data.pageDetails as Record<string, unknown> | undefined
+      const tc =
+        pageDetails?.totalCount ??
+        pageDetails?.total ??
+        data.totalCount ??
+        data.total ??
+        rawObj.totalCount ??
+        rawObj.total
+      if (typeof tc === 'number' && tc > 0) totalCount = tc
+    }
+
     const pageDetails = data.pageDetails
     const rawObj = raw as Record<string, unknown>
     const pageDetailsObj = pageDetails as Record<string, unknown> | undefined
@@ -226,17 +245,19 @@ export async function getDattoRmmDevices(
     nextUrl = resolveNextPageUrl(base, nextPageStr)
     if (nextPageStr && !nextUrl) nextUrl = nextPageStr
 
-    if (!nextUrl) {
-      const count = devices.length
-      if (count > 0) {
-        pageNum += 1
-        nextUrl = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=${pageNum}`
-        await new Promise((r) => setTimeout(r, 80))
-      }
-    } else {
+    const gotFullPage = devices.length >= MAX_PAGE_SIZE
+    const needMore = totalCount != null && all.length < totalCount
+    /** Nächste Seite versuchen, wenn API keine nextPageUrl liefert aber wir noch nicht alle haben (oder volle Seite bekamen) */
+    const tryNextPage = !nextUrl && (gotFullPage || needMore || devices.length > 0)
+
+    if (tryNextPage) {
       pageNum += 1
-      if (pageNum > 1) await new Promise((r) => setTimeout(r, 80))
+      nextUrl = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=${pageNum}`
+    } else if (nextUrl) {
+      pageNum += 1
     }
+
+    if (nextUrl) await new Promise((r) => setTimeout(r, 80))
   }
 
   return all

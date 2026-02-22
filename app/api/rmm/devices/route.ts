@@ -41,6 +41,7 @@ export async function GET(request: Request) {
       })
       const raw = await res.json()
       const linkHeader = res.headers.get('Link')
+      const pageDetails = typeof raw === 'object' && raw !== null ? (raw as { pageDetails?: Record<string, unknown> }).pageDetails : undefined
       return NextResponse.json({
         source: 'rmm',
         devices: [],
@@ -49,6 +50,10 @@ export async function GET(request: Request) {
           firstPageUrl: url,
           status: res.status,
           linkHeader: linkHeader ?? undefined,
+          /** totalCount / total aus Antwort (für Paginierung). */
+          totalCount: typeof raw === 'object' && raw !== null ? (raw as { totalCount?: number; total?: number }).totalCount ?? (raw as { totalCount?: number; total?: number }).total : undefined,
+          pageDetailsKeys: pageDetails ? Object.keys(pageDetails) : [],
+          pageDetailsTotalCount: pageDetails?.totalCount ?? pageDetails?.total,
           /** Alle Top-Level-Keys der API-Antwort (für Paginierung: pageDetails, nextPageUrl, etc.). */
           topLevelKeys: typeof raw === 'object' && raw !== null ? Object.keys(raw) : [],
           /** Roh-JSON der ersten Seite (devices-Array ggf. gekürzt). */
