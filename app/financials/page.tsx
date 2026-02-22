@@ -24,6 +24,10 @@ type UsageData = {
   source: 'rmm' | 'demo'
   deviceCount: number
   estimatedEventsPerMonth: number
+  eventsPerMonth?: number
+  eventsSource?: 'siem' | 'estimate'
+  realEventsPerMonth?: number | null
+  realEventsCapped?: boolean
   realOpenAlertsCount?: number | null
   realResolvedAlertsCount?: number | null
   realResolvedCapped?: boolean
@@ -85,7 +89,7 @@ export default function FinancialsPage() {
   const roiOutputs = useMemo(() => computeROIOutputs(derivedInputs), [derivedInputs])
   const topIncidents = useMemo(() => getTopExpensiveIncidents(5), [])
   const mduBreakdown = useMemo(
-    () => (usage ? computeMduCost(usage.estimatedEventsPerMonth) : null),
+    () => (usage ? computeMduCost(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth) : null),
     [usage]
   )
   const h = useHaptics()
@@ -94,7 +98,7 @@ export default function FinancialsPage() {
     fetch('/api/usage')
       .then((r) => r.json())
       .then((d: UsageData) => setUsage(d))
-      .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000 }))
+      .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000, eventsPerMonth: 39000 }))
   }, [])
 
   return (
@@ -165,16 +169,16 @@ export default function FinancialsPage() {
                 <p className="text-2xl font-semibold text-[var(--text)] mt-1">{usage.deviceCount.toLocaleString()}</p>
                 <p className="text-xs text-[var(--muted)] mt-0.5">{usage.source === 'rmm' ? 'Live aus RMM' : 'Demo'}</p>
               </div>
-              <div>
-                <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Events (Monat)</p>
-                <p className="text-2xl font-semibold text-[var(--text)] mt-1">{usage.estimatedEventsPerMonth.toLocaleString()}</p>
-                <p className="text-xs text-[var(--muted)] mt-0.5">~10 Events/Gerät/Tag</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">MDU-Kosten (Layer 3)</p>
-                <p className="text-2xl font-semibold text-[var(--text)] mt-1">{formatCurrency(mduBreakdown.costUsd)}/mo</p>
-                <p className="text-xs text-[var(--muted)] mt-0.5">{mduBreakdown.summary}</p>
-              </div>
+            <div>
+              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">{usage.eventsSource === 'siem' ? 'Events (Monat)' : 'Events (Monat, geschätzt)'}</p>
+              <p className="text-2xl font-semibold text-[var(--text)] mt-1">{(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).toLocaleString()}{usage.realEventsCapped ? ' (≥)' : ''}</p>
+              <p className="text-xs text-[var(--muted)] mt-0.5">{usage.eventsSource === 'siem' ? 'Aus Sophos SIEM' : '~10 Events/Gerät/Tag'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">MDU-Kosten (Layer 3)</p>
+              <p className="text-2xl font-semibold text-[var(--text)] mt-1">{formatCurrency(mduBreakdown.costUsd)}/mo</p>
+              <p className="text-xs text-[var(--muted)] mt-0.5">{mduBreakdown.summary}</p>
+            </div>
             </div>
             {(usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm' && (
               <div className="mt-4 pt-4 border-t border-[var(--border)]">

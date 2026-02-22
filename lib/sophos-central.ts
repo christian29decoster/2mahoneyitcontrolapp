@@ -251,11 +251,13 @@ export async function getSophosEventsForTenant(
     cursor?: string
     pageSize?: number
     maxPages?: number
+    countOnly?: boolean
   } = {}
 ): Promise<SophosEventsResult> {
-  const { fromDate, cursor, pageSize = SOPHOS_EVENTS_PAGE_SIZE, maxPages = SOPHOS_EVENTS_MAX_PAGES_PER_TENANT } = options
+  const { fromDate, cursor, pageSize = SOPHOS_EVENTS_PAGE_SIZE, maxPages = SOPHOS_EVENTS_MAX_PAGES_PER_TENANT, countOnly = false } = options
   const base = apiBase.replace(/\/+$/, '')
   const all: SophosSiemEvent[] = []
+  let totalCount = 0
   let nextCursor: string | null = cursor ?? null
   let page = 0
 
@@ -285,7 +287,8 @@ export async function getSophosEventsForTenant(
     }
     const data = (await res.json()) as { items?: SophosSiemEvent[]; next_cursor?: string }
     const items = data.items ?? []
-    for (const e of items) all.push(e)
+    if (countOnly) totalCount += items.length
+    else for (const e of items) all.push(e)
     nextCursor = typeof data.next_cursor === 'string' && data.next_cursor ? data.next_cursor : null
     page += 1
     if (!nextCursor || items.length === 0) break
@@ -294,11 +297,36 @@ export async function getSophosEventsForTenant(
 
   return {
     events: all,
-    totalFetched: all.length,
+    totalFetched: countOnly ? totalCount : all.length,
     nextCursor,
     hasMore: !!nextCursor,
     capped: page >= maxPages,
   }
+}
+
+/** Partner: Nur Event-Anzahl (aktueller Monat), ohne Events zu speichern – für Usage/MDU. */
+export async function getSophosPartnerEventsCount(
+  accessToken: string,
+  partnerId: string,
+  options: { fromDate?: string; maxPagesPerTenant?: number } = {}
+): Promise<{ count: number; capped: boolean }> {
+  const { fromDate, maxPagesPerTenant = 30 } = options
+  const tenants = await getSophosPartnerTenants(accessToken, partnerId, SOPHOS_PARTNER_MAX_TENANTS)
+  let total = 0
+  let capped = false
+  for (const tenant of tenants) {
+    const apiHost = tenant.apiHost ?? SOPHOS_API_BASE
+    const result = await getSophosEventsForTenant(accessToken, tenant.id, apiHost, {
+      fromDate,
+      pageSize: SOPHOS_EVENTS_PAGE_SIZE,
+      maxPages: maxPagesPerTenant,
+      countOnly: true,
+    })
+    total += result.totalFetched
+    if (result.capped) capped = true
+    await new Promise((r) => setTimeout(r, 50))
+  }
+  return { count: total, capped }
 }
 
 /**

@@ -37,6 +37,10 @@ export type UsageData = {
   source: 'rmm' | 'demo'
   deviceCount: number
   estimatedEventsPerMonth: number
+  eventsPerMonth?: number
+  eventsSource?: 'siem' | 'estimate'
+  realEventsPerMonth?: number | null
+  realEventsCapped?: boolean
   realOpenAlertsCount?: number | null
   realResolvedAlertsCount?: number | null
   realResolvedCapped?: boolean
@@ -59,7 +63,7 @@ export default function DashboardPage() {
     fetch('/api/usage')
       .then((r) => r.json())
       .then((d: UsageData) => setUsage(d))
-      .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000 }))
+      .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000, eventsPerMonth: 39000 }))
   }, [])
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)
@@ -186,19 +190,19 @@ export default function DashboardPage() {
                         <p className="text-xl font-semibold text-[var(--text)]">{usage.deviceCount.toLocaleString()}</p>
                         <p className="text-[10px] text-[var(--muted)]">{usage.source === 'rmm' ? 'Live aus RMM' : 'Demo'}</p>
                       </div>
-                      <div>
-                        <p className="text-xs text-[var(--muted)]">Events (Monat, geschätzt)</p>
-                        <p className="text-xl font-semibold text-[var(--text)]">{usage.estimatedEventsPerMonth.toLocaleString()}</p>
-                        <p className="text-[10px] text-[var(--muted)]">~10 Events/Gerät/Tag</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-[var(--muted)]">MDU-Kosten (Layer 3)</p>
-                        <p className="text-xl font-semibold text-[var(--text)] flex items-center gap-1">
-                          <DollarSign className="w-4 h-4" />
-                          {formatCurrency(computeMduCost(usage.estimatedEventsPerMonth).costUsd)}/mo
-                        </p>
-                        <p className="text-[10px] text-[var(--muted)]">0–1M inklusive</p>
-                      </div>
+                    <div>
+                      <p className="text-xs text-[var(--muted)]">{usage.eventsSource === 'siem' ? 'Events (Monat)' : 'Events (Monat, geschätzt)'}</p>
+                      <p className="text-xl font-semibold text-[var(--text)]">{(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).toLocaleString()}{(usage.realEventsCapped ? ' (≥)' : '')}</p>
+                      <p className="text-[10px] text-[var(--muted)]">{usage.eventsSource === 'siem' ? 'Aus Sophos SIEM' : '~10 Events/Gerät/Tag'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[var(--muted)]">MDU-Kosten (Layer 3)</p>
+                      <p className="text-xl font-semibold text-[var(--text)] flex items-center gap-1">
+                        <DollarSign className="w-4 h-4" />
+                        {formatCurrency(computeMduCost(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).costUsd)}/mo
+                      </p>
+                      <p className="text-[10px] text-[var(--muted)]">0–1M inklusive</p>
+                    </div>
                     </div>
                     {((usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm') && (
                       <div className="mt-3 pt-3 border-t border-[var(--border)]">
@@ -224,7 +228,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <p className="text-[10px] text-[var(--muted)] mt-3 border-t border-[var(--border)] pt-2">
-                      {computeMduCost(usage.estimatedEventsPerMonth).summary}
+                      {computeMduCost(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).summary}
                       {' · '}
                       <a href="/financials" className="text-[var(--primary)] hover:underline">In Finanzen anzeigen</a>
                     </p>
@@ -426,14 +430,14 @@ export default function DashboardPage() {
                       <p className="text-[10px] text-[var(--muted)]">Geräte</p>
                       <p className="text-lg font-semibold text-[var(--text)]">{usage.deviceCount}</p>
                     </div>
-                    <div>
-                      <p className="text-[10px] text-[var(--muted)]">Events/Mo</p>
-                      <p className="text-lg font-semibold text-[var(--text)]">{(usage.estimatedEventsPerMonth / 1000).toFixed(0)}k</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-[var(--muted)]">Kosten</p>
-                      <p className="text-lg font-semibold text-[var(--text)]">{formatCurrency(computeMduCost(usage.estimatedEventsPerMonth).costUsd)}</p>
-                    </div>
+                  <div>
+                    <p className="text-[10px] text-[var(--muted)]">Events/Mo</p>
+                    <p className="text-lg font-semibold text-[var(--text)]">{((usage.eventsPerMonth ?? usage.estimatedEventsPerMonth) / 1000).toFixed(0)}k{usage.realEventsCapped ? '+' : ''}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[var(--muted)]">Kosten</p>
+                    <p className="text-lg font-semibold text-[var(--text)]">{formatCurrency(computeMduCost(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).costUsd)}</p>
+                  </div>
                   </div>
                   {((usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm') && (
                     <p className="text-[10px] text-[var(--muted)] mt-2">

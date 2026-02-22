@@ -5,7 +5,7 @@ import {
   getDattoRmmAccountAlertsOpen,
   getDattoRmmAccountAlertsResolved,
 } from '@/lib/rmm-datto'
-import { getSophosAccessToken, getSophosPartnerAlertsTotal } from '@/lib/sophos-central'
+import { getSophosAccessToken, getSophosPartnerAlertsTotal, getSophosPartnerEventsCount } from '@/lib/sophos-central'
 import { estimateMonthlyEvents } from '@/lib/mdu-pricing'
 
 export const dynamic = 'force-dynamic'
@@ -24,12 +24,18 @@ const DEMO_SOPHOS_ALERTS = 116
  * Dashboard und Finanzen rufen diese Route auf.
  *
  * Wirtschaftlichkeit:
- * - MDU-Kosten (Layer 3) basieren ausschließlich auf estimatedEventsPerMonth
- *   (Schätzung: Geräte × 10 Events/Gerät/Tag × 30). Echte Event-Logs werden
- *   derzeit nicht von einer API gezogen.
- * - RMM- und Sophos-Alarme werden nur für die Anzeige gezogen und fließen
- *   bewusst nicht in die Event-Zahl ein (Alarme ≠ Abrechnungs-Events).
+ * - MDU-Kosten (Layer 3): bei Sophos SIEM echte Event-Anzahl (Monat), sonst Schätzung.
+ * - RMM- und Sophos-Alarme werden nur für die Anzeige gezogen.
+ * - Events für MDU: wenn Sophos SIEM konfiguriert ist, echte Event-Anzahl (aktueller Monat);
+ *   sonst Schätzung (Geräte × 10 × 30).
  */
+function startOfMonthISO(): string {
+  const d = new Date()
+  d.setUTCDate(1)
+  d.setUTCHours(0, 0, 0, 0)
+  return d.toISOString()
+}
+
 export async function GET() {
   const rmmUrl = process.env.DATTO_RMM_API_URL
   const rmmKey = process.env.DATTO_RMM_API_KEY
@@ -41,6 +47,8 @@ export async function GET() {
   let source: 'rmm' | 'demo' = 'demo'
   let deviceCount = DEMO_DEVICE_COUNT
   let estimatedEventsPerMonth = DEMO_ESTIMATED_EVENTS_PER_MONTH
+  let realEventsPerMonth: number | null = null
+  let realEventsCapped = false
   let realOpenAlertsCount: number | null = DEMO_OPEN_ALERTS_RMM
   let realResolvedAlertsCount: number | null = DEMO_RESOLVED_ALERTS_RMM
   let realResolvedCapped = DEMO_RESOLVED_CAPPED
@@ -77,8 +85,19 @@ export async function GET() {
       ? (async () => {
           try {
             const sophosToken = await getSophosAccessToken(sophosClientId, sophosClientSecret)
-            const sophosResult = await getSophosPartnerAlertsTotal(sophosToken, sophosTenantId)
-            return { count: sophosResult.count, capped: sophosResult.capped }
+            const [alertsResult, eventsResult] = await Promise.all([
+              getSophosPartnerAlertsTotal(sophosToken, sophosTenantId),
+              getSophosPartnerEventsCount(sophosToken, sophosTenantId, {
+                fromDate: startOfMonthISO(),
+                maxPagesPerTenant: 30,
+              }).catch(() => ({ count: 0, capped: false })),
+            ])
+            return {
+              alertsCount: alertsResult.count,
+              alertsCapped: alertsResult.capped,
+              eventsCount: eventsResult.count,
+              eventsCapped: eventsResult.capped,
+            }
           } catch (e) {
             console.error('Sophos usage error:', e)
             return null
@@ -97,16 +116,25 @@ export async function GET() {
     realResolvedCapped = rmmResult.realResolvedCapped
   }
   if (sophosResult) {
-    sophosAlertsCount = sophosResult.count
-    sophosAlertsCapped = sophosResult.capped
+    sophosAlertsCount = sophosResult.alertsCount
+    sophosAlertsCapped = sophosResult.alertsCapped
+    if (sophosResult.eventsCount > 0) {
+      realEventsPerMonth = sophosResult.eventsCount
+      realEventsCapped = sophosResult.eventsCapped
+    }
   }
 
   const sophosConfigured = !!(sophosClientId && sophosClientSecret && sophosTenantId)
+  const eventsPerMonth = realEventsPerMonth ?? estimatedEventsPerMonth
 
   return NextResponse.json({
     source,
     deviceCount,
     estimatedEventsPerMonth,
+    realEventsPerMonth,
+    realEventsCapped,
+    eventsPerMonth,
+    eventsSource: realEventsPerMonth != null ? 'siem' : 'estimate',
     realOpenAlertsCount,
     realResolvedAlertsCount,
     realResolvedCapped,
