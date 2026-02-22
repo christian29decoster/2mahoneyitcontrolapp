@@ -5,7 +5,7 @@ import {
   getDattoRmmAccountAlertsOpen,
   getDattoRmmAccountAlertsResolved,
 } from '@/lib/rmm-datto'
-import { getSophosAccessToken, getSophosAlertsCount } from '@/lib/sophos-central'
+import { getSophosAccessToken, getSophosPartnerAlertsTotal } from '@/lib/sophos-central'
 import { estimateMonthlyEvents } from '@/lib/mdu-pricing'
 
 export const dynamic = 'force-dynamic'
@@ -56,7 +56,7 @@ export async function GET() {
   if (sophosClientId && sophosClientSecret && sophosTenantId) {
     try {
       const sophosToken = await getSophosAccessToken(sophosClientId, sophosClientSecret)
-      const sophosResult = await getSophosAlertsCount(sophosToken, sophosTenantId)
+      const sophosResult = await getSophosPartnerAlertsTotal(sophosToken, sophosTenantId)
       sophosAlertsCount = sophosResult.count
       sophosAlertsCapped = sophosResult.capped
     } catch (e) {
