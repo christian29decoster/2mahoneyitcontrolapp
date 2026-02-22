@@ -40,6 +40,7 @@ export type UsageData = {
   realOpenAlertsCount?: number | null
   realResolvedAlertsCount?: number | null
   realResolvedCapped?: boolean
+  sophosConfigured?: boolean
   sophosAlertsCount?: number | null
   sophosAlertsCapped?: boolean
 }
@@ -209,14 +210,18 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   )}
-                  {usage.sophosAlertsCount != null && (
-                    <div className="mt-2 pt-2 border-t border-[var(--border)]">
-                      <p className="text-xs font-medium text-[var(--muted)] mb-1">Sophos EDR</p>
-                      <p className="text-sm text-[var(--text)]">
-                        <strong>{usage.sophosAlertsCount.toLocaleString()}</strong> Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}
-                      </p>
-                    </div>
-                  )}
+                  <div className="mt-2 pt-2 border-t border-[var(--border)]">
+                    <p className="text-xs font-medium text-[var(--muted)] mb-1">Sophos EDR</p>
+                    <p className="text-sm text-[var(--text)]">
+                      {usage.sophosAlertsCount != null ? (
+                        <><strong>{usage.sophosAlertsCount.toLocaleString()}</strong> Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}</>
+                      ) : usage.sophosConfigured ? (
+                        <span className="text-[var(--muted)]">– (API-Fehler oder keine Alerts)</span>
+                      ) : (
+                        <span className="text-[var(--muted)]">Nicht konfiguriert</span>
+                      )}
+                    </p>
+                  </div>
                   <p className="text-[10px] text-[var(--muted)] mt-3 border-t border-[var(--border)] pt-2">
                     {computeMduCost(usage.estimatedEventsPerMonth).summary}
                     {' · '}
@@ -417,11 +422,11 @@ export default function DashboardPage() {
                     RMM: {usage.realOpenAlertsCount ?? 0} offen · {usage.realResolvedAlertsCount?.toLocaleString() ?? 0} gelöst{usage.realResolvedCapped ? ' (≥)' : ''}
                   </p>
                 )}
-                {usage.sophosAlertsCount != null && (
-                  <p className="text-[10px] text-[var(--muted)] mt-1">
-                    Sophos EDR: {usage.sophosAlertsCount.toLocaleString()} Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}
-                  </p>
-                )}
+                <p className="text-[10px] text-[var(--muted)] mt-1">
+                  Sophos EDR: {usage.sophosAlertsCount != null
+                    ? `${usage.sophosAlertsCount.toLocaleString()} Alerts${usage.sophosAlertsCapped ? ' (≥)' : ''}`
+                    : usage.sophosConfigured ? '–' : 'nicht konfiguriert'}
+                </p>
                 <a href="/financials" className="text-xs text-[var(--primary)] hover:underline mt-2 inline-block">In Finanzen →</a>
               </Card>
             )}

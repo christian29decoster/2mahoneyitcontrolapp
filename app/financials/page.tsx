@@ -27,6 +27,7 @@ type UsageData = {
   realOpenAlertsCount?: number | null
   realResolvedAlertsCount?: number | null
   realResolvedCapped?: boolean
+  sophosConfigured?: boolean
   sophosAlertsCount?: number | null
   sophosAlertsCapped?: boolean
 }
@@ -185,14 +186,18 @@ export default function FinancialsPage() {
               </p>
             </div>
           )}
-          {usage.sophosAlertsCount != null && (
-            <div className="mt-4 pt-4 border-t border-[var(--border)]">
-              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Sophos EDR</p>
-              <p className="text-sm text-[var(--text)]">
-                <strong>{usage.sophosAlertsCount.toLocaleString()}</strong> Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}
-              </p>
-            </div>
-          )}
+          <div className="mt-4 pt-4 border-t border-[var(--border)]">
+            <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Sophos EDR</p>
+            <p className="text-sm text-[var(--text)]">
+              {usage.sophosAlertsCount != null ? (
+                <><strong>{usage.sophosAlertsCount.toLocaleString()}</strong> Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}</>
+              ) : usage.sophosConfigured ? (
+                <span className="text-[var(--muted)]">– (API-Fehler oder keine Alerts)</span>
+              ) : (
+                <span className="text-[var(--muted)]">Nicht konfiguriert</span>
+              )}
+            </p>
+          </div>
           <p className="text-xs text-[var(--muted)] mt-4 pt-4 border-t border-[var(--border)]">
             Preise: 0–10M inklusive · 10M–50M $0.10/1k · 50M–200M $0.08/1k · 200M+ $0.05/1k. Dieser Betrag fließt in die Plattform-Kalkulation ein.
           </p>

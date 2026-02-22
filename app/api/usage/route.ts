@@ -64,6 +64,8 @@ export async function GET() {
     }
   }
 
+  const sophosConfigured = !!(sophosClientId && sophosClientSecret && sophosTenantId)
+
   return NextResponse.json({
     source,
     deviceCount,
@@ -71,6 +73,7 @@ export async function GET() {
     realOpenAlertsCount,
     realResolvedAlertsCount,
     realResolvedCapped,
+    sophosConfigured,
     sophosAlertsCount,
     sophosAlertsCapped,
   })
