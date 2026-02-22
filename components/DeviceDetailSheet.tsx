@@ -69,6 +69,16 @@ export function DeviceDetailSheet({
     return 'text-[var(--danger)]'
   }
 
+  const loc = device.location
+  const locationLabel =
+    typeof loc === 'string'
+      ? loc
+      : loc && typeof loc === 'object' && 'name' in loc
+        ? (loc as { name: string }).name
+        : '–'
+  const locationCoords =
+    loc && typeof loc === 'object' && 'lat' in loc ? (loc as { lat: number; lng: number; name: string }) : null
+
   return (
     <Sheet
       isOpen={isOpen}
@@ -229,19 +239,11 @@ export function DeviceDetailSheet({
         {/* Location Map */}
         <div>
           <h4 className="font-medium text-[var(--text)] mb-3">Location</h4>
-          {typeof device.location === 'string' ? (
-            <div className="p-4 bg-[var(--surface)]/50 rounded-[16px]">
-              <p className="text-[var(--text)]">{device.location}</p>
-            </div>
-          ) : device.location && 'lat' in device.location ? (
-            <MiniMap 
-              lat={device.location.lat} 
-              lng={device.location.lng} 
-              name={device.location.name}
-            />
+          {locationCoords ? (
+            <MiniMap lat={locationCoords.lat} lng={locationCoords.lng} name={locationCoords.name} />
           ) : (
             <div className="p-4 bg-[var(--surface)]/50 rounded-[16px]">
-              <p className="text-[var(--text)]">{device.location?.name ?? '–'}</p>
+              <p className="text-[var(--text)]">{locationLabel}</p>
             </div>
           )}
         </div>
