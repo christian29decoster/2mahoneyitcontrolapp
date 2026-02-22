@@ -216,9 +216,9 @@ export async function getDattoRmmDevices(
     nextUrl = resolveNextPageUrl(base, typeof nextPageUrlRaw === 'string' ? nextPageUrlRaw : null)
 
     if (!nextUrl) {
-      const totalCount = pageDetails?.totalCount ?? (raw as Record<string, unknown>).totalCount as number | undefined
-      const count = pageDetails?.count ?? devices.length
-      if (typeof totalCount === 'number' && totalCount > all.length && count >= MAX_PAGE_SIZE) {
+      const count = devices.length
+      // Keine nextPageUrl: trotzdem nächste Seite versuchen, wenn diese Seite Geräte hatte (Stopp, wenn nächste Seite 0 liefert)
+      if (count > 0) {
         pageNum += 1
         nextUrl = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=${pageNum}`
       }
