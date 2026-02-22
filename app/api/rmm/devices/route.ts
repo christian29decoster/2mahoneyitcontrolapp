@@ -34,29 +34,65 @@ export async function GET(request: Request) {
 
     if (debug) {
       const base = apiUrl.replace(/\/api\/?$/, '')
-      const url = `${base}${DATTO_RMM_DEVICES_PATH}?max=${DATTO_RMM_MAX_PAGE_SIZE}&page=1`
-      const res = await fetch(url, {
+      const url1 = `${base}${DATTO_RMM_DEVICES_PATH}?max=${DATTO_RMM_MAX_PAGE_SIZE}&page=1`
+      const res = await fetch(url1, {
         headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
       })
       const raw = await res.json()
       const linkHeader = res.headers.get('Link')
       const pageDetails = typeof raw === 'object' && raw !== null ? (raw as { pageDetails?: Record<string, unknown> }).pageDetails : undefined
+      const deviceCountPage1 = Array.isArray((raw as { devices?: unknown[] }).devices) ? (raw as { devices: unknown[] }).devices.length : 0
+
+      /** Seite 2 anfragen, um zu prüfen ob ?page=2 weitere Geräte liefert oder 0 */
+      const url2 = `${base}${DATTO_RMM_DEVICES_PATH}?max=${DATTO_RMM_MAX_PAGE_SIZE}&page=2`
+      let page2Status: number | null = null
+      let page2DeviceCount = 0
+      let page2NextPageUrl: string | null = null
+      let page2TotalCount: number | undefined
+      try {
+        const res2 = await fetch(url2, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store',
+        })
+        page2Status = res2.status
+        if (res2.ok) {
+          const raw2 = await res2.json()
+          const devices2 = (raw2 as { devices?: unknown[] }).devices
+          page2DeviceCount = Array.isArray(devices2) ? devices2.length : 0
+          const pd2 = (raw2 as { pageDetails?: { nextPageUrl?: string | null; totalCount?: number } }).pageDetails
+          if (pd2) {
+            page2NextPageUrl = pd2.nextPageUrl ?? null
+            page2TotalCount = pd2.totalCount
+          }
+        }
+      } catch {
+        // ignore
+      }
+
       return NextResponse.json({
         source: 'rmm',
         devices: [],
         error: null,
         debug: {
-          firstPageUrl: url,
+          firstPageUrl: url1,
           status: res.status,
           linkHeader: linkHeader ?? undefined,
-          /** totalCount / total aus Antwort (für Paginierung). */
-          totalCount: typeof raw === 'object' && raw !== null ? (raw as { totalCount?: number; total?: number }).totalCount ?? (raw as { totalCount?: number; total?: number }).total : undefined,
+          /** Vollständiges pageDetails der ersten Seite (nextPageUrl, totalCount, …). */
+          pageDetails: pageDetails ?? null,
           pageDetailsKeys: pageDetails ? Object.keys(pageDetails) : [],
           pageDetailsTotalCount: pageDetails?.totalCount ?? pageDetails?.total,
-          /** Alle Top-Level-Keys der API-Antwort (für Paginierung: pageDetails, nextPageUrl, etc.). */
+          pageDetailsNextPageUrl: pageDetails?.nextPageUrl ?? pageDetails?.nextPageURL ?? null,
+          deviceCountPage1,
+          /** Zweite Seite: ob ?page=2 weitere Geräte liefert (wenn 0 → API nutzt evtl. nur nextPageUrl). */
+          page2: {
+            url: url2,
+            status: page2Status,
+            deviceCount: page2DeviceCount,
+            nextPageUrl: page2NextPageUrl,
+            totalCount: page2TotalCount,
+          },
           topLevelKeys: typeof raw === 'object' && raw !== null ? Object.keys(raw) : [],
-          /** Roh-JSON der ersten Seite (devices-Array ggf. gekürzt). */
           firstPageRaw:
             typeof raw === 'object' && raw !== null
               ? {

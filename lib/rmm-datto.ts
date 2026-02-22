@@ -171,9 +171,11 @@ export async function getDattoRmmAccessToken(apiUrl: string, apiKey: string, api
 
 function resolveNextPageUrl(base: string, nextPageUrl: string | null | undefined): string | null {
   if (!nextPageUrl || typeof nextPageUrl !== 'string') return null
-  if (nextPageUrl.startsWith('http://') || nextPageUrl.startsWith('https://')) return nextPageUrl
+  const s = nextPageUrl.trim()
+  if (!s) return null
+  if (s.startsWith('http://') || s.startsWith('https://')) return s
   const baseClean = base.replace(/\/+$/, '')
-  const path = nextPageUrl.startsWith('/') ? nextPageUrl : `/${nextPageUrl}`
+  const path = s.startsWith('/') ? s : `/${s}`
   try {
     const u = new URL(baseClean)
     return `${u.origin}${path}`
@@ -182,20 +184,57 @@ function resolveNextPageUrl(base: string, nextPageUrl: string | null | undefined
   }
 }
 
+/** Liest nextPageUrl aus API-Antwort (alle gängigen Varianten + Durchsuchen von pageDetails). */
+function extractNextPageUrl(raw: unknown, base: string): string | null {
+  if (raw == null || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  const candidates = [
+    o.nextPageUrl,
+    o.nextPageURL,
+    o.next_page_url,
+    o.nextPage,
+    (o.pageDetails as Record<string, unknown> | undefined)?.nextPageUrl,
+    (o.pageDetails as Record<string, unknown> | undefined)?.nextPageURL,
+    (o.pageDetails as Record<string, unknown> | undefined)?.next_page_url,
+  ]
+  for (const v of candidates) {
+    if (typeof v === 'string' && v.trim()) {
+      const resolved = resolveNextPageUrl(base, v)
+      if (resolved) return resolved
+    }
+  }
+  const pd = o.pageDetails as Record<string, unknown> | undefined
+  if (pd && typeof pd === 'object') {
+    for (const v of Object.values(pd)) {
+      if (typeof v === 'string' && v.trim() && (v.startsWith('http') || v.startsWith('/'))) {
+        const resolved = resolveNextPageUrl(base, v)
+        if (resolved) return resolved
+      }
+    }
+  }
+  return null
+}
+
 export async function getDattoRmmDevices(
   apiUrl: string,
   accessToken: string
 ): Promise<AppDevice[]> {
   const base = apiUrl.replace(/\/api\/?$/, '')
   const all: AppDevice[] = []
+  const seenUids = new Set<string>()
   let nextUrl: string | null = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=1`
   let pageNum = 1
   const maxPages = 100
-  /** totalCount aus erster Antwort – wenn gesetzt, so lange nachladen bis all.length >= totalCount */
   let totalCount: number | null = null
+  const requestedUrls = new Set<string>()
 
   while (nextUrl && pageNum <= maxPages) {
-    const res: Response = await fetch(nextUrl, {
+    const urlToFetch = nextUrl
+    if (requestedUrls.has(urlToFetch)) break
+    requestedUrls.add(urlToFetch)
+    nextUrl = null
+
+    const res: Response = await fetch(urlToFetch, {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: 'no-store',
     })
@@ -205,15 +244,16 @@ export async function getDattoRmmDevices(
     }
     const raw = await res.json()
     const data = raw as DattoDevicesPage
-    const linkHeader = res.headers.get('Link')
-    const nextFromLink = linkHeader?.match(/<([^>]+)>;\s*rel="?next"?/i)?.[1]
     const devices =
       data.devices ??
       (raw as { result?: { devices?: DattoRmmDevice[] } }).result?.devices ??
       (raw as { data?: { devices?: DattoRmmDevice[] } }).data?.devices ??
       []
     for (const d of devices) {
-      if (d && typeof d === 'object' && d.uid) all.push(mapDattoDeviceToApp(d))
+      if (d && typeof d === 'object' && d.uid && !seenUids.has(d.uid)) {
+        seenUids.add(d.uid)
+        all.push(mapDattoDeviceToApp(d))
+      }
     }
 
     if (totalCount == null) {
@@ -229,30 +269,20 @@ export async function getDattoRmmDevices(
       if (typeof tc === 'number' && tc > 0) totalCount = tc
     }
 
-    const pageDetails = data.pageDetails
-    const rawObj = raw as Record<string, unknown>
-    const pageDetailsObj = pageDetails as Record<string, unknown> | undefined
-    const nextPageUrlRaw =
-      nextFromLink ??
-      pageDetailsObj?.nextPageUrl ??
-      pageDetailsObj?.nextPageURL ??
-      pageDetailsObj?.next_page_url ??
-      rawObj.nextPageUrl ??
-      rawObj.nextPageURL ??
-      rawObj.next_page_url ??
-      rawObj.nextPage
-    const nextPageStr = typeof nextPageUrlRaw === 'string' ? nextPageUrlRaw : null
-    nextUrl = resolveNextPageUrl(base, nextPageStr)
-    if (nextPageStr && !nextUrl) nextUrl = nextPageStr
+    if (totalCount != null && all.length >= totalCount) break
+
+    const linkHeader = res.headers.get('Link')
+    const nextFromLink = linkHeader?.match(/<([^>]+)>;\s*rel=["']?next["']?/i)?.[1]
+    const apiNext = extractNextPageUrl(raw, base)
+    const nextFromLinkResolved = nextFromLink ? resolveNextPageUrl(base, nextFromLink) : null
+    nextUrl = apiNext ?? nextFromLinkResolved ?? (nextFromLink ? (resolveNextPageUrl(base, nextFromLink) || nextFromLink) : null)
 
     const gotFullPage = devices.length >= MAX_PAGE_SIZE
     const needMore = totalCount != null && all.length < totalCount
-    /** Nächste Seite versuchen, wenn API keine nextPageUrl liefert aber wir noch nicht alle haben (oder volle Seite bekamen) */
-    const tryNextPage = !nextUrl && (gotFullPage || needMore || devices.length > 0)
-
-    if (tryNextPage) {
+    if (!nextUrl && (gotFullPage || needMore || devices.length > 0)) {
       pageNum += 1
-      nextUrl = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=${pageNum}`
+      const fallbackUrl = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=${pageNum}`
+      if (!requestedUrls.has(fallbackUrl)) nextUrl = fallbackUrl
     } else if (nextUrl) {
       pageNum += 1
     }
