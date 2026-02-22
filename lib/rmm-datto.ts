@@ -107,23 +107,29 @@ export function mapDattoDeviceToApp(d: DattoRmmDevice): AppDevice {
   }
 }
 
+// Laut offizieller Datto RMM Doku: Client Authentication = "Send as Basic Auth header", Client ID = public-client, Client Secret = public
+const DATTO_OAUTH_CLIENT_BASIC = Buffer.from('public-client:public').toString('base64')
+
 export async function getDattoRmmAccessToken(apiUrl: string, apiKey: string, apiSecret: string): Promise<string> {
   const base = apiUrl.replace(/\/api\/?$/, '').trim()
   const key = String(apiKey ?? '').trim()
   const secret = String(apiSecret ?? '').trim()
   const url = `${base}${DATTO_RMM_TOKEN_PATH}`
 
-  // Datto RMM: Nango/Portal nutzen oft Password Grant mit public-client (nicht client_credentials)
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    Authorization: `Basic ${DATTO_OAUTH_CLIENT_BASIC}`,
+  }
+
+  // Password Grant mit API Key = username, API Secret = password (laut Postman-Anleitung)
   const passwordGrant = new URLSearchParams({
     grant_type: 'password',
     username: key,
     password: secret,
-    client_id: 'public-client',
-    client_secret: 'public',
   })
   const resPassword = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers,
     body: passwordGrant.toString(),
     cache: 'no-store',
   })
@@ -132,6 +138,7 @@ export async function getDattoRmmAccessToken(apiUrl: string, apiKey: string, api
     return data.access_token
   }
 
+  // Fallback: client_credentials mit Key/Secret als OAuth-Client (ohne Basic Auth)
   const clientCredentials = new URLSearchParams({
     grant_type: 'client_credentials',
     client_id: key,
