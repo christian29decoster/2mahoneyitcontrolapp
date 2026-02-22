@@ -77,6 +77,9 @@ export default function DevicesPage() {
     }, 4000)
   }
   
+  const DEVICES_PER_PAGE = 25
+  const [deviceListPage, setDeviceListPage] = useState(1)
+
   const filters = [
     { key: 'all', label: 'All' },
     { key: 'server', label: 'Server' },
@@ -93,7 +96,19 @@ export default function DevicesPage() {
     const matchesFilter = selectedFilter === 'all' || (device.type || '').toLowerCase() === selectedFilter
     return matchesSearch && matchesFilter
   })
-  
+
+  const totalFiltered = filteredDevices.length
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / DEVICES_PER_PAGE))
+  const currentPage = Math.min(deviceListPage, totalPages)
+  const paginatedDevices = filteredDevices.slice(
+    (currentPage - 1) * DEVICES_PER_PAGE,
+    currentPage * DEVICES_PER_PAGE
+  )
+
+  useEffect(() => {
+    setDeviceListPage(1)
+  }, [searchTerm, selectedFilter, displayList.length])
+
   const handleAddDevice = () => {
     h.impact('medium')
     addActivity({ type: 'added', title: 'Gerät hinzugefügt', message: 'Plan & Kosten aktualisiert' })
@@ -282,19 +297,63 @@ export default function DevicesPage() {
           </div>
         </div>
 
-        {/* Device Count */}
-        <div className="text-sm text-[var(--muted)]">
-          {dataMode === 'rmm' && devicesLoading ? 'Laden…' : `${filteredDevices.length} of ${displayList.length} devices`}
+        {/* Device Count + Pagination Info */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-sm text-[var(--muted)]">
+            {dataMode === 'rmm' && devicesLoading
+              ? 'Laden…'
+              : totalPages > 1
+                ? `Geräte ${(currentPage - 1) * DEVICES_PER_PAGE + 1}–${Math.min(currentPage * DEVICES_PER_PAGE, totalFiltered)} von ${totalFiltered}`
+                : `${totalFiltered} Gerät${totalFiltered !== 1 ? 'e' : ''}`}
+          </div>
         </div>
 
         {/* Device List */}
         <div className="space-y-3">
-          {filteredDevices.map((device) => (
+          {paginatedDevices.map((device) => (
             <div key={device.uid ?? device.serial ?? device.name} onClick={() => handleDeviceClick(device)}>
               <DeviceRow device={device} />
             </div>
           ))}
         </div>
+
+        {/* Seiten-Navigation */}
+        {totalPages > 1 && (
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => { h.impact('light'); setDeviceListPage(p => Math.max(1, p - 1)) }}
+              disabled={currentPage <= 1}
+              className="px-3 py-1.5 rounded-[10px] text-sm font-medium bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--surface-elev)]"
+            >
+              Zurück
+            </button>
+            <div className="flex flex-wrap justify-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => { h.impact('light'); setDeviceListPage(p) }}
+                  className={`min-w-[2.25rem] px-2 py-1.5 rounded-[10px] text-sm font-medium ${
+                    p === currentPage
+                      ? 'bg-[var(--primary)] text-white'
+                      : 'bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => { h.impact('light'); setDeviceListPage(p => Math.min(totalPages, p + 1)) }}
+              disabled={currentPage >= totalPages}
+              className="px-3 py-1.5 rounded-[10px] text-sm font-medium bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--surface-elev)]"
+            >
+              Weiter
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {/* Add Device Sheet */}

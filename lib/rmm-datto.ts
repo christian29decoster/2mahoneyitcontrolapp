@@ -29,7 +29,12 @@ export interface DattoRmmDevice {
 }
 
 export interface DattoDevicesPage {
-  pageDetails?: { nextPageUrl?: string | null; count?: number; totalCount?: number }
+  pageDetails?: {
+    nextPageUrl?: string | null
+    nextPageURL?: string | null
+    count?: number
+    totalCount?: number
+  }
   devices?: DattoRmmDevice[]
 }
 
@@ -179,8 +184,10 @@ export async function getDattoRmmDevices(
   const base = apiUrl.replace(/\/api\/?$/, '')
   const all: AppDevice[] = []
   let nextUrl: string | null = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=1`
+  let pageNum = 1
+  const maxPages = 100
 
-  while (nextUrl) {
+  while (nextUrl && pageNum <= maxPages) {
     const res = await fetch(nextUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: 'no-store',
@@ -199,7 +206,25 @@ export async function getDattoRmmDevices(
     for (const d of devices) {
       if (d && typeof d === 'object' && d.uid) all.push(mapDattoDeviceToApp(d))
     }
-    nextUrl = resolveNextPageUrl(base, data.pageDetails?.nextPageUrl)
+
+    const pageDetails = data.pageDetails
+    const nextPageUrl =
+      pageDetails?.nextPageUrl ??
+      pageDetails?.nextPageURL ??
+      (raw as Record<string, unknown>).nextPageUrl ??
+      (raw as Record<string, unknown>).nextPageURL
+    nextUrl = resolveNextPageUrl(base, nextPageUrl)
+
+    if (!nextUrl) {
+      const totalCount = pageDetails?.totalCount ?? (raw as Record<string, unknown>).totalCount as number | undefined
+      const count = pageDetails?.count ?? devices.length
+      if (typeof totalCount === 'number' && totalCount > all.length && count >= MAX_PAGE_SIZE) {
+        pageNum += 1
+        nextUrl = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=${pageNum}`
+      }
+    } else {
+      pageNum += 1
+    }
   }
 
   return all
