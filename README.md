@@ -69,6 +69,12 @@ Set these in your Vercel project settings:
 - `NODE_ENV` - Set to `production` for production builds
 - Add any additional environment variables as needed
 
+### Datto RMM (echte Geräte anzeigen)
+
+Um Server und Geräte aus **Datto RMM** statt Demo-Daten anzuzeigen, siehe die detaillierte Anleitung:
+
+- **[docs/DATTO-RMM-EINBINDUNG.md](docs/DATTO-RMM-EINBINDUNG.md)** – API freischalten, API-Keys erzeugen, Umgebungsvariablen setzen (lokal und Vercel)
+
 ## Custom Domain
 
 To add a custom domain:

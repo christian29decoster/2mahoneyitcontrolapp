@@ -8,7 +8,7 @@ import { DeviceRow } from '@/components/DeviceRow'
 import { HapticButton } from '@/components/HapticButton'
 import { FormSheet } from '@/components/Sheets'
 import { Toast, ToastType } from '@/components/Toasts'
-import { devices, demoTenant } from '@/lib/demo'
+import { devices as demoDevices, demoTenant } from '@/lib/demo'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { FolderOpen } from 'lucide-react'
@@ -24,9 +24,31 @@ export default function DevicesPage() {
   const [isRemapLoading, setIsRemapLoading] = useState(false)
   const [selectedDevice, setSelectedDevice] = useState<any>(null)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
+  const [devicesSource, setDevicesSource] = useState<'demo' | 'rmm'>('demo')
+  const [devicesList, setDevicesList] = useState<any[]>(demoDevices)
+  const [devicesLoading, setDevicesLoading] = useState(true)
   const h = useHaptics()
   const clearAuditCounts = useAuditStore(s => s.clearAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)
+
+  useEffect(() => {
+    fetch('/api/rmm/devices')
+      .then((r) => r.json())
+      .then((data: { source: string; devices: any[] }) => {
+        if (data.source === 'rmm' && data.devices?.length) {
+          setDevicesList(data.devices)
+          setDevicesSource('rmm')
+        } else {
+          setDevicesList(demoDevices)
+          setDevicesSource('demo')
+        }
+      })
+      .catch(() => {
+        setDevicesList(demoDevices)
+        setDevicesSource('demo')
+      })
+      .finally(() => setDevicesLoading(false))
+  }, [])
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -44,11 +66,12 @@ export default function DevicesPage() {
     { key: 'phone', label: 'Phone' }
   ]
   
-  const filteredDevices = devices.filter(device => {
+  const filteredDevices = devicesList.filter(device => {
+    const loc = typeof device.location === 'string' ? device.location : device.location?.name ?? ''
     const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         device.serial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (typeof device.location === 'string' ? device.location.toLowerCase().includes(searchTerm.toLowerCase()) : device.location.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    const matchesFilter = selectedFilter === 'all' || device.type.toLowerCase() === selectedFilter
+                         (device.serial || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (loc || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = selectedFilter === 'all' || (device.type || '').toLowerCase() === selectedFilter
     return matchesSearch && matchesFilter
   })
   
@@ -117,8 +140,15 @@ export default function DevicesPage() {
     <>
       <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
         {/* Header with Remap */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-[var(--text)]">Devices & Staff</h1>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-[var(--text)]">Devices & Staff</h1>
+            {devicesSource === 'rmm' && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                Live from Datto RMM
+              </span>
+            )}
+          </div>
           <HapticButton
             label={isRemapLoading ? "Remapping..." : "Remap"}
             variant="surface"
@@ -161,13 +191,13 @@ export default function DevicesPage() {
 
         {/* Device Count */}
         <div className="text-sm text-[var(--muted)]">
-          {filteredDevices.length} of {devices.length} devices
+          {devicesLoading ? 'Loading…' : `${filteredDevices.length} of ${devicesList.length} devices`}
         </div>
 
         {/* Device List */}
         <div className="space-y-3">
           {filteredDevices.map((device) => (
-            <div key={device.serial} onClick={() => handleDeviceClick(device)}>
+            <div key={device.uid ?? device.serial ?? device.name} onClick={() => handleDeviceClick(device)}>
               <DeviceRow device={device} />
             </div>
           ))}
