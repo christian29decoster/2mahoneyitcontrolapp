@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, Plus, MapPin } from 'lucide-react'
+import { Search, Filter, Plus, MapPin, Wifi } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { DeviceRow } from '@/components/DeviceRow'
 import { HapticButton } from '@/components/HapticButton'
@@ -144,8 +144,9 @@ export default function DevicesPage() {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-[var(--text)]">Devices & Staff</h1>
             {devicesSource === 'rmm' && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                Live from Datto RMM
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                <Wifi className="w-3.5 h-3.5" />
+                Live aus Datto RMM
               </span>
             )}
           </div>
@@ -155,6 +156,15 @@ export default function DevicesPage() {
             onClick={isRemapLoading ? undefined : handleRemap}
           />
         </div>
+
+        {/* Hinweis bei RMM-Daten */}
+        {devicesSource === 'rmm' && devicesList.length > 0 && (
+          <div className="p-4 rounded-[16px] bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+            <p className="text-sm text-[var(--text)]">
+              <strong>Geräte werden live aus Datto RMM geladen.</strong> Klicken Sie auf ein Gerät, um Seriennummer, IP-Adresse, Domain, Standort und weitere Details anzuzeigen.
+            </p>
+          </div>
+        )}
 
         {/* Search and Filter */}
         <div className="space-y-4">

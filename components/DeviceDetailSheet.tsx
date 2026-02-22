@@ -1,40 +1,30 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Shield, AlertTriangle, MessageSquare, Wifi, Download, Send } from 'lucide-react'
+import { AlertTriangle, Activity } from 'lucide-react'
 import { Sheet } from './Sheets'
 import { HapticButton } from './HapticButton'
 import { Badge } from './Badge'
 import { MiniMap } from './MiniMap'
 import { useHaptics } from '@/hooks/useHaptics'
 import CustomMessageDialog from './CustomMessageDialog'
+import type { RmmDeviceData } from '@/lib/rmm-datto'
 
+/** Demo-Gerät mit Health/EDR oder RMM-Gerät mit rmmData. */
 interface DeviceDetail {
   name: string
   type: string
+  serial?: string
   os: string
   version: string
   lastLogin: string
-  location: string | {
-    name: string
-    lat: number
-    lng: number
-  }
-  user: string
-  edrStatus: 'active' | 'inactive'
-  complianceStatus: 'compliant' | 'non-compliant'
-  health: {
-    cpu: number
-    ram: number
-    storage: number
-  }
-  alerts: Array<{
-    id: string
-    title: string
-    severity: string
-    time: string
-  }>
+  location: string | { name: string; lat: number; lng: number }
+  user?: string
+  edrStatus?: 'active' | 'inactive'
+  complianceStatus?: 'compliant' | 'non-compliant'
+  health?: { cpu: number; ram: number; storage: number }
+  alerts?: Array<{ id: string; title: string; severity: string; time: string }>
+  rmmData?: RmmDeviceData
 }
 
 interface DeviceDetailSheetProps {
@@ -59,9 +49,18 @@ export function DeviceDetailSheet({
 
   if (!device) return null
 
+  const isRmmDevice = !!device.rmmData
+  const rmm = device.rmmData
+
   const formatLastLogin = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleString()
+    if (!dateString || dateString === '–') return dateString
+    try {
+      const date = new Date(dateString)
+      if (Number.isNaN(date.getTime())) return dateString
+      return date.toLocaleString()
+    } catch {
+      return dateString
+    }
   }
 
   const getHealthColor = (value: number) => {
@@ -85,15 +84,70 @@ export function DeviceDetailSheet({
               <h3 className="text-lg font-semibold text-[var(--text)]">{device.name}</h3>
               <p className="text-sm text-[var(--muted)]">{device.type}</p>
             </div>
-            <div className="flex space-x-2">
-              <Badge variant={device.edrStatus === 'active' ? 'accent' : 'destructive'}>
-                {device.edrStatus === 'active' ? 'EDR Active' : 'EDR Inactive'}
-              </Badge>
-              <Badge variant={device.complianceStatus === 'compliant' ? 'accent' : 'destructive'}>
-                {device.complianceStatus === 'compliant' ? 'Compliant' : 'Non-Compliant'}
-              </Badge>
+            <div className="flex flex-wrap gap-2">
+              {isRmmDevice && (
+                <Badge variant="accent">Datto RMM</Badge>
+              )}
+              {device.edrStatus != null && (
+                <Badge variant={device.edrStatus === 'active' ? 'accent' : 'destructive'}>
+                  {device.edrStatus === 'active' ? 'EDR Active' : 'EDR Inactive'}
+                </Badge>
+              )}
+              {device.complianceStatus != null && (
+                <Badge variant={device.complianceStatus === 'compliant' ? 'accent' : 'destructive'}>
+                  {device.complianceStatus === 'compliant' ? 'Compliant' : 'Non-Compliant'}
+                </Badge>
+              )}
             </div>
           </div>
+
+          {/* Datto RMM – alle Gerätedaten */}
+          {rmm && (
+            <div className="mb-4 p-3 rounded-[12px] bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+              <h4 className="font-medium text-[var(--text)] mb-3 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[var(--primary)]" />
+                Daten aus Datto RMM
+              </h4>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                <div>
+                  <p className="text-[var(--muted)]">Seriennummer / UID</p>
+                  <p className="text-[var(--text)] font-mono">{rmm.uid || device.serial || '–'}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">IP-Adresse</p>
+                  <p className="text-[var(--text)]">{rmm.ipAddress || '–'}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">Domain</p>
+                  <p className="text-[var(--text)]">{rmm.domain || '–'}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">Standort (Site)</p>
+                  <p className="text-[var(--text)]">{rmm.siteName || '–'}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">Geräteklasse</p>
+                  <p className="text-[var(--text)]">{rmm.deviceClass || '–'}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">Letztes gesehen</p>
+                  <p className="text-[var(--text)]">
+                    {rmm.lastSeen ? new Date(rmm.lastSeen).toLocaleString() : '–'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">Letzter Nutzer</p>
+                  <p className="text-[var(--text)]">{rmm.lastLoggedInUser || '–'}</p>
+                </div>
+                {rmm.description && (
+                  <div className="col-span-2">
+                    <p className="text-[var(--muted)]">Beschreibung</p>
+                    <p className="text-[var(--text)]">{rmm.description}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -102,22 +156,31 @@ export function DeviceDetailSheet({
             </div>
             <div>
               <p className="text-[var(--muted)]">Last Login</p>
-              <p className="text-[var(--text)]">{formatLastLogin(device.lastLogin)}</p>
+              <p className="text-[var(--text)]">{isRmmDevice ? device.lastLogin : formatLastLogin(device.lastLogin)}</p>
             </div>
-            <div>
-              <p className="text-[var(--muted)]">User</p>
-              <p className="text-[var(--text)]">{device.user}</p>
-            </div>
+            {device.user != null && (
+              <div>
+                <p className="text-[var(--muted)]">User</p>
+                <p className="text-[var(--text)]">{device.user}</p>
+              </div>
+            )}
             <div>
               <p className="text-[var(--muted)]">Location</p>
               <p className="text-[var(--text)]">
-                {typeof device.location === 'string' ? device.location : device.location.name}
+                {typeof device.location === 'string' ? device.location : device.location?.name ?? '–'}
               </p>
             </div>
+            {device.serial && !rmm && (
+              <div>
+                <p className="text-[var(--muted)]">Serial</p>
+                <p className="text-[var(--text)] font-mono">{device.serial}</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Device Health */}
+        {/* Device Health – nur bei Demo-Geräten */}
+        {device.health != null && (
         <div>
           <h4 className="font-medium text-[var(--text)] mb-3">Device Health</h4>
           <div className="space-y-3">
@@ -161,6 +224,7 @@ export function DeviceDetailSheet({
             </div>
           </div>
         </div>
+        )}
 
         {/* Location Map */}
         <div>
@@ -169,17 +233,21 @@ export function DeviceDetailSheet({
             <div className="p-4 bg-[var(--surface)]/50 rounded-[16px]">
               <p className="text-[var(--text)]">{device.location}</p>
             </div>
-          ) : (
+          ) : device.location && 'lat' in device.location ? (
             <MiniMap 
               lat={device.location.lat} 
               lng={device.location.lng} 
               name={device.location.name}
             />
+          ) : (
+            <div className="p-4 bg-[var(--surface)]/50 rounded-[16px]">
+              <p className="text-[var(--text)]">{device.location?.name ?? '–'}</p>
+            </div>
           )}
         </div>
 
         {/* Active Alerts */}
-        {device.alerts.length > 0 && (
+        {device.alerts && device.alerts.length > 0 && (
           <div>
             <h4 className="font-medium text-[var(--text)] mb-3">Active Alerts</h4>
             <div className="space-y-2">

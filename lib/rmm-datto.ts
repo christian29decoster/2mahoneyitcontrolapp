@@ -33,7 +33,21 @@ export interface DattoDevicesPage {
   devices?: DattoRmmDevice[]
 }
 
-/** App device shape (matches DeviceRow / demo). */
+/** Zusätzliche Datto-RMM-Felder für Detailansicht. */
+export interface RmmDeviceData {
+  uid: string
+  ipAddress?: string
+  domain?: string
+  description?: string
+  lastSeen?: string
+  deviceClass?: string
+  siteName?: string
+  siteId?: number
+  siteUid?: string
+  lastLoggedInUser?: string
+}
+
+/** App device shape (matches DeviceRow / demo). Bei RMM-Geräten ist rmmData gesetzt. */
 export interface AppDevice {
   type: string
   name: string
@@ -45,6 +59,8 @@ export interface AppDevice {
   lastLogin: string
   status: string
   uid?: string
+  /** Nur bei Geräten aus Datto RMM – alle RMM-spezifischen Infos für die Detailansicht. */
+  rmmData?: RmmDeviceData
 }
 
 function mapDeviceClassToType(deviceClass?: string, deviceType?: { category?: string; type?: string }): string {
@@ -64,10 +80,11 @@ export function mapDattoDeviceToApp(d: DattoRmmDevice): AppDevice {
   const name = d.hostname || d.uid || 'Unknown'
   const lastSeen = d.lastSeen ? new Date(d.lastSeen).toLocaleString() : ''
   const lastLogin = d.lastLoggedInUser ? `${d.lastLoggedInUser} • ${lastSeen}` : lastSeen || '–'
+  const serial = d.uid || String(d.id ?? '')
   return {
     type,
     name,
-    serial: d.uid || String(d.id ?? ''),
+    serial,
     os: d.operatingSystem || '–',
     version: d.displayVersion || '–',
     location: d.siteName || 'RMM',
@@ -75,6 +92,18 @@ export function mapDattoDeviceToApp(d: DattoRmmDevice): AppDevice {
     lastLogin,
     status: d.online ? 'Online' : 'Offline',
     uid: d.uid,
+    rmmData: {
+      uid: d.uid,
+      ipAddress: d.intIpAddress,
+      domain: d.domain,
+      description: d.description,
+      lastSeen: d.lastSeen,
+      deviceClass: d.deviceClass,
+      siteName: d.siteName,
+      siteId: d.siteId,
+      siteUid: d.siteUid,
+      lastLoggedInUser: d.lastLoggedInUser,
+    },
   }
 }
 
