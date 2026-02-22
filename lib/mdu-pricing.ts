@@ -1,6 +1,10 @@
 /**
  * Mahoney Data Units (MDU) – Layer 3 Data Processing pricing.
  * Wirtschaftlichere Stufe: 1M inklusive, dann gestaffelt.
+ *
+ * Basis für die Abrechnung ist ausschließlich das Event-Volumen (z. B. aus
+ * Schätzung oder später aus echter Event-Log-API). Alert-Anzahlen (RMM,
+ * Sophos) werden nicht als Events gezählt und erhöhen die MDU-Kosten nicht.
  */
 
 export const MDU_TIERS = [

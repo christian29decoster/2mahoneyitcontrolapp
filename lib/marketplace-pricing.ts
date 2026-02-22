@@ -290,7 +290,7 @@ export const dataMduCategory: MarketplaceCategory = {
         '1M–50M: $0.10 per 1,000 events',
         '50M–200M: $0.08 per 1,000 events',
         '200M+: $0.05 per 1,000 events',
-        'RMM + EDR (Sophos) Alerts fließen ein',
+        'Abrechnung nur nach Event-Volumen; RMM- und EDR-Alerts nur Anzeige',
         'Transparente Abrechnung nach Volumen',
       ],
       mostPopular: true,
