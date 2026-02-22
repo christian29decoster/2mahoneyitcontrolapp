@@ -94,7 +94,7 @@ export default function FinancialsPage() {
     fetch('/api/usage')
       .then((r) => r.json())
       .then((d: UsageData) => setUsage(d))
-      .catch(() => setUsage({ source: 'demo', deviceCount: 25, estimatedEventsPerMonth: 7500 }))
+      .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000 }))
   }, [])
 
   return (

@@ -9,7 +9,7 @@ import { estimateMonthlyEvents } from '@/lib/mdu-pricing'
 
 export const dynamic = 'force-dynamic'
 
-const DEFAULT_DEMO_DEVICE_COUNT = 25
+const DEMO_DEVICE_COUNT = 130
 
 /**
  * GET /api/rmm/usage
@@ -22,14 +22,14 @@ export async function GET() {
   const apiSecret = process.env.DATTO_RMM_API_SECRET
 
   if (!apiUrl || !apiKey || !apiSecret) {
-    const deviceCount = DEFAULT_DEMO_DEVICE_COUNT
+    const deviceCount = DEMO_DEVICE_COUNT
     return NextResponse.json({
       source: 'demo',
       deviceCount,
       estimatedEventsPerMonth: estimateMonthlyEvents(deviceCount),
-      realOpenAlertsCount: null,
-      realResolvedAlertsCount: null,
-      realResolvedCapped: false,
+      realOpenAlertsCount: 0,
+      realResolvedAlertsCount: 5000,
+      realResolvedCapped: true,
     })
   }
 
@@ -51,14 +51,14 @@ export async function GET() {
     })
   } catch (e) {
     console.error('RMM usage error:', e)
-    const deviceCount = DEFAULT_DEMO_DEVICE_COUNT
+    const deviceCount = DEMO_DEVICE_COUNT
     return NextResponse.json({
       source: 'demo',
       deviceCount,
       estimatedEventsPerMonth: estimateMonthlyEvents(deviceCount),
-      realOpenAlertsCount: null,
-      realResolvedAlertsCount: null,
-      realResolvedCapped: false,
+      realOpenAlertsCount: 0,
+      realResolvedAlertsCount: 5000,
+      realResolvedCapped: true,
     })
   }
 }

@@ -59,7 +59,7 @@ export default function DashboardPage() {
     fetch('/api/usage')
       .then((r) => r.json())
       .then((d: UsageData) => setUsage(d))
-      .catch(() => setUsage({ source: 'demo', deviceCount: 25, estimatedEventsPerMonth: 7500 }))
+      .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000 }))
   }, [])
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)

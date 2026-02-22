@@ -273,6 +273,32 @@ export const governanceCategory: MarketplaceCategory = {
   ],
 }
 
+// ─── Platform & Data (MDU) – Layer 3, aktuelle Preisliste ──────────────────
+export const dataMduCategory: MarketplaceCategory = {
+  id: 'data-mdu',
+  name: 'Platform & Data (MDU)',
+  description: 'Event-basierte Datenverarbeitung – RMM, EDR, Maschinen-Events',
+  tiers: [
+    {
+      id: 'mdu-tiered',
+      name: 'Mahoney Data Units (MDU)',
+      priceMonthlyDisplay: 'From $0 / month',
+      priceMonthlyUSD: 0,
+      unit: 'flat',
+      bullets: [
+        '0–1M events / month included',
+        '1M–50M: $0.10 per 1,000 events',
+        '50M–200M: $0.08 per 1,000 events',
+        '200M+: $0.05 per 1,000 events',
+        'RMM + EDR (Sophos) Alerts fließen ein',
+        'Transparente Abrechnung nach Volumen',
+      ],
+      mostPopular: true,
+      recommendedFor: 'Alle Stufen – Basis in jeder Plattform-Kalkulation',
+    },
+  ],
+}
+
 // ─── Strategic Bundles ─────────────────────────────────────────────────────
 export const marketplaceBundles: MarketplaceBundle[] = [
   {
@@ -310,6 +336,7 @@ export const marketplaceCategories: MarketplaceCategory[] = [
   vCISOCategory,
   SOCaaSCategory,
   endpointCategory,
+  dataMduCategory,
   backupCategory,
   governanceCategory,
 ]

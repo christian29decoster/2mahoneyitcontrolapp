@@ -10,7 +10,13 @@ import { estimateMonthlyEvents } from '@/lib/mdu-pricing'
 
 export const dynamic = 'force-dynamic'
 
-const DEFAULT_DEMO_DEVICE_COUNT = 25
+/** Demo-Werte angeglichen an reale Kennzahlen (z. B. 130 Geräte, 39k Events, RMM/Sophos Alerts). */
+const DEMO_DEVICE_COUNT = 130
+const DEMO_ESTIMATED_EVENTS_PER_MONTH = 39_000
+const DEMO_OPEN_ALERTS_RMM = 0
+const DEMO_RESOLVED_ALERTS_RMM = 5_000
+const DEMO_RESOLVED_CAPPED = true
+const DEMO_SOPHOS_ALERTS = 116
 
 /**
  * GET /api/usage
@@ -26,11 +32,11 @@ export async function GET() {
   const sophosTenantId = process.env.SOPHOS_TENANT_ID
 
   let source: 'rmm' | 'demo' = 'demo'
-  let deviceCount = DEFAULT_DEMO_DEVICE_COUNT
-  let estimatedEventsPerMonth = estimateMonthlyEvents(deviceCount)
-  let realOpenAlertsCount: number | null = null
-  let realResolvedAlertsCount: number | null = null
-  let realResolvedCapped = false
+  let deviceCount = DEMO_DEVICE_COUNT
+  let estimatedEventsPerMonth = DEMO_ESTIMATED_EVENTS_PER_MONTH
+  let realOpenAlertsCount: number | null = DEMO_OPEN_ALERTS_RMM
+  let realResolvedAlertsCount: number | null = DEMO_RESOLVED_ALERTS_RMM
+  let realResolvedCapped = DEMO_RESOLVED_CAPPED
   let sophosAlertsCount: number | null = null
   let sophosAlertsCapped = false
 
@@ -48,9 +54,9 @@ export async function GET() {
       realOpenAlertsCount = openResult.count
       realResolvedAlertsCount = resolvedResult.count
       realResolvedCapped = resolvedResult.capped ?? false
-    } catch (e) {
-      console.error('RMM usage error:', e)
-    }
+  } catch (e) {
+    console.error('RMM usage error:', e)
+  }
   }
 
   if (sophosClientId && sophosClientSecret && sophosTenantId) {
