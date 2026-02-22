@@ -108,42 +108,48 @@ export function mapDattoDeviceToApp(d: DattoRmmDevice): AppDevice {
 }
 
 export async function getDattoRmmAccessToken(apiUrl: string, apiKey: string, apiSecret: string): Promise<string> {
-  const base = apiUrl.replace(/\/api\/?$/, '')
+  const base = apiUrl.replace(/\/api\/?$/, '').trim()
+  const key = String(apiKey ?? '').trim()
+  const secret = String(apiSecret ?? '').trim()
   const url = `${base}${DATTO_RMM_TOKEN_PATH}`
-  const body = new URLSearchParams({
-    grant_type: 'client_credentials',
-    client_id: apiKey,
-    client_secret: apiSecret,
+
+  // Datto RMM: Nango/Portal nutzen oft Password Grant mit public-client (nicht client_credentials)
+  const passwordGrant = new URLSearchParams({
+    grant_type: 'password',
+    username: key,
+    password: secret,
+    client_id: 'public-client',
+    client_secret: 'public',
   })
-  const res = await fetch(url, {
+  const resPassword = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString(),
+    body: passwordGrant.toString(),
     cache: 'no-store',
   })
-  if (!res.ok) {
-    const fallback = new URLSearchParams({
-      grant_type: 'password',
-      username: apiKey,
-      password: apiSecret,
-      client_id: 'public-client',
-      client_secret: 'public',
-    })
-    const res2 = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: fallback.toString(),
-      cache: 'no-store',
-    })
-    if (!res2.ok) {
-      const err = await res2.text()
-      throw new Error(`Datto RMM token failed: ${res2.status} ${err}`)
-    }
-    const data = await res2.json()
+  if (resPassword.ok) {
+    const data = await resPassword.json()
     return data.access_token
   }
-  const data = await res.json()
-  return data.access_token
+
+  const clientCredentials = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: key,
+    client_secret: secret,
+  })
+  const resClient = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: clientCredentials.toString(),
+    cache: 'no-store',
+  })
+  if (resClient.ok) {
+    const data = await resClient.json()
+    return data.access_token
+  }
+
+  const err = await resPassword.text()
+  throw new Error(`Datto RMM token failed: ${resPassword.status} ${err}`)
 }
 
 function resolveNextPageUrl(base: string, nextPageUrl: string | null | undefined): string | null {

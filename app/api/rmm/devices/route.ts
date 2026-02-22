@@ -26,7 +26,10 @@ export async function GET() {
     const devices = await getDattoRmmDevices(apiUrl, token)
     return NextResponse.json({ source: 'rmm', devices, error: null })
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'RMM-Anfrage fehlgeschlagen'
+    let message = e instanceof Error ? e.message : 'RMM-Anfrage fehlgeschlagen'
+    if (message.includes('401')) {
+      message += ' API Key/Secret prüfen (Vercel: keine Leerzeichen), in RMM: Setup → API Access aktiviert?'
+    }
     console.error('Datto RMM devices error:', e)
     return NextResponse.json(
       { source: 'demo', devices: [], error: message },
