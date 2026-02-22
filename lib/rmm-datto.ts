@@ -208,12 +208,12 @@ export async function getDattoRmmDevices(
     }
 
     const pageDetails = data.pageDetails
-    const nextPageUrl =
+    const nextPageUrlRaw =
       pageDetails?.nextPageUrl ??
       pageDetails?.nextPageURL ??
       (raw as Record<string, unknown>).nextPageUrl ??
       (raw as Record<string, unknown>).nextPageURL
-    nextUrl = resolveNextPageUrl(base, nextPageUrl)
+    nextUrl = resolveNextPageUrl(base, typeof nextPageUrlRaw === 'string' ? nextPageUrlRaw : null)
 
     if (!nextUrl) {
       const totalCount = pageDetails?.totalCount ?? (raw as Record<string, unknown>).totalCount as number | undefined
