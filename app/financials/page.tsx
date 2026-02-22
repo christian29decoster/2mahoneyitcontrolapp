@@ -149,60 +149,77 @@ export default function FinancialsPage() {
       </div>
 
       {/* Platform & Data (MDU) – Geräte, Events, Kosten aus Preisliste */}
-      {usage && mduBreakdown && (
-        <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Database className="w-5 h-5 text-[var(--primary)]" />
-            <h2 className="text-lg font-semibold text-[var(--text)]">Platform & Data (MDU)</h2>
-          </div>
-          <p className="text-sm text-[var(--muted)] mb-4">
-            Alle Geräte zusammengefasst · geschätzte Events pro Monat · Kosten nach Mahoney-Preisliste (Layer 3).
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Geräte gesamt</p>
-              <p className="text-2xl font-semibold text-[var(--text)] mt-1">{usage.deviceCount.toLocaleString()}</p>
-              <p className="text-xs text-[var(--muted)] mt-0.5">{usage.source === 'rmm' ? 'Live aus RMM' : 'Demo'}</p>
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Database className="w-5 h-5 text-[var(--primary)]" />
+          <h2 className="text-lg font-semibold text-[var(--text)]">Platform & Data (MDU)</h2>
+        </div>
+        {usage && mduBreakdown ? (
+          <>
+            <p className="text-sm text-[var(--muted)] mb-4">
+              Alle Geräte zusammengefasst · geschätzte Events pro Monat · Kosten nach Mahoney-Preisliste (Layer 3).
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div>
+                <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Geräte gesamt</p>
+                <p className="text-2xl font-semibold text-[var(--text)] mt-1">{usage.deviceCount.toLocaleString()}</p>
+                <p className="text-xs text-[var(--muted)] mt-0.5">{usage.source === 'rmm' ? 'Live aus RMM' : 'Demo'}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Events (Monat)</p>
+                <p className="text-2xl font-semibold text-[var(--text)] mt-1">{usage.estimatedEventsPerMonth.toLocaleString()}</p>
+                <p className="text-xs text-[var(--muted)] mt-0.5">~10 Events/Gerät/Tag</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">MDU-Kosten (Layer 3)</p>
+                <p className="text-2xl font-semibold text-[var(--text)] mt-1">{formatCurrency(mduBreakdown.costUsd)}/mo</p>
+                <p className="text-xs text-[var(--muted)] mt-0.5">{mduBreakdown.summary}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Events (Monat)</p>
-              <p className="text-2xl font-semibold text-[var(--text)] mt-1">{usage.estimatedEventsPerMonth.toLocaleString()}</p>
-              <p className="text-xs text-[var(--muted)] mt-0.5">~10 Events/Gerät/Tag</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">MDU-Kosten (Layer 3)</p>
-              <p className="text-2xl font-semibold text-[var(--text)] mt-1">{formatCurrency(mduBreakdown.costUsd)}/mo</p>
-              <p className="text-xs text-[var(--muted)] mt-0.5">{mduBreakdown.summary}</p>
-            </div>
-          </div>
-          {(usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm' && (
+            {(usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm' && (
+              <div className="mt-4 pt-4 border-t border-[var(--border)]">
+                <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Echte Alerts (Datto RMM)</p>
+                <p className="text-sm text-[var(--text)]">
+                  <strong>{usage.realOpenAlertsCount ?? 0}</strong> offen
+                  {usage.realResolvedAlertsCount != null && (
+                    <> · <strong>{usage.realResolvedAlertsCount.toLocaleString()}</strong> gelöst (gesamt){usage.realResolvedCapped ? ' (≥, Auszug)' : ''}</>
+                  )}
+                </p>
+              </div>
+            )}
             <div className="mt-4 pt-4 border-t border-[var(--border)]">
-              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Echte Alerts (Datto RMM)</p>
+              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Sophos EDR</p>
               <p className="text-sm text-[var(--text)]">
-                <strong>{usage.realOpenAlertsCount ?? 0}</strong> offen
-                {usage.realResolvedAlertsCount != null && (
-                  <> · <strong>{usage.realResolvedAlertsCount.toLocaleString()}</strong> gelöst (gesamt){usage.realResolvedCapped ? ' (≥, Auszug)' : ''}</>
+                {usage.sophosAlertsCount != null ? (
+                  <><strong>{usage.sophosAlertsCount.toLocaleString()}</strong> Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}</>
+                ) : usage.sophosConfigured ? (
+                  <span className="text-[var(--muted)]">– (API-Fehler oder keine Alerts)</span>
+                ) : (
+                  <span className="text-[var(--muted)]">Nicht konfiguriert</span>
                 )}
               </p>
             </div>
-          )}
-          <div className="mt-4 pt-4 border-t border-[var(--border)]">
-            <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Sophos EDR</p>
-            <p className="text-sm text-[var(--text)]">
-              {usage.sophosAlertsCount != null ? (
-                <><strong>{usage.sophosAlertsCount.toLocaleString()}</strong> Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}</>
-              ) : usage.sophosConfigured ? (
-                <span className="text-[var(--muted)]">– (API-Fehler oder keine Alerts)</span>
-              ) : (
-                <span className="text-[var(--muted)]">Nicht konfiguriert</span>
-              )}
+            <p className="text-xs text-[var(--muted)] mt-4 pt-4 border-t border-[var(--border)]">
+              Preise: 0–1M inklusive · 1M–50M $0.10/1k · 50M–200M $0.08/1k · 200M+ $0.05/1k. Dieser Betrag fließt in die Plattform-Kalkulation ein.
             </p>
+          </>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-4">
+            <div className="animate-pulse">
+              <div className="h-3 w-20 bg-[var(--border)] rounded mb-2" />
+              <div className="h-8 w-16 bg-[var(--surface-2)] rounded" />
+            </div>
+            <div className="animate-pulse">
+              <div className="h-3 w-24 bg-[var(--border)] rounded mb-2" />
+              <div className="h-8 w-20 bg-[var(--surface-2)] rounded" />
+            </div>
+            <div className="animate-pulse">
+              <div className="h-3 w-28 bg-[var(--border)] rounded mb-2" />
+              <div className="h-8 w-20 bg-[var(--surface-2)] rounded" />
+            </div>
           </div>
-          <p className="text-xs text-[var(--muted)] mt-4 pt-4 border-t border-[var(--border)]">
-            Preise: 0–1M inklusive · 1M–50M $0.10/1k · 50M–200M $0.08/1k · 200M+ $0.05/1k. Dieser Betrag fließt in die Plattform-Kalkulation ein.
-          </p>
-        </Card>
-      )}
+        )}
+      </Card>
 
       {/* ROI Simulator – potential, downtime, risks, ROI (all English) */}
       <Card className="p-6">

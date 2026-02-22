@@ -47,34 +47,58 @@ export async function GET() {
   let sophosAlertsCount: number | null = null
   let sophosAlertsCapped = false
 
-  if (rmmUrl && rmmKey && rmmSecret) {
-    try {
-      const token = await getDattoRmmAccessToken(rmmUrl, rmmKey, rmmSecret)
-      const [devices, openResult, resolvedResult] = await Promise.all([
-        getDattoRmmDevices(rmmUrl, token),
-        getDattoRmmAccountAlertsOpen(rmmUrl, token).catch(() => ({ count: 0 })),
-        getDattoRmmAccountAlertsResolved(rmmUrl, token).catch(() => ({ count: 0, capped: false })),
-      ])
-      source = 'rmm'
-      deviceCount = devices.length
-      estimatedEventsPerMonth = estimateMonthlyEvents(deviceCount)
-      realOpenAlertsCount = openResult.count
-      realResolvedAlertsCount = resolvedResult.count
-      realResolvedCapped = resolvedResult.capped ?? false
-  } catch (e) {
-    console.error('RMM usage error:', e)
-  }
-  }
+  const rmmPromise =
+    rmmUrl && rmmKey && rmmSecret
+      ? (async () => {
+          try {
+            const token = await getDattoRmmAccessToken(rmmUrl, rmmKey, rmmSecret)
+            const [devices, openResult, resolvedResult] = await Promise.all([
+              getDattoRmmDevices(rmmUrl, token),
+              getDattoRmmAccountAlertsOpen(rmmUrl, token).catch(() => ({ count: 0 })),
+              getDattoRmmAccountAlertsResolved(rmmUrl, token).catch(() => ({ count: 0, capped: false })),
+            ])
+            return {
+              source: 'rmm' as const,
+              deviceCount: devices.length,
+              estimatedEventsPerMonth: estimateMonthlyEvents(devices.length),
+              realOpenAlertsCount: openResult.count,
+              realResolvedAlertsCount: resolvedResult.count,
+              realResolvedCapped: resolvedResult.capped ?? false,
+            }
+          } catch (e) {
+            console.error('RMM usage error:', e)
+            return null
+          }
+        })()
+      : Promise.resolve(null)
 
-  if (sophosClientId && sophosClientSecret && sophosTenantId) {
-    try {
-      const sophosToken = await getSophosAccessToken(sophosClientId, sophosClientSecret)
-      const sophosResult = await getSophosPartnerAlertsTotal(sophosToken, sophosTenantId)
-      sophosAlertsCount = sophosResult.count
-      sophosAlertsCapped = sophosResult.capped
-    } catch (e) {
-      console.error('Sophos usage error:', e)
-    }
+  const sophosPromise =
+    sophosClientId && sophosClientSecret && sophosTenantId
+      ? (async () => {
+          try {
+            const sophosToken = await getSophosAccessToken(sophosClientId, sophosClientSecret)
+            const sophosResult = await getSophosPartnerAlertsTotal(sophosToken, sophosTenantId)
+            return { count: sophosResult.count, capped: sophosResult.capped }
+          } catch (e) {
+            console.error('Sophos usage error:', e)
+            return null
+          }
+        })()
+      : Promise.resolve(null)
+
+  const [rmmResult, sophosResult] = await Promise.all([rmmPromise, sophosPromise])
+
+  if (rmmResult) {
+    source = rmmResult.source
+    deviceCount = rmmResult.deviceCount
+    estimatedEventsPerMonth = rmmResult.estimatedEventsPerMonth
+    realOpenAlertsCount = rmmResult.realOpenAlertsCount
+    realResolvedAlertsCount = rmmResult.realResolvedAlertsCount
+    realResolvedCapped = rmmResult.realResolvedCapped
+  }
+  if (sophosResult) {
+    sophosAlertsCount = sophosResult.count
+    sophosAlertsCapped = sophosResult.capped
   }
 
   const sophosConfigured = !!(sophosClientId && sophosClientSecret && sophosTenantId)

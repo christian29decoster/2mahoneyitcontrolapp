@@ -92,7 +92,7 @@ export async function getSophosPartnerTenants(
     const pages = data.pages as { total?: number; size?: number } | undefined
     if (!items.length || items.length < pageSize || (pages?.total != null && page >= (pages.total ?? 0))) break
     page += 1
-    await new Promise((r) => setTimeout(r, 100))
+    await new Promise((r) => setTimeout(r, 60))
   }
   return all
 }
@@ -135,7 +135,7 @@ export async function getSophosAlertsCountForTenant(
     if (total > 0 && page >= total) break
     if (!Array.isArray(items) || items.length < SOPHOS_ALERTS_PAGE_SIZE) break
     page += 1
-    await new Promise((r) => setTimeout(r, 80))
+    await new Promise((r) => setTimeout(r, 50))
   }
   return { count, capped: page > maxPages }
 }

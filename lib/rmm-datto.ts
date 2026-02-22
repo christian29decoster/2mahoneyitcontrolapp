@@ -231,11 +231,11 @@ export async function getDattoRmmDevices(
       if (count > 0) {
         pageNum += 1
         nextUrl = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=${pageNum}`
-        await new Promise((r) => setTimeout(r, 150))
+        await new Promise((r) => setTimeout(r, 80))
       }
     } else {
       pageNum += 1
-      if (pageNum > 1) await new Promise((r) => setTimeout(r, 150))
+      if (pageNum > 1) await new Promise((r) => setTimeout(r, 80))
     }
   }
 
@@ -365,7 +365,7 @@ export async function getDattoRmmAccountAlertsResolved(
     } else if (nextUrl) {
       pageNum += 1
     }
-    if (nextUrl) await new Promise((r) => setTimeout(r, 100))
+    if (nextUrl) await new Promise((r) => setTimeout(r, 60))
   }
   const capped = !!nextUrl && pageNum > maxPages
   return { count, capped }
