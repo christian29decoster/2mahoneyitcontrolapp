@@ -40,6 +40,8 @@ export type UsageData = {
   realOpenAlertsCount?: number | null
   realResolvedAlertsCount?: number | null
   realResolvedCapped?: boolean
+  sophosAlertsCount?: number | null
+  sophosAlertsCapped?: boolean
 }
 
 export default function DashboardPage() {
@@ -53,7 +55,7 @@ export default function DashboardPage() {
   const h = useHaptics()
 
   useEffect(() => {
-    fetch('/api/rmm/usage')
+    fetch('/api/usage')
       .then((r) => r.json())
       .then((d: UsageData) => setUsage(d))
       .catch(() => setUsage({ source: 'demo', deviceCount: 25, estimatedEventsPerMonth: 7500 }))
@@ -196,7 +198,7 @@ export default function DashboardPage() {
                       <p className="text-[10px] text-[var(--muted)]">0–10M inklusive</p>
                     </div>
                   </div>
-                  {(usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm' && (
+                  {((usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm') && (
                     <div className="mt-3 pt-3 border-t border-[var(--border)]">
                       <p className="text-xs font-medium text-[var(--muted)] mb-1">Echte Alerts (Datto RMM)</p>
                       <p className="text-sm text-[var(--text)]">
@@ -204,6 +206,14 @@ export default function DashboardPage() {
                         {usage.realResolvedAlertsCount != null && (
                           <> · <strong>{usage.realResolvedAlertsCount.toLocaleString()}</strong> gelöst{usage.realResolvedCapped ? ' (≥)' : ''}</>
                         )}
+                      </p>
+                    </div>
+                  )}
+                  {usage.sophosAlertsCount != null && (
+                    <div className="mt-2 pt-2 border-t border-[var(--border)]">
+                      <p className="text-xs font-medium text-[var(--muted)] mb-1">Sophos EDR</p>
+                      <p className="text-sm text-[var(--text)]">
+                        <strong>{usage.sophosAlertsCount.toLocaleString()}</strong> Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}
                       </p>
                     </div>
                   )}
@@ -402,9 +412,14 @@ export default function DashboardPage() {
                     <p className="text-lg font-semibold text-[var(--text)]">{formatCurrency(computeMduCost(usage.estimatedEventsPerMonth).costUsd)}</p>
                   </div>
                 </div>
-                {(usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm' && (
+                {((usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm') && (
                   <p className="text-[10px] text-[var(--muted)] mt-2">
-                    Echte Alerts: {usage.realOpenAlertsCount ?? 0} offen · {usage.realResolvedAlertsCount?.toLocaleString() ?? 0} gelöst{usage.realResolvedCapped ? ' (≥)' : ''}
+                    RMM: {usage.realOpenAlertsCount ?? 0} offen · {usage.realResolvedAlertsCount?.toLocaleString() ?? 0} gelöst{usage.realResolvedCapped ? ' (≥)' : ''}
+                  </p>
+                )}
+                {usage.sophosAlertsCount != null && (
+                  <p className="text-[10px] text-[var(--muted)] mt-1">
+                    Sophos EDR: {usage.sophosAlertsCount.toLocaleString()} Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}
                   </p>
                 )}
                 <a href="/financials" className="text-xs text-[var(--primary)] hover:underline mt-2 inline-block">In Finanzen →</a>

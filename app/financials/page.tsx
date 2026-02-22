@@ -27,6 +27,8 @@ type UsageData = {
   realOpenAlertsCount?: number | null
   realResolvedAlertsCount?: number | null
   realResolvedCapped?: boolean
+  sophosAlertsCount?: number | null
+  sophosAlertsCapped?: boolean
 }
 
 function KpiCard({
@@ -88,7 +90,7 @@ export default function FinancialsPage() {
   const h = useHaptics()
 
   useEffect(() => {
-    fetch('/api/rmm/usage')
+    fetch('/api/usage')
       .then((r) => r.json())
       .then((d: UsageData) => setUsage(d))
       .catch(() => setUsage({ source: 'demo', deviceCount: 25, estimatedEventsPerMonth: 7500 }))
@@ -180,6 +182,14 @@ export default function FinancialsPage() {
                 {usage.realResolvedAlertsCount != null && (
                   <> · <strong>{usage.realResolvedAlertsCount.toLocaleString()}</strong> gelöst (gesamt){usage.realResolvedCapped ? ' (≥, Auszug)' : ''}</>
                 )}
+              </p>
+            </div>
+          )}
+          {usage.sophosAlertsCount != null && (
+            <div className="mt-4 pt-4 border-t border-[var(--border)]">
+              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Sophos EDR</p>
+              <p className="text-sm text-[var(--text)]">
+                <strong>{usage.sophosAlertsCount.toLocaleString()}</strong> Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}
               </p>
             </div>
           )}
