@@ -143,7 +143,7 @@ export default function FinancialsPage() {
           <KpiCard
             label="Data (MDU) Monthly"
             value={formatCurrency(mduBreakdown.costUsd)}
-            tooltip="Layer 3 Data Processing: events from RMM/devices. 0–10M events included, then tiered per 1,000 events."
+            tooltip="Layer 3 Data Processing: events from RMM/devices. 0–1M events included, then tiered per 1,000 events."
           />
         )}
       </div>
@@ -199,7 +199,7 @@ export default function FinancialsPage() {
             </p>
           </div>
           <p className="text-xs text-[var(--muted)] mt-4 pt-4 border-t border-[var(--border)]">
-            Preise: 0–10M inklusive · 10M–50M $0.10/1k · 50M–200M $0.08/1k · 200M+ $0.05/1k. Dieser Betrag fließt in die Plattform-Kalkulation ein.
+            Preise: 0–1M inklusive · 1M–50M $0.10/1k · 50M–200M $0.08/1k · 200M+ $0.05/1k. Dieser Betrag fließt in die Plattform-Kalkulation ein.
           </p>
         </Card>
       )}

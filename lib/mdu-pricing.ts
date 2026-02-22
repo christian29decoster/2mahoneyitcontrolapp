@@ -1,29 +1,29 @@
 /**
  * Mahoney Data Units (MDU) – Layer 3 Data Processing pricing.
- * Aligns with Strategic Pricing Architecture: 10M included, then tiered per 1,000 events.
+ * Wirtschaftlichere Stufe: 1M inklusive, dann gestaffelt.
  */
 
 export const MDU_TIERS = [
-  { upTo: 10_000_000, perThousandUsd: 0, label: 'Included' },
-  { upTo: 50_000_000, perThousandUsd: 0.1, label: '10M – 50M' },
+  { upTo: 1_000_000, perThousandUsd: 0, label: 'Included' },
+  { upTo: 50_000_000, perThousandUsd: 0.1, label: '1M – 50M' },
   { upTo: 200_000_000, perThousandUsd: 0.08, label: '50M – 200M' },
   { upTo: Infinity, perThousandUsd: 0.05, label: '200M+' },
 ] as const
 
-const INCLUDED_EVENTS = 10_000_000
+const INCLUDED_EVENTS = 1_000_000
 
 export interface MduCostBreakdown {
   eventsPerMonth: number
   includedEvents: number
   billableEvents: number
   costUsd: number
-  /** Human-readable tier breakdown, e.g. "0–10M included; 2.5M × $0.10/1k" */
+  /** Human-readable tier breakdown, e.g. "0–1M included; 2.5M × $0.10/1k" */
   summary: string
 }
 
 /**
  * Compute monthly MDU cost from event count.
- * 0–10M included; 10M–50M $0.10/1k; 50M–200M $0.08/1k; 200M+ $0.05/1k.
+ * 0–1M included; 1M–50M $0.10/1k; 50M–200M $0.08/1k; 200M+ $0.05/1k.
  */
 export function computeMduCost(eventsPerMonth: number): MduCostBreakdown {
   const includedEvents = Math.min(eventsPerMonth, INCLUDED_EVENTS)
@@ -36,15 +36,15 @@ export function computeMduCost(eventsPerMonth: number): MduCostBreakdown {
       includedEvents,
       billableEvents: 0,
       costUsd: 0,
-      summary: `0–10M included · ${(eventsPerMonth / 1_000_000).toFixed(2)}M events`,
+      summary: `0–1M included · ${(eventsPerMonth / 1_000_000).toFixed(2)}M events`,
     }
   }
 
   let remaining = billableEvents
   const parts: string[] = []
 
-  // 10M–50M: 40M at $0.10/1k
-  const tier1 = Math.min(remaining, 40_000_000)
+  // 1M–50M: 49M at $0.10/1k
+  const tier1 = Math.min(remaining, 49_000_000)
   if (tier1 > 0) {
     const c = (tier1 / 1000) * 0.1
     costUsd += c
@@ -71,7 +71,7 @@ export function computeMduCost(eventsPerMonth: number): MduCostBreakdown {
     includedEvents,
     billableEvents,
     costUsd: Math.round(costUsd * 100) / 100,
-    summary: `10M included; ${parts.join('; ')}`,
+    summary: `1M included; ${parts.join('; ')}`,
   }
 }
 

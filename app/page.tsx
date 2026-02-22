@@ -196,7 +196,7 @@ export default function DashboardPage() {
                         <DollarSign className="w-4 h-4" />
                         {formatCurrency(computeMduCost(usage.estimatedEventsPerMonth).costUsd)}/mo
                       </p>
-                      <p className="text-[10px] text-[var(--muted)]">0–10M inklusive</p>
+                      <p className="text-[10px] text-[var(--muted)]">0–1M inklusive</p>
                     </div>
                   </div>
                   {((usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm') && (
