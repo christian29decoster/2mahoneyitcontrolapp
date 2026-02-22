@@ -204,3 +204,62 @@ export async function getDattoRmmDevices(
 
   return all
 }
+
+const DATTO_RMM_DEVICE_PATH = '/api/v2/device'
+const DATTO_RMM_AUDIT_DEVICE_PATH = '/api/v2/audit/device'
+const DATTO_RMM_ALERTS_OPEN_PATH = '/api/v2/device'
+
+/** Einzelgerät-Details (GET /v2/device/{uid}) – mehr Felder als in der Liste. */
+export async function getDattoRmmDeviceByUid(
+  apiUrl: string,
+  accessToken: string,
+  deviceUid: string
+): Promise<Record<string, unknown>> {
+  const base = apiUrl.replace(/\/api\/?$/, '')
+  const url = `${base}${DATTO_RMM_DEVICE_PATH}/${encodeURIComponent(deviceUid)}`
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error(`Device details: ${res.status}`)
+  return res.json()
+}
+
+/** Audit-Daten für Gerät (Hardware, etc.) – GET /v2/audit/device/{uid}. */
+export async function getDattoRmmDeviceAudit(
+  apiUrl: string,
+  accessToken: string,
+  deviceUid: string
+): Promise<Record<string, unknown>> {
+  const base = apiUrl.replace(/\/api\/?$/, '')
+  const url = `${base}${DATTO_RMM_AUDIT_DEVICE_PATH}/${encodeURIComponent(deviceUid)}`
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error(`Device audit: ${res.status}`)
+  return res.json()
+}
+
+/** Offene Alerts für Gerät – GET /v2/device/{uid}/alerts/open. */
+export async function getDattoRmmDeviceAlertsOpen(
+  apiUrl: string,
+  accessToken: string,
+  deviceUid: string
+): Promise<{ alerts?: unknown[]; pageDetails?: { nextPageUrl?: string | null } }> {
+  const base = apiUrl.replace(/\/api\/?$/, '')
+  const all: unknown[] = []
+  let nextUrl: string | null = `${base}${DATTO_RMM_ALERTS_OPEN_PATH}/${encodeURIComponent(deviceUid)}/alerts/open?max=50&page=1`
+  while (nextUrl) {
+    const alertRes: Response = await fetch(nextUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
+    })
+    if (!alertRes.ok) throw new Error(`Device alerts: ${alertRes.status}`)
+    const data = await alertRes.json()
+    const alerts = data.alerts ?? []
+    for (const a of alerts) all.push(a)
+    nextUrl = data.pageDetails?.nextPageUrl ? resolveNextPageUrl(base, data.pageDetails.nextPageUrl) : null
+  }
+  return { alerts: all }
+}

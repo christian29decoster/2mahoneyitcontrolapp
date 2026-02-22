@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { AlertTriangle, Activity } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { AlertTriangle, Activity, Loader2 } from 'lucide-react'
 import { Sheet } from './Sheets'
 import { HapticButton } from './HapticButton'
 import { Badge } from './Badge'
@@ -9,6 +9,12 @@ import { MiniMap } from './MiniMap'
 import { useHaptics } from '@/hooks/useHaptics'
 import CustomMessageDialog from './CustomMessageDialog'
 import type { RmmDeviceData } from '@/lib/rmm-datto'
+
+export interface RmmDetailsPayload {
+  device?: Record<string, unknown> | null
+  audit?: Record<string, unknown> | null
+  alerts?: unknown[]
+}
 
 /** Demo-Gerät mit Health/EDR oder RMM-Gerät mit rmmData. */
 interface DeviceDetail {
@@ -45,12 +51,32 @@ export function DeviceDetailSheet({
   onIsolateDevice
 }: DeviceDetailSheetProps) {
   const [showCustomMessage, setShowCustomMessage] = useState(false)
+  const [rmmDetails, setRmmDetails] = useState<RmmDetailsPayload | null>(null)
+  const [rmmDetailsLoading, setRmmDetailsLoading] = useState(false)
   const h = useHaptics()
+
+  const uid = device?.rmmData?.uid
+  useEffect(() => {
+    if (!isOpen || !uid) {
+      setRmmDetails(null)
+      return
+    }
+    setRmmDetailsLoading(true)
+    setRmmDetails(null)
+    fetch(`/api/rmm/device/${encodeURIComponent(uid)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.statusText))))
+      .then((data: RmmDetailsPayload) => setRmmDetails(data))
+      .catch(() => setRmmDetails(null))
+      .finally(() => setRmmDetailsLoading(false))
+  }, [isOpen, uid])
 
   if (!device) return null
 
   const isRmmDevice = !!device.rmmData
   const rmm = device.rmmData
+  const rmmDevice = rmmDetails?.device as Record<string, unknown> | undefined
+  const rmmAudit = rmmDetails?.audit as Record<string, unknown> | undefined
+  const rmmAlerts = (rmmDetails?.alerts ?? []) as Array<{ priority?: string; diagnostics?: string; timestamp?: string; ticketNumber?: string }>
 
   const formatLastLogin = (dateString: string) => {
     if (!dateString || dateString === '–') return dateString
@@ -156,6 +182,154 @@ export function DeviceDetailSheet({
                   </div>
                 )}
               </div>
+
+              {/* Erweiterte RMM-Daten (vom Einzelgerät-Endpoint) */}
+              {rmmDetailsLoading && (
+                <div className="mt-3 flex items-center gap-2 text-sm text-[var(--muted)]">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Zusätzliche Daten werden geladen…
+                </div>
+              )}
+              {!rmmDetailsLoading && rmmDevice && (
+                <div className="mt-3 pt-3 border-t border-[var(--border)] grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  {rmmDevice.extIpAddress != null && (
+                    <div>
+                      <p className="text-[var(--muted)]">Externe IP</p>
+                      <p className="text-[var(--text)] font-mono">{String(rmmDevice.extIpAddress)}</p>
+                    </div>
+                  )}
+                  {rmmDevice.cagVersion != null && (
+                    <div>
+                      <p className="text-[var(--muted)]">Agent-Version</p>
+                      <p className="text-[var(--text)]">{String(rmmDevice.cagVersion)}</p>
+                    </div>
+                  )}
+                  {rmmDevice.lastReboot != null && (
+                    <div>
+                      <p className="text-[var(--muted)]">Letzter Neustart</p>
+                      <p className="text-[var(--text)]">{new Date(String(rmmDevice.lastReboot)).toLocaleString()}</p>
+                    </div>
+                  )}
+                  {rmmDevice.lastAuditDate != null && (
+                    <div>
+                      <p className="text-[var(--muted)]">Letztes Audit</p>
+                      <p className="text-[var(--text)]">{new Date(String(rmmDevice.lastAuditDate)).toLocaleString()}</p>
+                    </div>
+                  )}
+                  {rmmDevice.creationDate != null && (
+                    <div>
+                      <p className="text-[var(--muted)]">Erstellt am</p>
+                      <p className="text-[var(--text)]">{new Date(String(rmmDevice.creationDate)).toLocaleString()}</p>
+                    </div>
+                  )}
+                  {typeof rmmDevice.rebootRequired === 'boolean' && (
+                    <div>
+                      <p className="text-[var(--muted)]">Neustart nötig</p>
+                      <p className="text-[var(--text)]">{rmmDevice.rebootRequired ? 'Ja' : 'Nein'}</p>
+                    </div>
+                  )}
+                  {rmmDevice.antivirus != null && typeof rmmDevice.antivirus === 'object' && (
+                    <div>
+                      <p className="text-[var(--muted)]">Antivirus</p>
+                      <p className="text-[var(--text)]">
+                        {String((rmmDevice.antivirus as Record<string, unknown>).productName ?? (rmmDevice.antivirus as Record<string, unknown>).status ?? '–')}
+                      </p>
+                    </div>
+                  )}
+                  {rmmDevice.patchManagement != null && typeof rmmDevice.patchManagement === 'object' && (
+                    <div>
+                      <p className="text-[var(--muted)]">Patch-Status</p>
+                      <p className="text-[var(--text)]">{String((rmmDevice.patchManagement as Record<string, unknown>).patchStatus ?? '–')}</p>
+                    </div>
+                  )}
+                  {rmmDevice.softwareStatus != null && (
+                    <div>
+                      <p className="text-[var(--muted)]">Software-Status</p>
+                      <p className="text-[var(--text)]">{String(rmmDevice.softwareStatus)}</p>
+                    </div>
+                  )}
+                  {rmmDevice.warrantyDate != null && (
+                    <div>
+                      <p className="text-[var(--muted)]">Garantie bis</p>
+                      <p className="text-[var(--text)]">{new Date(String(rmmDevice.warrantyDate)).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Hardware (Audit) */}
+              {!rmmDetailsLoading && rmmAudit && (
+                <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                  <h5 className="font-medium text-[var(--text)] mb-2">Hardware (Audit)</h5>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                    {rmmAudit.systemInfo != null && typeof rmmAudit.systemInfo === 'object' && (
+                      <>
+                        {(rmmAudit.systemInfo as Record<string, unknown>).manufacturer != null && (
+                          <div>
+                            <p className="text-[var(--muted)]">Hersteller</p>
+                            <p className="text-[var(--text)]">{String((rmmAudit.systemInfo as Record<string, unknown>).manufacturer)}</p>
+                          </div>
+                        )}
+                        {(rmmAudit.systemInfo as Record<string, unknown>).model != null && (
+                          <div>
+                            <p className="text-[var(--muted)]">Modell</p>
+                            <p className="text-[var(--text)]">{String((rmmAudit.systemInfo as Record<string, unknown>).model)}</p>
+                          </div>
+                        )}
+                        {(rmmAudit.systemInfo as Record<string, unknown>).serialNumber != null && (
+                          <div>
+                            <p className="text-[var(--muted)]">Seriennummer (Hardware)</p>
+                            <p className="text-[var(--text)] font-mono">{String((rmmAudit.systemInfo as Record<string, unknown>).serialNumber)}</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {Array.isArray(rmmAudit.processors) && rmmAudit.processors.length > 0 && (
+                      <div className="col-span-2">
+                        <p className="text-[var(--muted)]">Prozessor</p>
+                        <p className="text-[var(--text)]">{String((rmmAudit.processors[0] as Record<string, unknown>).name ?? rmmAudit.processors[0])}</p>
+                      </div>
+                    )}
+                    {Array.isArray(rmmAudit.physicalMemory) && rmmAudit.physicalMemory.length > 0 && (
+                      <div>
+                        <p className="text-[var(--muted)]">Arbeitsspeicher (Module)</p>
+                        <p className="text-[var(--text)]">{rmmAudit.physicalMemory.length} Modul(e)</p>
+                      </div>
+                    )}
+                    {Array.isArray(rmmAudit.logicalDisks) && rmmAudit.logicalDisks.length > 0 && (
+                      <div>
+                        <p className="text-[var(--muted)]">Laufwerke</p>
+                        <p className="text-[var(--text)]">{rmmAudit.logicalDisks.length} Laufwerk(e)</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Offene Alerts */}
+              {!rmmDetailsLoading && rmmAlerts.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                  <h5 className="font-medium text-[var(--text)] mb-2 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-[var(--warning)]" />
+                    Offene Alerts ({rmmAlerts.length})
+                  </h5>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {rmmAlerts.slice(0, 10).map((a, i) => (
+                      <div key={i} className="p-2 rounded-lg bg-[var(--surface)] text-sm">
+                        <div className="flex justify-between gap-2">
+                          <Badge variant={a.priority === 'High' || a.priority === 'Critical' ? 'destructive' : 'secondary'}>
+                            {a.priority ?? 'Alert'}
+                          </Badge>
+                          {a.ticketNumber && <span className="text-[var(--muted)] font-mono">{a.ticketNumber}</span>}
+                        </div>
+                        {a.diagnostics && <p className="text-[var(--text)] mt-1">{a.diagnostics}</p>}
+                        {a.timestamp && <p className="text-[var(--muted)] text-xs mt-1">{new Date(a.timestamp).toLocaleString()}</p>}
+                      </div>
+                    ))}
+                    {rmmAlerts.length > 10 && <p className="text-[var(--muted)] text-xs">… und {rmmAlerts.length - 10} weitere</p>}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           
