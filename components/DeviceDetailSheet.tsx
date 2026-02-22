@@ -430,17 +430,40 @@ export function DeviceDetailSheet({
                     </div>
                   )}
 
-                  {/* Laufwerke (Detail) */}
+                  {/* Laufwerke (Detail) mit Usage-Balken */}
                   {Array.isArray(rmmAudit.logicalDisks) && rmmAudit.logicalDisks.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-[var(--border)]">
                       <h5 className="font-medium text-[var(--text)] mb-2">Laufwerke</h5>
-                      <div className="space-y-1.5 text-sm max-h-28 overflow-y-auto">
-                        {(rmmAudit.logicalDisks as Array<Record<string, unknown>>).map((d, i) => (
-                          <div key={i} className="flex justify-between gap-2 py-1">
-                            <span className="text-[var(--text)] font-mono">{String(d.caption ?? d.deviceId ?? d.name ?? '–')}</span>
-                            <span className="text-[var(--muted)]">{d.size != null || d.freeSpace != null ? `${formatBytes(Number(d.freeSpace ?? 0))} frei / ${formatBytes(Number(d.size ?? 0))} gesamt` : '–'}</span>
-                          </div>
-                        ))}
+                      <div className="space-y-3 text-sm max-h-64 overflow-y-auto">
+                        {(rmmAudit.logicalDisks as Array<Record<string, unknown>>).map((d, i) => {
+                          const size = Number(d.size ?? 0)
+                          const freeSpace = Number(d.freeSpace ?? 0)
+                          const used = size > 0 ? size - freeSpace : 0
+                          const usagePct = size > 0 ? Math.round((used / size) * 100) : 0
+                          const hasSize = size > 0 || freeSpace > 0
+                          return (
+                            <div key={i} className="space-y-1">
+                              <div className="flex justify-between items-center gap-2">
+                                <span className="text-[var(--text)] font-mono font-medium">{String(d.caption ?? d.deviceId ?? d.name ?? '–')}</span>
+                                {hasSize && (
+                                  <span className="text-[var(--muted)] shrink-0">
+                                    {formatBytes(used)} / {formatBytes(size)} ({usagePct}%)
+                                  </span>
+                                )}
+                              </div>
+                              {hasSize && (
+                                <div className="w-full bg-[var(--surface)] rounded-full h-2 overflow-hidden">
+                                  <div
+                                    className={`h-2 rounded-full transition-all duration-300 ${
+                                      usagePct >= 90 ? 'bg-red-500' : usagePct >= 75 ? 'bg-amber-500' : 'bg-[var(--primary)]'
+                                    }`}
+                                    style={{ width: `${Math.min(100, usagePct)}%` }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                   )}
