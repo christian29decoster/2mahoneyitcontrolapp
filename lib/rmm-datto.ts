@@ -263,3 +263,26 @@ export async function getDattoRmmDeviceAlertsOpen(
   }
   return { alerts: all }
 }
+
+/** Installierte Software – GET /v2/audit/device/{uid}/software. */
+export async function getDattoRmmDeviceSoftware(
+  apiUrl: string,
+  accessToken: string,
+  deviceUid: string
+): Promise<{ software?: unknown[]; pageDetails?: { nextPageUrl?: string | null } }> {
+  const base = apiUrl.replace(/\/api\/?$/, '')
+  const all: unknown[] = []
+  let nextUrl: string | null = `${base}${DATTO_RMM_AUDIT_DEVICE_PATH}/${encodeURIComponent(deviceUid)}/software?max=100&page=1`
+  while (nextUrl) {
+    const res: Response = await fetch(nextUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
+    })
+    if (!res.ok) throw new Error(`Device software: ${res.status}`)
+    const data = await res.json()
+    const list = data.software ?? data.result ?? []
+    for (const s of list) all.push(s)
+    nextUrl = data.pageDetails?.nextPageUrl ? resolveNextPageUrl(base, data.pageDetails.nextPageUrl) : null
+  }
+  return { software: all }
+}

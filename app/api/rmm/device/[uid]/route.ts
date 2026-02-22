@@ -4,6 +4,7 @@ import {
   getDattoRmmDeviceByUid,
   getDattoRmmDeviceAudit,
   getDattoRmmDeviceAlertsOpen,
+  getDattoRmmDeviceSoftware,
 } from '@/lib/rmm-datto'
 
 export const dynamic = 'force-dynamic'
@@ -27,15 +28,17 @@ export async function GET(_request: Request, { params }: Params) {
 
   try {
     const token = await getDattoRmmAccessToken(apiUrl, apiKey, apiSecret)
-    const [device, audit, alertsData] = await Promise.all([
+    const [device, audit, alertsData, softwareData] = await Promise.all([
       getDattoRmmDeviceByUid(apiUrl, token, uid).catch(() => null),
       getDattoRmmDeviceAudit(apiUrl, token, uid).catch(() => null),
       getDattoRmmDeviceAlertsOpen(apiUrl, token, uid).catch(() => ({ alerts: [] })),
+      getDattoRmmDeviceSoftware(apiUrl, token, uid).catch(() => ({ software: [] })),
     ])
     return NextResponse.json({
       device,
       audit,
       alerts: alertsData?.alerts ?? [],
+      software: softwareData?.software ?? [],
     })
   } catch (e) {
     console.error('Datto RMM device details error:', e)
