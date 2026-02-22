@@ -14,17 +14,22 @@ export async function GET() {
   const apiSecret = process.env.DATTO_RMM_API_SECRET
 
   if (!apiUrl || !apiKey || !apiSecret) {
-    return NextResponse.json({ source: 'demo', devices: [] })
+    return NextResponse.json({
+      source: 'demo',
+      devices: [],
+      error: 'RMM nicht konfiguriert. Bitte DATTO_RMM_API_URL, DATTO_RMM_API_KEY und DATTO_RMM_API_SECRET in den Vercel-Einstellungen setzen.',
+    })
   }
 
   try {
     const token = await getDattoRmmAccessToken(apiUrl, apiKey, apiSecret)
     const devices = await getDattoRmmDevices(apiUrl, token)
-    return NextResponse.json({ source: 'rmm', devices })
+    return NextResponse.json({ source: 'rmm', devices, error: null })
   } catch (e) {
+    const message = e instanceof Error ? e.message : 'RMM-Anfrage fehlgeschlagen'
     console.error('Datto RMM devices error:', e)
     return NextResponse.json(
-      { source: 'demo', devices: [], error: e instanceof Error ? e.message : 'RMM request failed' },
+      { source: 'demo', devices: [], error: message },
       { status: 200 }
     )
   }

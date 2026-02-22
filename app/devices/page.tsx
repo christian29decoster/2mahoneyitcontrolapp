@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, Plus, MapPin, Wifi } from 'lucide-react'
+import { Search, Filter, Plus, MapPin, Wifi, RefreshCw } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { DeviceRow } from '@/components/DeviceRow'
 import { HapticButton } from '@/components/HapticButton'
@@ -27,16 +27,20 @@ export default function DevicesPage() {
   const [devicesSource, setDevicesSource] = useState<'demo' | 'rmm'>('demo')
   const [devicesList, setDevicesList] = useState<any[]>(demoDevices)
   const [devicesLoading, setDevicesLoading] = useState(true)
+  const [rmmError, setRmmError] = useState<string | null>(null)
   const h = useHaptics()
   const clearAuditCounts = useAuditStore(s => s.clearAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)
 
-  useEffect(() => {
+  const loadRmmDevices = () => {
+    setDevicesLoading(true)
+    setRmmError(null)
     fetch('/api/rmm/devices')
       .then((r) => r.json())
-      .then((data: { source: string; devices: any[] }) => {
-        if (data.source === 'rmm' && data.devices?.length) {
-          setDevicesList(data.devices)
+      .then((data: { source: string; devices: any[]; error?: string | null }) => {
+        setRmmError(data.error ?? null)
+        if (data.source === 'rmm') {
+          setDevicesList(Array.isArray(data.devices) ? data.devices : [])
           setDevicesSource('rmm')
         } else {
           setDevicesList(demoDevices)
@@ -44,10 +48,15 @@ export default function DevicesPage() {
         }
       })
       .catch(() => {
+        setRmmError('Netzwerkfehler beim Laden der RMM-Daten.')
         setDevicesList(demoDevices)
         setDevicesSource('demo')
       })
       .finally(() => setDevicesLoading(false))
+  }
+
+  useEffect(() => {
+    loadRmmDevices()
   }, [])
   
   const addToast = (type: ToastType, title: string, message?: string) => {
@@ -144,10 +153,21 @@ export default function DevicesPage() {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-[var(--text)]">Devices & Staff</h1>
             {devicesSource === 'rmm' && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                <Wifi className="w-3.5 h-3.5" />
-                Live aus Datto RMM
-              </span>
+              <>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  <Wifi className="w-3.5 h-3.5" />
+                  Live aus Datto RMM
+                </span>
+                <button
+                  type="button"
+                  onClick={() => loadRmmDevices()}
+                  disabled={devicesLoading}
+                  className="p-1.5 rounded-lg text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--text)] disabled:opacity-50"
+                  title="RMM-Daten neu laden"
+                >
+                  <RefreshCw className={`w-4 h-4 ${devicesLoading ? 'animate-spin' : ''}`} />
+                </button>
+              </>
             )}
           </div>
           <HapticButton
@@ -157,11 +177,35 @@ export default function DevicesPage() {
           />
         </div>
 
+        {/* RMM-Fehler: warum Demo-Daten angezeigt werden */}
+        {devicesSource === 'demo' && rmmError && (
+          <div className="p-4 rounded-[16px] bg-amber-500/10 border border-amber-500/30">
+            <p className="text-sm text-[var(--text)] mb-3">
+              <strong>RMM-Daten werden nicht angezeigt.</strong> {rmmError} Es werden Demo-Daten verwendet.
+            </p>
+            <HapticButton
+              label={devicesLoading ? 'Laden…' : 'RMM-Daten erneut laden'}
+              variant="surface"
+              onClick={devicesLoading ? undefined : loadRmmDevices}
+              className="text-sm"
+            />
+          </div>
+        )}
+
         {/* Hinweis bei RMM-Daten */}
         {devicesSource === 'rmm' && devicesList.length > 0 && (
           <div className="p-4 rounded-[16px] bg-[var(--primary)]/10 border border-[var(--primary)]/20">
             <p className="text-sm text-[var(--text)]">
               <strong>Geräte werden live aus Datto RMM geladen.</strong> Klicken Sie auf ein Gerät, um Seriennummer, IP-Adresse, Domain, Standort und weitere Details anzuzeigen.
+            </p>
+          </div>
+        )}
+
+        {/* RMM verbunden, aber keine Geräte */}
+        {devicesSource === 'rmm' && devicesList.length === 0 && !devicesLoading && (
+          <div className="p-4 rounded-[16px] bg-[var(--surface)] border border-[var(--border)]">
+            <p className="text-sm text-[var(--muted)]">
+              Keine Geräte in Datto RMM gefunden. Prüfen Sie im RMM-Portal, ob Geräte angelegt sind.
             </p>
           </div>
         )}

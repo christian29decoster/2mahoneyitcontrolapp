@@ -119,6 +119,7 @@ export async function getDattoRmmAccessToken(apiUrl: string, apiKey: string, api
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: body.toString(),
+    cache: 'no-store',
   })
   if (!res.ok) {
     const fallback = new URLSearchParams({
@@ -132,6 +133,7 @@ export async function getDattoRmmAccessToken(apiUrl: string, apiKey: string, api
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: fallback.toString(),
+      cache: 'no-store',
     })
     if (!res2.ok) {
       const err = await res2.text()
@@ -142,6 +144,19 @@ export async function getDattoRmmAccessToken(apiUrl: string, apiKey: string, api
   }
   const data = await res.json()
   return data.access_token
+}
+
+function resolveNextPageUrl(base: string, nextPageUrl: string | null | undefined): string | null {
+  if (!nextPageUrl || typeof nextPageUrl !== 'string') return null
+  if (nextPageUrl.startsWith('http://') || nextPageUrl.startsWith('https://')) return nextPageUrl
+  const baseClean = base.replace(/\/+$/, '')
+  const path = nextPageUrl.startsWith('/') ? nextPageUrl : `/${nextPageUrl}`
+  try {
+    const u = new URL(baseClean)
+    return `${u.origin}${path}`
+  } catch {
+    return `${baseClean}${path}`
+  }
 }
 
 export async function getDattoRmmDevices(
@@ -155,14 +170,23 @@ export async function getDattoRmmDevices(
   while (nextUrl) {
     const res = await fetch(nextUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
     })
-    if (!res.ok) throw new Error(`Datto RMM devices: ${res.status}`)
-    const data: DattoDevicesPage = await res.json()
-    const devices = data.devices || []
-    for (const d of devices) {
-      all.push(mapDattoDeviceToApp(d))
+    if (!res.ok) {
+      const body = await res.text()
+      throw new Error(`Datto RMM devices: ${res.status} ${body.slice(0, 200)}`)
     }
-    nextUrl = data.pageDetails?.nextPageUrl ?? null
+    const raw = await res.json()
+    const data = raw as DattoDevicesPage
+    const devices =
+      data.devices ??
+      (raw as { result?: { devices?: DattoRmmDevice[] } }).result?.devices ??
+      (raw as { data?: { devices?: DattoRmmDevice[] } }).data?.devices ??
+      []
+    for (const d of devices) {
+      if (d && typeof d === 'object' && d.uid) all.push(mapDattoDeviceToApp(d))
+    }
+    nextUrl = resolveNextPageUrl(base, data.pageDetails?.nextPageUrl)
   }
 
   return all
