@@ -24,13 +24,26 @@ export default function DevicesPage() {
   const [isRemapLoading, setIsRemapLoading] = useState(false)
   const [selectedDevice, setSelectedDevice] = useState<any>(null)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
-  const [devicesSource, setDevicesSource] = useState<'demo' | 'rmm'>('demo')
-  const [devicesList, setDevicesList] = useState<any[]>(demoDevices)
+  /** Nutzerauswahl: Demo-Daten oder Datto RMM anzeigen */
+  const [dataMode, setDataMode] = useState<'demo' | 'rmm'>(() => {
+    if (typeof window === 'undefined') return 'demo'
+    try {
+      return (localStorage.getItem('devices-data-mode') as 'demo' | 'rmm') || 'demo'
+    } catch { return 'demo' }
+  })
+  const [rmmDevicesCache, setRmmDevicesCache] = useState<any[]>([])
   const [devicesLoading, setDevicesLoading] = useState(true)
   const [rmmError, setRmmError] = useState<string | null>(null)
   const h = useHaptics()
   const clearAuditCounts = useAuditStore(s => s.clearAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)
+
+  const displayList = dataMode === 'demo' ? demoDevices : rmmDevicesCache
+
+  const setDataModeAndPersist = (mode: 'demo' | 'rmm') => {
+    setDataMode(mode)
+    try { localStorage.setItem('devices-data-mode', mode) } catch { /* ignore */ }
+  }
 
   const loadRmmDevices = () => {
     setDevicesLoading(true)
@@ -39,18 +52,15 @@ export default function DevicesPage() {
       .then((r) => r.json())
       .then((data: { source: string; devices: any[]; error?: string | null }) => {
         setRmmError(data.error ?? null)
-        if (data.source === 'rmm') {
-          setDevicesList(Array.isArray(data.devices) ? data.devices : [])
-          setDevicesSource('rmm')
+        if (data.source === 'rmm' && Array.isArray(data.devices)) {
+          setRmmDevicesCache(data.devices)
         } else {
-          setDevicesList(demoDevices)
-          setDevicesSource('demo')
+          setRmmDevicesCache([])
         }
       })
       .catch(() => {
         setRmmError('Netzwerkfehler beim Laden der RMM-Daten.')
-        setDevicesList(demoDevices)
-        setDevicesSource('demo')
+        setRmmDevicesCache([])
       })
       .finally(() => setDevicesLoading(false))
   }
@@ -75,7 +85,7 @@ export default function DevicesPage() {
     { key: 'phone', label: 'Phone' }
   ]
   
-  const filteredDevices = devicesList.filter(device => {
+  const filteredDevices = displayList.filter(device => {
     const loc = typeof device.location === 'string' ? device.location : device.location?.name ?? ''
     const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (device.serial || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -148,13 +158,42 @@ export default function DevicesPage() {
   return (
     <>
       <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
-        {/* Header with Remap */}
+        {/* Header: Titel + Umschalter Demo/RMM + Remap */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold text-[var(--text)]">Devices & Staff</h1>
-            {devicesSource === 'rmm' && (
+            <div className="flex rounded-[12px] bg-[var(--surface)] border border-[var(--border)] p-0.5">
+              <button
+                type="button"
+                onClick={() => { h.impact('light'); setDataModeAndPersist('demo') }}
+                className={`px-3 py-1.5 rounded-[10px] text-sm font-medium transition-colors ${
+                  dataMode === 'demo'
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'text-[var(--muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                Demo
+              </button>
+              <button
+                type="button"
+                onClick={() => { h.impact('light'); setDataModeAndPersist('rmm') }}
+                className={`px-3 py-1.5 rounded-[10px] text-sm font-medium transition-colors ${
+                  dataMode === 'rmm'
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'text-[var(--muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                RMM
+              </button>
+            </div>
+            {dataMode === 'demo' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--surface-elev)] text-[var(--muted)] border border-[var(--border)]">
+                Demo-Daten
+              </span>
+            )}
+            {dataMode === 'rmm' && (
               <>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                   <Wifi className="w-3.5 h-3.5" />
                   Live aus Datto RMM
                 </span>
@@ -177,11 +216,11 @@ export default function DevicesPage() {
           />
         </div>
 
-        {/* RMM-Fehler: warum Demo-Daten angezeigt werden */}
-        {devicesSource === 'demo' && rmmError && (
+        {/* RMM-Fehler: wenn RMM gewählt, aber Laden fehlgeschlagen */}
+        {dataMode === 'rmm' && rmmError && rmmDevicesCache.length === 0 && (
           <div className="p-4 rounded-[16px] bg-amber-500/10 border border-amber-500/30">
             <p className="text-sm text-[var(--text)] mb-3">
-              <strong>RMM-Daten werden nicht angezeigt.</strong> {rmmError} Es werden Demo-Daten verwendet.
+              <strong>RMM-Daten konnten nicht geladen werden.</strong> {rmmError}
             </p>
             <HapticButton
               label={devicesLoading ? 'Laden…' : 'RMM-Daten erneut laden'}
@@ -192,17 +231,17 @@ export default function DevicesPage() {
           </div>
         )}
 
-        {/* Hinweis bei RMM-Daten */}
-        {devicesSource === 'rmm' && devicesList.length > 0 && (
+        {/* Hinweis bei RMM-Daten (wenn Geräte da sind) */}
+        {dataMode === 'rmm' && displayList.length > 0 && (
           <div className="p-4 rounded-[16px] bg-[var(--primary)]/10 border border-[var(--primary)]/20">
             <p className="text-sm text-[var(--text)]">
-              <strong>Geräte werden live aus Datto RMM geladen.</strong> Klicken Sie auf ein Gerät, um Seriennummer, IP-Adresse, Domain, Standort und weitere Details anzuzeigen.
+              <strong>Geräte aus Datto RMM.</strong> Klicken Sie auf ein Gerät für Seriennummer, IP, Domain, Standort und weitere Details.
             </p>
           </div>
         )}
 
-        {/* RMM verbunden, aber keine Geräte */}
-        {devicesSource === 'rmm' && devicesList.length === 0 && !devicesLoading && (
+        {/* RMM gewählt, aber keine Geräte (und kein Fehler) */}
+        {dataMode === 'rmm' && displayList.length === 0 && !devicesLoading && !rmmError && (
           <div className="p-4 rounded-[16px] bg-[var(--surface)] border border-[var(--border)]">
             <p className="text-sm text-[var(--muted)]">
               Keine Geräte in Datto RMM gefunden. Prüfen Sie im RMM-Portal, ob Geräte angelegt sind.
@@ -245,7 +284,7 @@ export default function DevicesPage() {
 
         {/* Device Count */}
         <div className="text-sm text-[var(--muted)]">
-          {devicesLoading ? 'Loading…' : `${filteredDevices.length} of ${devicesList.length} devices`}
+          {dataMode === 'rmm' && devicesLoading ? 'Laden…' : `${filteredDevices.length} of ${displayList.length} devices`}
         </div>
 
         {/* Device List */}
