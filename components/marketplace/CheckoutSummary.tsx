@@ -29,7 +29,7 @@ export default function CheckoutSummary({ lines }: CheckoutSummaryProps) {
             <div className="flex-1">
               <div className="text-sm font-medium text-[var(--text)]">{line.name}</div>
               <div className="text-xs text-[var(--muted)]">
-                {line.qty} {line.unit} × {formatCurrency(line.unitPriceUSD)}
+                {line.unit === 'flat' ? 'Flat rate' : `${line.qty} ${line.unit} × ${formatCurrency(line.unitPriceUSD)}`}
               </div>
             </div>
             <div className="text-sm font-medium text-[var(--text)]">

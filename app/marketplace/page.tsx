@@ -2,100 +2,112 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ShoppingBag, ArrowRight, Check, Sparkles } from 'lucide-react'
+import { ShoppingBag, ArrowRight, Check, Star } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { HapticButton } from '@/components/HapticButton'
 import { Sheet } from '@/components/Sheets'
 import { Toast, ToastType } from '@/components/Toasts'
-import { services } from '@/lib/mahoney'
-import ServiceDetailsSheet from '@/components/marketplace/ServiceDetailsSheet'
+import TierDetailsSheet from '@/components/marketplace/TierDetailsSheet'
 import CheckoutSummary from '@/components/marketplace/CheckoutSummary'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useActivityStore } from '@/lib/activity.store'
+import {
+  marketplaceCategories,
+  marketplaceBundles,
+  type MarketplaceTier,
+  type MarketplaceBundle,
+} from '@/lib/marketplace-pricing'
+
+type SelectedItem = { type: 'tier'; tier: MarketplaceTier; categoryName: string } | { type: 'bundle'; bundle: MarketplaceBundle }
 
 export default function MarketplacePage() {
-  const [selectedService, setSelectedService] = useState<any>(null)
-  const [isServiceDetailsOpen, setIsServiceDetailsOpen] = useState(false)
-  const [checkoutItems, setCheckoutItems] = useState<any[]>([])
+  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [checkoutItems, setCheckoutItems] = useState<Array<{ name: string; monthlyUSD: number; proratedUSD: number; qty: number; unit?: string; unitPriceUSD?: number }>>([])
   const [checkoutStep, setCheckoutStep] = useState(0)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
   const addActivity = useActivityStore((s) => s.addActivity)
-  
+
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
-    setToasts(prev => [...prev, { id, type, title, message }])
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id))
-    }, 4000)
+    setToasts((prev) => [...prev, { id, type, title, message }])
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000)
   }
-  
-  const handleServiceClick = (service: any) => {
+
+  const handleTierClick = (tier: MarketplaceTier, categoryName: string) => {
     h.impact('light')
-    setSelectedService(service)
-    setIsServiceDetailsOpen(true)
+    setSelectedItem({ type: 'tier', tier, categoryName })
+    setIsDetailsOpen(true)
   }
-  
-  const handleAddToPlan = (payload: { qty: number; monthlyUSD: number; proratedUSD: number }) => {
+
+  const handleBundleClick = (bundle: MarketplaceBundle) => {
+    h.impact('light')
+    setSelectedItem({ type: 'bundle', bundle })
+    setIsDetailsOpen(true)
+  }
+
+  const handleAdd = (payload: { qty: number; monthlyUSD: number; proratedUSD: number }) => {
     h.impact('medium')
-    addActivity({ type: 'added', title: 'Service in Warenkorb', message: selectedService?.name })
-    const newItem = {
-      ...selectedService,
-      qty: payload.qty,
-      monthlyUSD: payload.monthlyUSD,
-      proratedUSD: payload.proratedUSD
-    }
-    setCheckoutItems([...checkoutItems, newItem])
-    setSelectedService(null)
-    setIsServiceDetailsOpen(false)
+    const name = selectedItem?.type === 'tier' ? selectedItem.tier.name : selectedItem?.type === 'bundle' ? selectedItem.bundle.name : ''
+    addActivity({ type: 'added', title: 'Service in cart', message: name })
+    setCheckoutItems((prev) => [
+      ...prev,
+      {
+        name,
+        qty: payload.qty,
+        monthlyUSD: payload.monthlyUSD,
+        proratedUSD: payload.proratedUSD,
+      },
+    ])
+    setSelectedItem(null)
+    setIsDetailsOpen(false)
     setIsCheckoutOpen(true)
     setCheckoutStep(0)
   }
-  
-  const handleRequestQuote = (payload: { qty: number; monthlyUSD: number; proratedUSD: number }) => {
+
+  const handleScheduleCall = () => {
     h.impact('medium')
-    addActivity({ type: 'changed', title: 'Angebot angefordert', message: selectedService?.name })
-    addToast('success', 'Quote Requested', 'Our team will contact you within 24 hours.')
-    setSelectedService(null)
-    setIsServiceDetailsOpen(false)
+    addToast('success', 'Strategy Call Requested', 'Our team will contact you to schedule.')
+    setSelectedItem(null)
+    setIsDetailsOpen(false)
   }
-  
+
+  const handleRequestQuote = () => {
+    addToast('success', 'Quote Requested', 'Our team will contact you within 24 hours.')
+    setSelectedItem(null)
+    setIsDetailsOpen(false)
+  }
+
   const handleCheckoutNext = () => {
     h.impact('light')
-    if (checkoutStep < 2) {
-      setCheckoutStep(checkoutStep + 1)
-    } else {
-      // Final step - complete checkout
+    if (checkoutStep < 2) setCheckoutStep((s) => s + 1)
+    else {
       h.success()
-      addActivity({ type: 'changed', title: 'Bestellung abgeschickt', message: 'Aktivierung durch Team' })
-      addToast('success', 'Request Submitted', 'Your request has been submitted. Our team will activate this shortly.')
+      addActivity({ type: 'changed', title: 'Order submitted', message: 'Activation by team' })
+      addToast('success', 'Request Submitted', 'Our team will activate this shortly.')
       setIsCheckoutOpen(false)
       setCheckoutStep(0)
     }
   }
-  
+
   const handleCheckoutBack = () => {
     h.impact('light')
-    if (checkoutStep > 0) {
-      setCheckoutStep(checkoutStep - 1)
-    } else {
-      setIsCheckoutOpen(false)
-    }
+    if (checkoutStep > 0) setCheckoutStep((s) => s - 1)
+    else setIsCheckoutOpen(false)
   }
-  
+
   const checkoutSteps = [
     {
       title: 'Summary',
       content: (
         <div className="space-y-4">
-          <CheckoutSummary lines={checkoutItems} />
-          <div className="text-sm text-[var(--muted)]">
-            <p>These services will be added to your current plan and billed accordingly.</p>
-          </div>
+          <CheckoutSummary lines={checkoutItems.map((l) => ({ ...l, unit: (l as any).unit || 'flat', unitPriceUSD: (l as any).unitPriceUSD ?? l.monthlyUSD }))} />
+          <p className="text-sm text-[var(--muted)]">Services will be added to your plan and billed accordingly.</p>
         </div>
-      )
+      ),
     },
     {
       title: 'Billing',
@@ -103,32 +115,20 @@ export default function MarketplacePage() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-[var(--text)] mb-2">Card Number</label>
-            <input
-              type="text"
-              placeholder="•••• •••• •••• ••••"
-              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
-            />
+            <input type="text" placeholder="•••• •••• •••• ••••" className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)]" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-[var(--text)] mb-2">Expiry</label>
-              <input
-                type="text"
-                placeholder="MM/YY"
-                className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
-              />
+              <input type="text" placeholder="MM/YY" className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)]" />
             </div>
             <div>
               <label className="block text-sm font-medium text-[var(--text)] mb-2">CVC</label>
-              <input
-                type="text"
-                placeholder="123"
-                className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
-              />
+              <input type="text" placeholder="123" className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)]" />
             </div>
           </div>
         </div>
-      )
+      ),
     },
     {
       title: 'Review & Confirm',
@@ -137,141 +137,166 @@ export default function MarketplacePage() {
           <div className="bg-[var(--surface)]/50 rounded-[16px] p-4">
             <h3 className="font-semibold text-[var(--text)] mb-2">Order Summary</h3>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-[var(--muted)]">Service:</span>
-                <span className="text-[var(--text)]">{selectedService?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--muted)]">Price:</span>
-                <span className="text-[var(--primary)] font-medium">{selectedService?.price}</span>
-              </div>
+              {checkoutItems.map((line, i) => (
+                <div key={i} className="flex justify-between">
+                  <span className="text-[var(--muted)]">{line.name}</span>
+                  <span className="text-[var(--primary)] font-medium">${line.monthlyUSD.toLocaleString()}/mo</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="text-sm text-[var(--muted)]">
-            <p>By confirming, you agree to add this service to your plan.</p>
-          </div>
+          <p className="text-sm text-[var(--muted)]">By confirming, you agree to add these services to your plan.</p>
         </div>
-      )
-    }
+      ),
+    },
   ]
-  
+
+  const sheetItem = selectedItem
+    ? selectedItem.type === 'bundle'
+      ? { ...selectedItem.bundle, bundle: true as const }
+      : selectedItem.tier
+    : null
+
   return (
     <>
-      <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
-        {/* Header */}
+      <motion.div className="space-y-8" variants={stagger} initial="initial" animate="animate">
         <div className="text-center space-y-3">
           <h1 className="text-2xl font-bold text-[var(--text)]">Marketplace</h1>
-          <p className="text-[var(--muted)]">Enhance your security with additional services</p>
+          <p className="text-[var(--muted)]">Enterprise risk platform – high-anchor pricing, tier contrast, CFO-friendly</p>
         </div>
 
-                {/* Service Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {services.map((service) => (
-            <Card
-              key={service.key}
-              onClick={() => handleServiceClick(service)}
-              className="cursor-pointer hover:bg-[var(--surface-elev)]/80 transition-colors"
-            >
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-[var(--text)] mb-1">{service.name}</h3>
-                    <p className="text-[var(--primary)] font-medium">{service.price}</p>
-                  </div>
-                  <ShoppingBag className="w-5 h-5 text-[var(--muted)]" />
-                </div>
-
-                <div className="space-y-2">
-                  {service.bullets.map((bullet, index) => (
-                    <div key={index} className="flex items-start space-x-2">
-                      <Check className="w-4 h-4 text-[var(--success)] mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-[var(--muted)]">{bullet}</p>
+        {marketplaceCategories.map((category) => (
+          <section key={category.id} className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--text)]">{category.name}</h2>
+              {category.description && <p className="text-sm text-[var(--muted)]">{category.description}</p>}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {category.tiers.map((tier) => (
+                <Card
+                  key={tier.id}
+                  onClick={() => handleTierClick(tier, category.name)}
+                  className={`cursor-pointer hover:bg-[var(--surface-elev)]/80 transition-colors relative ${tier.mostPopular ? 'ring-2 ring-[var(--primary)]/50' : ''}`}
+                >
+                  {tier.mostPopular && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-[var(--primary)]/15 px-2 py-0.5 text-xs font-medium text-[var(--primary)]">
+                      <Star size={12} />
+                      Most Popular
                     </div>
-                  ))}
+                  )}
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-[var(--text)] mb-1 pr-20">{tier.name}</h3>
+                      <div className="flex flex-wrap items-baseline gap-1">
+                        {tier.priceAnnualDisplay && (
+                          <span className="text-sm font-medium text-[var(--primary)]">{tier.priceAnnualDisplay}</span>
+                        )}
+                        <span className="text-sm text-[var(--muted)]">
+                          {tier.priceAnnualDisplay ? `≈ ${tier.priceMonthlyDisplay}` : tier.priceMonthlyDisplay}
+                        </span>
+                      </div>
+                      {tier.minimumDisplay && <p className="text-[10px] text-[var(--muted)] mt-0.5">{tier.minimumDisplay}</p>}
+                    </div>
+                    {tier.recommendedFor && <p className="text-[10px] text-[var(--muted)]">Recommended for: {tier.recommendedFor}</p>}
+                    <ul className="space-y-1">
+                      {tier.bullets.slice(0, 3).map((b, i) => (
+                        <li key={i} className="flex items-start gap-1.5 text-xs text-[var(--muted)]">
+                          <Check className="w-3 h-3 text-[var(--success)] mt-0.5 shrink-0" />
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-[var(--text)]">Strategic Bundles</h2>
+          <p className="text-sm text-[var(--muted)]">Anchor stacking – enterprise value and contract size</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {marketplaceBundles.map((bundle) => (
+              <Card
+                key={bundle.id}
+                onClick={() => handleBundleClick(bundle)}
+                className={`cursor-pointer hover:bg-[var(--surface-elev)]/80 transition-colors relative ${bundle.mostPopular ? 'ring-2 ring-[var(--primary)]/50' : ''}`}
+              >
+                {bundle.mostPopular && (
+                  <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-[var(--primary)]/15 px-2 py-0.5 text-xs font-medium text-[var(--primary)]">
+                    <Star size={12} />
+                    Most Popular
+                  </div>
+                )}
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-[var(--text)] pr-24">{bundle.name}</h3>
+                  <p className="text-[var(--primary)] font-medium">{bundle.priceMonthlyDisplay}</p>
+                  {bundle.recommendedFor && <p className="text-[10px] text-[var(--muted)]">Recommended for: {bundle.recommendedFor}</p>}
+                  <ul className="space-y-1">
+                    {bundle.bullets.slice(0, 4).map((b, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-[var(--muted)]">
+                        <Check className="w-3 h-3 text-[var(--success)] mt-0.5 shrink-0" />
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+              </Card>
+            ))}
+          </div>
+        </section>
       </motion.div>
 
-      {/* Service Details Sheet */}
-      {selectedService && (
-        <ServiceDetailsSheet
-          service={selectedService}
+      {sheetItem && (
+        <TierDetailsSheet
+          item={sheetItem}
+          categoryName={selectedItem?.type === 'tier' ? selectedItem.categoryName : undefined}
           billing={{
             periodStartISO: new Date().toISOString(),
-            periodEndISO: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            periodEndISO: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           }}
-          isOpen={isServiceDetailsOpen}
-          onClose={() => {
-            setIsServiceDetailsOpen(false)
-            setSelectedService(null)
-          }}
-          onAdd={handleAddToPlan}
+          isOpen={isDetailsOpen}
+          onClose={() => { setIsDetailsOpen(false); setSelectedItem(null) }}
+          onAdd={handleAdd}
+          onRequestQuote={handleRequestQuote}
+          onScheduleCall={handleScheduleCall}
         />
       )}
 
-      {/* Checkout Sheet */}
       <Sheet
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
-        title={`Checkout - ${checkoutSteps[checkoutStep]?.title}`}
+        title={`Checkout – ${checkoutSteps[checkoutStep]?.title}`}
         maxHeight="90vh"
       >
         <div className="space-y-6">
-          {/* Progress Steps */}
           <div className="flex items-center justify-between">
             {checkoutSteps.map((step, index) => (
               <div key={index} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  index <= checkoutStep 
-                    ? 'bg-[var(--primary)] text-white' 
-                    : 'bg-[var(--surface)] text-[var(--muted)]'
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    index <= checkoutStep ? 'bg-[var(--primary)] text-white' : 'bg-[var(--surface)] text-[var(--muted)]'
+                  }`}
+                >
                   {index < checkoutStep ? <Check className="w-4 h-4" /> : index + 1}
                 </div>
-                {index < checkoutSteps.length - 1 && (
-                  <div className={`w-12 h-0.5 mx-2 ${
-                    index < checkoutStep ? 'bg-[var(--primary)]' : 'bg-[var(--surface)]'
-                  }`} />
-                )}
+                {index < checkoutSteps.length - 1 && <div className={`w-12 h-0.5 mx-2 ${index < checkoutStep ? 'bg-[var(--primary)]' : 'bg-[var(--surface)]'}`} />}
               </div>
             ))}
           </div>
-          
-          {/* Step Content */}
-          <div>
-            {checkoutSteps[checkoutStep]?.content}
-          </div>
-          
-          {/* Navigation */}
-          <div className="flex space-x-3 pt-4">
-            <HapticButton
-              label="Back"
-              variant="surface"
-              onClick={handleCheckoutBack}
-              className="flex-1"
-            />
-                          <HapticButton
-                label={checkoutStep === 2 ? "Confirm" : "Next"}
-                onClick={handleCheckoutNext}
-                className="flex-1"
-              />
+          <div>{checkoutSteps[checkoutStep]?.content}</div>
+          <div className="flex gap-3 pt-4">
+            <HapticButton label="Back" variant="surface" onClick={handleCheckoutBack} className="flex-1" />
+            <HapticButton label={checkoutStep === 2 ? 'Confirm' : 'Next'} onClick={handleCheckoutNext} className="flex-1" />
           </div>
         </div>
       </Sheet>
 
-      {/* Toast Manager */}
       <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
         {toasts.map((toast) => (
           <div key={toast.id} className="pointer-events-auto">
-            <Toast
-              type={toast.type}
-              title={toast.title}
-              message={toast.message}
-              onClose={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
-            />
+            <Toast type={toast.type} title={toast.title} message={toast.message} onClose={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))} />
           </div>
         ))}
       </div>
