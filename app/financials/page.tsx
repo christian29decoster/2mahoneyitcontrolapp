@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Card from '@/components/ui/Card'
 import { HapticButton } from '@/components/HapticButton'
@@ -17,7 +17,10 @@ import {
   type SimpleROIInputs,
   type ROISimulatorOutputs,
 } from '@/lib/financials'
-import { DollarSign, TrendingUp, TrendingDown, HelpCircle, Info } from 'lucide-react'
+import { DollarSign, TrendingUp, TrendingDown, HelpCircle, Info, Database } from 'lucide-react'
+import { computeMduCost } from '@/lib/mdu-pricing'
+
+type UsageData = { source: 'rmm' | 'demo'; deviceCount: number; estimatedEventsPerMonth: number }
 
 function KpiCard({
   label,
@@ -67,10 +70,22 @@ function KpiCard({
 
 export default function FinancialsPage() {
   const [simpleInputs, setSimpleInputs] = useState<SimpleROIInputs>(defaultSimpleROIInputs)
+  const [usage, setUsage] = useState<UsageData | null>(null)
   const derivedInputs = useMemo(() => deriveROIInputs(simpleInputs), [simpleInputs])
   const roiOutputs = useMemo(() => computeROIOutputs(derivedInputs), [derivedInputs])
   const topIncidents = useMemo(() => getTopExpensiveIncidents(5), [])
+  const mduBreakdown = useMemo(
+    () => (usage ? computeMduCost(usage.estimatedEventsPerMonth) : null),
+    [usage]
+  )
   const h = useHaptics()
+
+  useEffect(() => {
+    fetch('/api/rmm/usage')
+      .then((r) => r.json())
+      .then((d: UsageData) => setUsage(d))
+      .catch(() => setUsage({ source: 'demo', deviceCount: 25, estimatedEventsPerMonth: 7500 }))
+  }, [])
 
   return (
     <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
@@ -114,7 +129,47 @@ export default function FinancialsPage() {
           value={formatCurrency(financialKpis.riskExposureValueUsd)}
           tooltip="Estimated value at risk from open gaps and unresolved findings."
         />
+        {mduBreakdown != null && (
+          <KpiCard
+            label="Data (MDU) Monthly"
+            value={formatCurrency(mduBreakdown.costUsd)}
+            tooltip="Layer 3 Data Processing: events from RMM/devices. 0–10M events included, then tiered per 1,000 events."
+          />
+        )}
       </div>
+
+      {/* Platform & Data (MDU) – Geräte, Events, Kosten aus Preisliste */}
+      {usage && mduBreakdown && (
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Database className="w-5 h-5 text-[var(--primary)]" />
+            <h2 className="text-lg font-semibold text-[var(--text)]">Platform & Data (MDU)</h2>
+          </div>
+          <p className="text-sm text-[var(--muted)] mb-4">
+            Alle Geräte zusammengefasst · geschätzte Events pro Monat · Kosten nach Mahoney-Preisliste (Layer 3).
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div>
+              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Geräte gesamt</p>
+              <p className="text-2xl font-semibold text-[var(--text)] mt-1">{usage.deviceCount.toLocaleString()}</p>
+              <p className="text-xs text-[var(--muted)] mt-0.5">{usage.source === 'rmm' ? 'Live aus RMM' : 'Demo'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Events (Monat)</p>
+              <p className="text-2xl font-semibold text-[var(--text)] mt-1">{usage.estimatedEventsPerMonth.toLocaleString()}</p>
+              <p className="text-xs text-[var(--muted)] mt-0.5">~10 Events/Gerät/Tag</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">MDU-Kosten (Layer 3)</p>
+              <p className="text-2xl font-semibold text-[var(--text)] mt-1">{formatCurrency(mduBreakdown.costUsd)}/mo</p>
+              <p className="text-xs text-[var(--muted)] mt-0.5">{mduBreakdown.summary}</p>
+            </div>
+          </div>
+          <p className="text-xs text-[var(--muted)] mt-4 pt-4 border-t border-[var(--border)]">
+            Preise: 0–10M inklusive · 10M–50M $0.10/1k · 50M–200M $0.08/1k · 200M+ $0.05/1k. Dieser Betrag fließt in die Plattform-Kalkulation ein.
+          </p>
+        </Card>
+      )}
 
       {/* ROI Simulator – potential, downtime, risks, ROI (all English) */}
       <Card className="p-6">

@@ -30,6 +30,10 @@ import { partnerCustomers, partnerSummary, type PartnerCustomer } from '@/lib/ma
 import { useViewModeStore } from '@/lib/viewMode.store'
 import { AlertsChart, MttrChart } from '@/components/dashboard/DesktopDashboardCharts'
 import KpiTile from '@/components/dashboard/KpiTile'
+import { computeMduCost } from '@/lib/mdu-pricing'
+import { Database, DollarSign } from 'lucide-react'
+
+export type UsageData = { source: 'rmm' | 'demo'; deviceCount: number; estimatedEventsPerMonth: number }
 
 export default function DashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<any>(null)
@@ -38,7 +42,15 @@ export default function DashboardPage() {
   const [view, setView] = useState<'customer' | 'partner'>('customer')
   const [selectedPartnerCustomer, setSelectedPartnerCustomer] = useState<PartnerCustomer | null>(null)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
+  const [usage, setUsage] = useState<UsageData | null>(null)
   const h = useHaptics()
+
+  useEffect(() => {
+    fetch('/api/rmm/usage')
+      .then((r) => r.json())
+      .then((d: UsageData) => setUsage(d))
+      .catch(() => setUsage({ source: 'demo', deviceCount: 25, estimatedEventsPerMonth: 7500 }))
+  }, [])
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)
   const viewMode = useViewModeStore((s) => s.viewMode)
@@ -149,6 +161,41 @@ export default function DashboardPage() {
                   <KpiTile label="Compliance" value="78%" trend={{ delta: '+3%', positive: true }} />
                 </div>
               </div>
+
+              {/* Events & MDU (Data) – Geräte, Events/Monat, Kosten */}
+              {usage && (
+                <Card className="card-desktop p-5 border-[var(--border)]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Database className="w-4 h-4 text-[var(--primary)]" />
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)]">Events & Datenkosten (MDU)</h2>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-xs text-[var(--muted)]">Geräte gesamt</p>
+                      <p className="text-xl font-semibold text-[var(--text)]">{usage.deviceCount.toLocaleString()}</p>
+                      <p className="text-[10px] text-[var(--muted)]">{usage.source === 'rmm' ? 'Live aus RMM' : 'Demo'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[var(--muted)]">Events (Monat, geschätzt)</p>
+                      <p className="text-xl font-semibold text-[var(--text)]">{usage.estimatedEventsPerMonth.toLocaleString()}</p>
+                      <p className="text-[10px] text-[var(--muted)]">~10 Events/Gerät/Tag</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[var(--muted)]">MDU-Kosten (Layer 3)</p>
+                      <p className="text-xl font-semibold text-[var(--text)] flex items-center gap-1">
+                        <DollarSign className="w-4 h-4" />
+                        {formatCurrency(computeMduCost(usage.estimatedEventsPerMonth).costUsd)}/mo
+                      </p>
+                      <p className="text-[10px] text-[var(--muted)]">0–10M inklusive</p>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-[var(--muted)] mt-3 border-t border-[var(--border)] pt-2">
+                    {computeMduCost(usage.estimatedEventsPerMonth).summary}
+                    {' · '}
+                    <a href="/financials" className="text-[var(--primary)] hover:underline">In Finanzen anzeigen</a>
+                  </p>
+                </Card>
+              )}
 
               {/* Charts row – with Y-axis and units */}
               <div>
@@ -315,6 +362,31 @@ export default function DashboardPage() {
             <div className="mt-4">
               <KpiGrid />
             </div>
+
+            {/* Events & MDU (mobile) */}
+            {usage && (
+              <Card className="mt-4 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Database className="w-4 h-4 text-[var(--primary)]" />
+                  <h3 className="text-sm font-semibold text-[var(--text)]">Events & Datenkosten (MDU)</h3>
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div>
+                    <p className="text-[10px] text-[var(--muted)]">Geräte</p>
+                    <p className="text-lg font-semibold text-[var(--text)]">{usage.deviceCount}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[var(--muted)]">Events/Mo</p>
+                    <p className="text-lg font-semibold text-[var(--text)]">{(usage.estimatedEventsPerMonth / 1000).toFixed(0)}k</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[var(--muted)]">Kosten</p>
+                    <p className="text-lg font-semibold text-[var(--text)]">{formatCurrency(computeMduCost(usage.estimatedEventsPerMonth).costUsd)}</p>
+                  </div>
+                </div>
+                <a href="/financials" className="text-xs text-[var(--primary)] hover:underline mt-2 inline-block">In Finanzen →</a>
+              </Card>
+            )}
 
             {/* Cloud Security Posture */}
             <div className="mt-4">
