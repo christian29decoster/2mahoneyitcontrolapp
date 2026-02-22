@@ -20,7 +20,14 @@ import {
 import { DollarSign, TrendingUp, TrendingDown, HelpCircle, Info, Database } from 'lucide-react'
 import { computeMduCost } from '@/lib/mdu-pricing'
 
-type UsageData = { source: 'rmm' | 'demo'; deviceCount: number; estimatedEventsPerMonth: number }
+type UsageData = {
+  source: 'rmm' | 'demo'
+  deviceCount: number
+  estimatedEventsPerMonth: number
+  realOpenAlertsCount?: number | null
+  realResolvedAlertsCount?: number | null
+  realResolvedCapped?: boolean
+}
 
 function KpiCard({
   label,
@@ -165,6 +172,17 @@ export default function FinancialsPage() {
               <p className="text-xs text-[var(--muted)] mt-0.5">{mduBreakdown.summary}</p>
             </div>
           </div>
+          {(usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm' && (
+            <div className="mt-4 pt-4 border-t border-[var(--border)]">
+              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Echte Alerts (Datto RMM)</p>
+              <p className="text-sm text-[var(--text)]">
+                <strong>{usage.realOpenAlertsCount ?? 0}</strong> offen
+                {usage.realResolvedAlertsCount != null && (
+                  <> · <strong>{usage.realResolvedAlertsCount.toLocaleString()}</strong> gelöst (gesamt){usage.realResolvedCapped ? ' (≥, Auszug)' : ''}</>
+                )}
+              </p>
+            </div>
+          )}
           <p className="text-xs text-[var(--muted)] mt-4 pt-4 border-t border-[var(--border)]">
             Preise: 0–10M inklusive · 10M–50M $0.10/1k · 50M–200M $0.08/1k · 200M+ $0.05/1k. Dieser Betrag fließt in die Plattform-Kalkulation ein.
           </p>

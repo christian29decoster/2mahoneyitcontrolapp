@@ -33,7 +33,14 @@ import KpiTile from '@/components/dashboard/KpiTile'
 import { computeMduCost } from '@/lib/mdu-pricing'
 import { Database, DollarSign } from 'lucide-react'
 
-export type UsageData = { source: 'rmm' | 'demo'; deviceCount: number; estimatedEventsPerMonth: number }
+export type UsageData = {
+  source: 'rmm' | 'demo'
+  deviceCount: number
+  estimatedEventsPerMonth: number
+  realOpenAlertsCount?: number | null
+  realResolvedAlertsCount?: number | null
+  realResolvedCapped?: boolean
+}
 
 export default function DashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<any>(null)
@@ -189,6 +196,17 @@ export default function DashboardPage() {
                       <p className="text-[10px] text-[var(--muted)]">0–10M inklusive</p>
                     </div>
                   </div>
+                  {(usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm' && (
+                    <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                      <p className="text-xs font-medium text-[var(--muted)] mb-1">Echte Alerts (Datto RMM)</p>
+                      <p className="text-sm text-[var(--text)]">
+                        <strong>{usage.realOpenAlertsCount ?? 0}</strong> offen
+                        {usage.realResolvedAlertsCount != null && (
+                          <> · <strong>{usage.realResolvedAlertsCount.toLocaleString()}</strong> gelöst{usage.realResolvedCapped ? ' (≥)' : ''}</>
+                        )}
+                      </p>
+                    </div>
+                  )}
                   <p className="text-[10px] text-[var(--muted)] mt-3 border-t border-[var(--border)] pt-2">
                     {computeMduCost(usage.estimatedEventsPerMonth).summary}
                     {' · '}
@@ -384,6 +402,11 @@ export default function DashboardPage() {
                     <p className="text-lg font-semibold text-[var(--text)]">{formatCurrency(computeMduCost(usage.estimatedEventsPerMonth).costUsd)}</p>
                   </div>
                 </div>
+                {(usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm' && (
+                  <p className="text-[10px] text-[var(--muted)] mt-2">
+                    Echte Alerts: {usage.realOpenAlertsCount ?? 0} offen · {usage.realResolvedAlertsCount?.toLocaleString() ?? 0} gelöst{usage.realResolvedCapped ? ' (≥)' : ''}
+                  </p>
+                )}
                 <a href="/financials" className="text-xs text-[var(--primary)] hover:underline mt-2 inline-block">In Finanzen →</a>
               </Card>
             )}

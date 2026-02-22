@@ -245,6 +245,10 @@ export async function getDattoRmmDevices(
 const DATTO_RMM_DEVICE_PATH = '/api/v2/device'
 const DATTO_RMM_AUDIT_DEVICE_PATH = '/api/v2/audit/device'
 const DATTO_RMM_ALERTS_OPEN_PATH = '/api/v2/device'
+const DATTO_RMM_ACCOUNT_ALERTS_OPEN_PATH = '/api/v2/account/alerts/open'
+const DATTO_RMM_ACCOUNT_ALERTS_RESOLVED_PATH = '/api/v2/account/alerts/resolved'
+const ACCOUNT_ALERTS_PAGE_SIZE = 250
+const ACCOUNT_ALERTS_RESOLVED_MAX_PAGES = 20
 
 /** Einzelgerät-Details (GET /v2/device/{uid}) – mehr Felder als in der Liste. */
 export async function getDattoRmmDeviceByUid(
@@ -299,6 +303,72 @@ export async function getDattoRmmDeviceAlertsOpen(
     nextUrl = data.pageDetails?.nextPageUrl ? resolveNextPageUrl(base, data.pageDetails.nextPageUrl) : null
   }
   return { alerts: all }
+}
+
+/** Account-weite offene Alerts – GET /v2/account/alerts/open (alle Seiten). */
+export async function getDattoRmmAccountAlertsOpen(
+  apiUrl: string,
+  accessToken: string
+): Promise<{ count: number }> {
+  const base = apiUrl.replace(/\/api\/?$/, '')
+  let count = 0
+  let pageNum = 1
+  let nextUrl: string | null = `${base}${DATTO_RMM_ACCOUNT_ALERTS_OPEN_PATH}?max=${ACCOUNT_ALERTS_PAGE_SIZE}&page=1`
+  while (nextUrl) {
+    const res: Response = await fetch(nextUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
+    })
+    if (!res.ok) throw new Error(`Account alerts open: ${res.status}`)
+    const data = await res.json()
+    const alerts = data.alerts ?? []
+    count += alerts.length
+    const pageDetails = data.pageDetails as Record<string, unknown> | undefined
+    const nextPageStr = (pageDetails?.nextPageUrl ?? pageDetails?.nextPageURL ?? data.nextPageUrl) as string | null | undefined
+    nextUrl = resolveNextPageUrl(base, nextPageStr ?? null)
+    if (!nextUrl && alerts.length === ACCOUNT_ALERTS_PAGE_SIZE) {
+      pageNum += 1
+      nextUrl = `${base}${DATTO_RMM_ACCOUNT_ALERTS_OPEN_PATH}?max=${ACCOUNT_ALERTS_PAGE_SIZE}&page=${pageNum}`
+    } else if (nextUrl) {
+      pageNum += 1
+    }
+    if (nextUrl) await new Promise((r) => setTimeout(r, 100))
+  }
+  return { count }
+}
+
+/** Account-weite gelöste Alerts – GET /v2/account/alerts/resolved (max. N Seiten, um API zu schonen). */
+export async function getDattoRmmAccountAlertsResolved(
+  apiUrl: string,
+  accessToken: string,
+  maxPages: number = ACCOUNT_ALERTS_RESOLVED_MAX_PAGES
+): Promise<{ count: number; capped: boolean }> {
+  const base = apiUrl.replace(/\/api\/?$/, '')
+  let count = 0
+  let pageNum = 1
+  let nextUrl: string | null = `${base}${DATTO_RMM_ACCOUNT_ALERTS_RESOLVED_PATH}?max=${ACCOUNT_ALERTS_PAGE_SIZE}&page=1`
+  while (nextUrl && pageNum <= maxPages) {
+    const res: Response = await fetch(nextUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
+    })
+    if (!res.ok) throw new Error(`Account alerts resolved: ${res.status}`)
+    const data = await res.json()
+    const alerts = data.alerts ?? []
+    count += alerts.length
+    const pageDetails = data.pageDetails as Record<string, unknown> | undefined
+    const nextPageStr = (pageDetails?.nextPageUrl ?? pageDetails?.nextPageURL ?? data.nextPageUrl) as string | null | undefined
+    nextUrl = resolveNextPageUrl(base, nextPageStr ?? null)
+    if (!nextUrl && alerts.length === ACCOUNT_ALERTS_PAGE_SIZE) {
+      pageNum += 1
+      nextUrl = `${base}${DATTO_RMM_ACCOUNT_ALERTS_RESOLVED_PATH}?max=${ACCOUNT_ALERTS_PAGE_SIZE}&page=${pageNum}`
+    } else if (nextUrl) {
+      pageNum += 1
+    }
+    if (nextUrl) await new Promise((r) => setTimeout(r, 100))
+  }
+  const capped = !!nextUrl && pageNum > maxPages
+  return { count, capped }
 }
 
 /** Installierte Software – GET /v2/audit/device/{uid}/software. */
