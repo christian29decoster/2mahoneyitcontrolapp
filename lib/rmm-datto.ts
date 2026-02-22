@@ -6,8 +6,9 @@
  */
 
 const DATTO_RMM_TOKEN_PATH = '/auth/oauth/token'
-const DATTO_RMM_DEVICES_PATH = '/api/v2/account/devices'
-const MAX_PAGE_SIZE = 250
+export const DATTO_RMM_DEVICES_PATH = '/api/v2/account/devices'
+export const DATTO_RMM_MAX_PAGE_SIZE = 250
+const MAX_PAGE_SIZE = DATTO_RMM_MAX_PAGE_SIZE
 
 export interface DattoRmmDevice {
   id?: number
@@ -188,7 +189,7 @@ export async function getDattoRmmDevices(
   const maxPages = 100
 
   while (nextUrl && pageNum <= maxPages) {
-    const res = await fetch(nextUrl, {
+    const res: Response = await fetch(nextUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: 'no-store',
     })
@@ -198,6 +199,8 @@ export async function getDattoRmmDevices(
     }
     const raw = await res.json()
     const data = raw as DattoDevicesPage
+    const linkHeader = res.headers.get('Link')
+    const nextFromLink = linkHeader?.match(/<([^>]+)>;\s*rel="?next"?/i)?.[1]
     const devices =
       data.devices ??
       (raw as { result?: { devices?: DattoRmmDevice[] } }).result?.devices ??
@@ -208,22 +211,31 @@ export async function getDattoRmmDevices(
     }
 
     const pageDetails = data.pageDetails
+    const rawObj = raw as Record<string, unknown>
+    const pageDetailsObj = pageDetails as Record<string, unknown> | undefined
     const nextPageUrlRaw =
-      pageDetails?.nextPageUrl ??
-      pageDetails?.nextPageURL ??
-      (raw as Record<string, unknown>).nextPageUrl ??
-      (raw as Record<string, unknown>).nextPageURL
-    nextUrl = resolveNextPageUrl(base, typeof nextPageUrlRaw === 'string' ? nextPageUrlRaw : null)
+      nextFromLink ??
+      pageDetailsObj?.nextPageUrl ??
+      pageDetailsObj?.nextPageURL ??
+      pageDetailsObj?.next_page_url ??
+      rawObj.nextPageUrl ??
+      rawObj.nextPageURL ??
+      rawObj.next_page_url ??
+      rawObj.nextPage
+    const nextPageStr = typeof nextPageUrlRaw === 'string' ? nextPageUrlRaw : null
+    nextUrl = resolveNextPageUrl(base, nextPageStr)
+    if (nextPageStr && !nextUrl) nextUrl = nextPageStr
 
     if (!nextUrl) {
       const count = devices.length
-      // Keine nextPageUrl: trotzdem nächste Seite versuchen, wenn diese Seite Geräte hatte (Stopp, wenn nächste Seite 0 liefert)
       if (count > 0) {
         pageNum += 1
         nextUrl = `${base}${DATTO_RMM_DEVICES_PATH}?max=${MAX_PAGE_SIZE}&page=${pageNum}`
+        await new Promise((r) => setTimeout(r, 150))
       }
     } else {
       pageNum += 1
+      if (pageNum > 1) await new Promise((r) => setTimeout(r, 150))
     }
   }
 
