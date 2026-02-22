@@ -24,23 +24,26 @@ export default function DevicesPage() {
   const [isRemapLoading, setIsRemapLoading] = useState(false)
   const [selectedDevice, setSelectedDevice] = useState<any>(null)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
-  /** Nutzerauswahl: Demo-Daten oder Datto RMM anzeigen */
-  const [dataMode, setDataMode] = useState<'demo' | 'rmm'>(() => {
+  /** Nutzerauswahl: Demo, Datto RMM oder Sophos EDR */
+  const [dataMode, setDataMode] = useState<'demo' | 'rmm' | 'edr'>(() => {
     if (typeof window === 'undefined') return 'demo'
     try {
-      return (localStorage.getItem('devices-data-mode') as 'demo' | 'rmm') || 'demo'
+      const m = localStorage.getItem('devices-data-mode') as 'demo' | 'rmm' | 'edr'
+      return m === 'rmm' || m === 'edr' ? m : 'demo'
     } catch { return 'demo' }
   })
   const [rmmDevicesCache, setRmmDevicesCache] = useState<any[]>([])
+  const [edrDevicesCache, setEdrDevicesCache] = useState<any[]>([])
   const [devicesLoading, setDevicesLoading] = useState(true)
   const [rmmError, setRmmError] = useState<string | null>(null)
+  const [edrError, setEdrError] = useState<string | null>(null)
   const h = useHaptics()
   const clearAuditCounts = useAuditStore(s => s.clearAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)
 
-  const displayList = dataMode === 'demo' ? demoDevices : rmmDevicesCache
+  const displayList = dataMode === 'demo' ? demoDevices : dataMode === 'rmm' ? rmmDevicesCache : edrDevicesCache
 
-  const setDataModeAndPersist = (mode: 'demo' | 'rmm') => {
+  const setDataModeAndPersist = (mode: 'demo' | 'rmm' | 'edr') => {
     setDataMode(mode)
     try { localStorage.setItem('devices-data-mode', mode) } catch { /* ignore */ }
   }
@@ -65,8 +68,29 @@ export default function DevicesPage() {
       .finally(() => setDevicesLoading(false))
   }
 
+  const loadEdrDevices = (showLoading = false) => {
+    if (showLoading) setDevicesLoading(true)
+    setEdrError(null)
+    fetch('/api/edr/devices')
+      .then((r) => r.json())
+      .then((data: { source: string; devices: any[]; error?: string | null }) => {
+        setEdrError(data.error ?? null)
+        if (data.source === 'edr' && Array.isArray(data.devices)) {
+          setEdrDevicesCache(data.devices)
+        } else {
+          setEdrDevicesCache([])
+        }
+      })
+      .catch(() => {
+        setEdrError('Netzwerkfehler beim Laden der EDR-Daten.')
+        setEdrDevicesCache([])
+      })
+      .finally(() => { if (showLoading) setDevicesLoading(false) })
+  }
+
   useEffect(() => {
     loadRmmDevices()
+    loadEdrDevices(false)
   }, [])
   
   const addToast = (type: ToastType, title: string, message?: string) => {
@@ -173,7 +197,7 @@ export default function DevicesPage() {
   return (
     <>
       <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
-        {/* Header: Titel + Umschalter Demo/RMM + Remap */}
+        {/* Header: Titel + Umschalter Demo / RMM / EDR + Remap */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold text-[var(--text)]">Devices & Staff</h1>
@@ -200,11 +224,38 @@ export default function DevicesPage() {
               >
                 RMM
               </button>
+              <button
+                type="button"
+                onClick={() => { h.impact('light'); setDataModeAndPersist('edr') }}
+                className={`px-3 py-1.5 rounded-[10px] text-sm font-medium transition-colors ${
+                  dataMode === 'edr'
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'text-[var(--muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                EDR
+              </button>
             </div>
             {dataMode === 'demo' && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--surface-elev)] text-[var(--muted)] border border-[var(--border)]">
                 Demo-Daten
               </span>
+            )}
+            {dataMode === 'edr' && (
+              <>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-violet-500/20 text-violet-600 dark:text-violet-400 border border-violet-500/30">
+                  EDR (Sophos)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => loadEdrDevices(true)}
+                  disabled={devicesLoading}
+                  className="p-1.5 rounded-lg text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--text)] disabled:opacity-50"
+                  title="EDR-Daten neu laden"
+                >
+                  <RefreshCw className={`w-4 h-4 ${devicesLoading ? 'animate-spin' : ''}`} />
+                </button>
+              </>
             )}
             {dataMode === 'rmm' && (
               <>
@@ -260,6 +311,39 @@ export default function DevicesPage() {
           <div className="p-4 rounded-[16px] bg-[var(--surface)] border border-[var(--border)]">
             <p className="text-sm text-[var(--muted)]">
               Keine Geräte in Datto RMM gefunden. Prüfen Sie im RMM-Portal, ob Geräte angelegt sind.
+            </p>
+          </div>
+        )}
+
+        {/* EDR-Fehler */}
+        {dataMode === 'edr' && edrError && edrDevicesCache.length === 0 && (
+          <div className="p-4 rounded-[16px] bg-amber-500/10 border border-amber-500/30">
+            <p className="text-sm text-[var(--text)] mb-3">
+              <strong>EDR-Daten konnten nicht geladen werden.</strong> {edrError}
+            </p>
+            <HapticButton
+              label={devicesLoading ? 'Laden…' : 'EDR-Daten erneut laden'}
+              variant="surface"
+              onClick={devicesLoading ? undefined : () => loadEdrDevices(true)}
+              className="text-sm"
+            />
+          </div>
+        )}
+
+        {/* Hinweis bei EDR-Daten */}
+        {dataMode === 'edr' && displayList.length > 0 && (
+          <div className="p-4 rounded-[16px] bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+            <p className="text-sm text-[var(--text)]">
+              <strong>Geräte aus Sophos EDR.</strong> Endpoints mit Health-Status und Tenant.
+            </p>
+          </div>
+        )}
+
+        {/* EDR gewählt, aber keine Geräte (und kein Fehler) */}
+        {dataMode === 'edr' && displayList.length === 0 && !devicesLoading && !edrError && (
+          <div className="p-4 rounded-[16px] bg-[var(--surface)] border border-[var(--border)]">
+            <p className="text-sm text-[var(--muted)]">
+              Keine EDR-Endpoints gefunden. Prüfen Sie Sophos Central und die API-Konfiguration.
             </p>
           </div>
         )}

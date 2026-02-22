@@ -47,9 +47,11 @@ Für **einen** Mandanten (nur Ihre Organisation) reicht diese eine ID. Als **Par
 | API-Basis (Standard) | `https://api.central.sophos.com` |
 | Whoami (Tenant-ID) | `GET https://api.central.sophos.com/whoami/v1` |
 | Alerts             | `GET https://api.central.sophos.com/common/v1/alerts` |
+| SIEM Events        | `GET https://api.central.sophos.com/siem/v1/events` (cursor-Paginierung, `from_date`) |
 
 - Beim Token: `grant_type=client_credentials`, `client_id`, `client_secret`, `scope=token`.
 - Bei Alerts: Header `Authorization: Bearer <Token>` und `X-Tenant-ID: <Ihre-Tenant-UUID>` (bzw. der von whoami zurückgegebene ID-Header).
+- SIEM Events: gleiche Auth, cursor-basierte Paginierung; in der App unter `GET /api/sophos/events` (optional `?from_date=...&limit=...&count_only=1`).
 
 ---
 

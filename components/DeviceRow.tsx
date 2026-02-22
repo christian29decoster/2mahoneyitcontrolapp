@@ -17,6 +17,7 @@ interface DeviceRowProps {
     lastLogin: string
     status: string
     rmmData?: unknown
+    edrData?: unknown
   }
 }
 
@@ -67,6 +68,11 @@ export function DeviceRow({ device }: DeviceRowProps) {
           {device.rmmData != null && (
             <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
               RMM
+            </span>
+          )}
+          {device.edrData != null && (
+            <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-violet-500/20 text-violet-600 dark:text-violet-400">
+              EDR
             </span>
           )}
         </div>
