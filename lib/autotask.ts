@@ -21,10 +21,11 @@ export function getAutotaskConfig(): AutotaskConfig | null {
   return { baseUrl, username, secret, integrationCode }
 }
 
-/** Raw company from Autotask API (Companies entity). */
+/** Raw company from Autotask API (Companies entity). API may return companyName or CompanyName. */
 export interface AutotaskCompany {
   id: number
   companyName?: string
+  CompanyName?: string
   companyNumber?: string
   isActive?: boolean
   createDate?: string
@@ -115,6 +116,7 @@ export async function queryAutotaskTickets(options?: {
 
 /**
  * Query Autotask Companies (max 200 per request per Autotask docs).
+ * Uses only "id exists" filter to avoid API quirks; activeOnly is applied in-memory.
  * Returns raw company array; empty on error or no config.
  */
 export async function queryAutotaskCompanies(options?: { maxRecords?: number; activeOnly?: boolean }): Promise<AutotaskCompany[]> {
@@ -122,8 +124,7 @@ export async function queryAutotaskCompanies(options?: { maxRecords?: number; ac
   if (!config) return []
 
   const maxRecords = Math.min(200, Math.max(1, options?.maxRecords ?? 100))
-  const filter: { op: string; field: string; value?: string | boolean }[] = [{ op: 'exist', field: 'id' }]
-  if (options?.activeOnly) filter.push({ op: 'eq', field: 'isActive', value: true })
+  const filter = [{ op: 'exist' as const, field: 'id' }]
 
   try {
     const body = { filter, MaxRecords: maxRecords }
@@ -134,14 +135,23 @@ export async function queryAutotaskCompanies(options?: { maxRecords?: number; ac
     })
     const raw = await res.text()
     if (!res.ok) {
-      console.error('Autotask Companies query failed:', res.status, raw.slice(0, 300))
+      console.error('Autotask Companies query failed:', res.status, raw.slice(0, 500))
       return []
     }
-    const data = JSON.parse(raw) as { items?: AutotaskCompany[] }
-    let items = data?.items ?? []
-    if (items.length === 0 && options?.activeOnly) {
-      const fallback = await queryAutotaskCompanies({ maxRecords, activeOnly: false })
-      items = fallback
+    let data: unknown
+    try {
+      data = JSON.parse(raw)
+    } catch {
+      console.error('Autotask Companies response not JSON:', raw.slice(0, 200))
+      return []
+    }
+    const obj = data as Record<string, unknown>
+    let items = (Array.isArray(obj?.items) ? obj.items : Array.isArray(obj?.item) ? obj.item : []) as AutotaskCompany[]
+    if (items.length === 0 && typeof obj === 'object' && obj !== null) {
+      console.error('Autotask Companies: 0 items. Response keys:', Object.keys(obj).join(', '))
+    }
+    if (options?.activeOnly && items.length > 0) {
+      items = items.filter((c) => (c as Record<string, unknown>).isActive !== false)
     }
     return items
   } catch (e) {

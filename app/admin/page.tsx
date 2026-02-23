@@ -44,6 +44,8 @@ export default function AdminPage(){
   const [autotaskCompanies, setAutotaskCompanies] = useState<AutotaskCompanyItem[]>([]);
   const [autotaskCompaniesLoading, setAutotaskCompaniesLoading] = useState(false);
   const [autotaskCompaniesError, setAutotaskCompaniesError] = useState<string | null>(null);
+  const [importAutotaskLoading, setImportAutotaskLoading] = useState(false);
+  const [importAutotaskResult, setImportAutotaskResult] = useState<{ imported: number; skipped: number } | null>(null);
 
   type SettingsForm = { appName: string; sessionDurationMinutes: number; defaultRoleForNewUsers: string; adminNotice: string; logoDataUrl: string };
   const [settings, setSettings] = useState<SettingsForm>({ appName: '', sessionDurationMinutes: 30, defaultRoleForNewUsers: 'demo', adminNotice: '', logoDataUrl: '' });
@@ -196,19 +198,39 @@ export default function AdminPage(){
       const res = await fetch('/api/companies/autotask');
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setAutotaskCompaniesError(data.error === 'forbidden' ? 'Keine Berechtigung' : `Fehler ${res.status}`);
+        setAutotaskCompaniesError(data.error === 'forbidden' ? 'Keine Berechtigung' : (data.error || `Fehler ${res.status}`));
         setAutotaskCompanies([]);
         return;
       }
       const data = await res.json();
       const items = Array.isArray(data.items) ? data.items : [];
       setAutotaskCompanies(items);
-      if (items.length === 0) setAutotaskCompaniesError('Keine Unternehmen von Autotask geladen (API prüfen oder Konfiguration).');
+      if (items.length === 0) setAutotaskCompaniesError('Keine Unternehmen geladen. In Autotask: API-User-Berechtigung für Companies (View) prüfen; ggf. Zone (webservices3 vs. webservices4) und Variablen in Vercel prüfen.');
     } catch (err) {
       setAutotaskCompaniesError('Netzwerkfehler');
       setAutotaskCompanies([]);
     } finally {
       setAutotaskCompaniesLoading(false);
+    }
+  }
+
+  async function importAutotaskCompanies() {
+    setImportAutotaskLoading(true);
+    setImportAutotaskResult(null);
+    try {
+      const res = await fetch('/api/tenants/import-autotask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || `Fehler ${res.status}`);
+        return;
+      }
+      setImportAutotaskResult({ imported: data.imported ?? 0, skipped: data.skipped ?? 0 });
+      await loadTenants();
+    } catch (err) {
+      console.error(err);
+      alert('Import fehlgeschlagen');
+    } finally {
+      setImportAutotaskLoading(false);
     }
   }
 
@@ -538,7 +560,7 @@ export default function AdminPage(){
                             className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-sm bg-[var(--surface-2)]">
                       <option value="">— Kein Autotask-Unternehmen —</option>
                       {autotaskCompanies.map(c=>(
-                        <option key={c.id} value={String(c.id)}>{c.companyName ?? `Company ${c.id}`}</option>
+                        <option key={c.id} value={String(c.id)}>{(c as { companyName?: string; CompanyName?: string }).companyName ?? (c as { CompanyName?: string }).CompanyName ?? `Company ${c.id}`}</option>
                       ))}
                     </select>
                   )}
@@ -560,6 +582,19 @@ export default function AdminPage(){
           </div>
           <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
             <div className="font-semibold mb-2">Tenants</div>
+            <div className="mb-4 p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+              <div className="text-xs font-medium text-[var(--muted)] mb-2">Autotask-Kunden einspielen</div>
+              <p className="text-xs text-[var(--muted)] mb-2">Lädt aktive Unternehmen aus Autotask und legt für jede Company einen neuen Tenant an (ID: autotask-123). Bereits verknüpfte werden übersprungen.</p>
+              <button type="button" onClick={importAutotaskCompanies} disabled={importAutotaskLoading}
+                      className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-sm bg-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/30 disabled:opacity-50">
+                {importAutotaskLoading ? 'Import läuft…' : 'Unternehmen aus Autotask importieren'}
+              </button>
+              {importAutotaskResult && (
+                <p className="text-xs mt-2 text-[var(--text)]">
+                  {importAutotaskResult.imported} importiert, {importAutotaskResult.skipped} bereits vorhanden.
+                </p>
+              )}
+            </div>
             {tenantsLoading ? <div className="text-sm text-[var(--muted)]">Laden…</div> : (
               <table className="w-full text-sm">
                 <thead className="text-[var(--muted)]"><tr><th className="text-left py-2">ID</th><th>Name</th><th>Partner</th><th>Status</th><th></th></tr></thead>

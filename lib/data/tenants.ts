@@ -77,6 +77,12 @@ export function getTenantById(id: string): Tenant | undefined {
   return store.find((t) => t.id === id)
 }
 
+/** Findet Tenant, der bereits mit dieser Autotask-Company-ID verknüpft ist. */
+export function getTenantByAutotaskCompanyId(companyId: string | number): Tenant | undefined {
+  const id = String(companyId)
+  return store.find((t) => t.connectors?.autotask?.companyId === id)
+}
+
 export function createTenant(data: Omit<Tenant, 'createdAtISO'>): Tenant {
   const tenant: Tenant = {
     ...data,
