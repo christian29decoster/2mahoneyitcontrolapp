@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, Plus, Filter } from 'lucide-react'
+import { AlertTriangle, Plus, Filter, TrendingUp } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import {
   INCIDENT_STATUSES,
@@ -14,6 +14,16 @@ import {
   type IncidentPriority,
 } from '@/lib/data/incidents'
 
+type SlaReport = {
+  responsePct: number
+  resolutionPct: number
+  totalWithResponse: number
+  totalResolved: number
+  responseMet: number
+  resolutionMet: number
+  breaches: { incidentId: string; type: string; actualMinutes: number; targetMinutes: number }[]
+}
+
 export default function IncidentsPage() {
   const [items, setItems] = useState<IncidentRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -21,6 +31,7 @@ export default function IncidentsPage() {
   const [filterCategory, setFilterCategory] = useState<IncidentCategory | ''>('')
   const [filterPriority, setFilterPriority] = useState<IncidentPriority | ''>('')
   const [showFilters, setShowFilters] = useState(false)
+  const [slaReport, setSlaReport] = useState<SlaReport | null>(null)
 
   function load() {
     setLoading(true)
@@ -38,6 +49,13 @@ export default function IncidentsPage() {
   useEffect(() => {
     load()
   }, [filterStatus, filterCategory, filterPriority])
+
+  useEffect(() => {
+    fetch('/api/sla/report')
+      .then((r) => r.json())
+      .then((data: SlaReport) => setSlaReport(data))
+      .catch(() => {})
+  }, [])
 
   const priorityColor: Record<IncidentPriority, string> = {
     P1: 'bg-red-600/20 text-red-300',
@@ -71,6 +89,38 @@ export default function IncidentsPage() {
           </Link>
         </div>
       </div>
+
+      {slaReport != null && (
+        <Link href="/incidents/sla">
+          <Card className="mt-4 p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 hover:border-[var(--primary)]/40 transition-colors">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
+              <span className="text-sm font-medium text-[var(--muted)]">SLA (last 30 days)</span>
+            </div>
+            <div>
+              <div className="text-xs text-[var(--muted)]">Response SLA</div>
+              <div className={`text-lg font-semibold ${slaReport.responsePct >= 95 ? 'text-emerald-400' : slaReport.responsePct >= 80 ? 'text-amber-400' : 'text-red-400'}`}>
+                {slaReport.responsePct}%
+              </div>
+              <div className="text-[10px] text-[var(--muted)]">{slaReport.responseMet}/{slaReport.totalWithResponse} met</div>
+            </div>
+            <div>
+              <div className="text-xs text-[var(--muted)]">Resolution SLA</div>
+              <div className={`text-lg font-semibold ${slaReport.resolutionPct >= 95 ? 'text-emerald-400' : slaReport.resolutionPct >= 80 ? 'text-amber-400' : 'text-red-400'}`}>
+                {slaReport.resolutionPct}%
+              </div>
+              <div className="text-[10px] text-[var(--muted)]">{slaReport.resolutionMet}/{slaReport.totalResolved} met</div>
+            </div>
+            <div className="flex items-end">
+              {slaReport.breaches.length > 0 ? (
+                <span className="text-xs text-red-400">{slaReport.breaches.length} breach{slaReport.breaches.length !== 1 ? 'es' : ''}</span>
+              ) : (
+                <span className="text-xs text-[var(--muted)]">No breaches</span>
+              )}
+            </div>
+          </Card>
+        </Link>
+      )}
 
       {showFilters && (
         <Card className="mt-4 p-4 flex flex-wrap gap-4">
