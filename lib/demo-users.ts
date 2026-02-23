@@ -1,19 +1,24 @@
 // Demo in-memory user "DB" (resets on cold start). Replace with real DB or Vercel KV later.
-export type DemoRole = 'admin'|'sales'|'demo';
+// Rollen: superadmin (geschützt), admin, partner, tenant_user; sales/demo für Abwärtskompatibilität.
+export type DemoRole = 'superadmin' | 'admin' | 'partner' | 'tenant_user' | 'sales' | 'demo';
 export type DemoUser = {
   id: string;
   username: string;
   password: string;        // DEMO ONLY
   role: DemoRole;
+  /** Bei Partner: zugeordnete Partner-ID für Tenant-Filter. */
+  partnerId?: string;
+  /** Bei Tenant-User: zugeordneter Mandant. */
+  tenantId?: string;
   active: boolean;
   expiresAtISO?: string;   // optional expiry
   createdAtISO: string;
 };
 
 let users: DemoUser[] = [
+  { id: 'u-superadmin', username: 'superadmin', password: 'SuperAdmin321#', role: 'superadmin', active: true, createdAtISO: new Date().toISOString() },
   { id: 'u-admin', username: 'admin', password: 'Admin321#', role: 'admin', active: true, createdAtISO: new Date().toISOString() },
   { id: 'u-demo',  username: 'demo123', password: 'Demo321#', role: 'demo',  active: true, createdAtISO: new Date().toISOString() },
-  // example sales reps:
   { id: 'u-s-1', username: 'sales.jane', password: 'Mahoney#1', role: 'sales', active: true, createdAtISO: new Date().toISOString() },
   { id: 'u-s-2', username: 'sales.john', password: 'Mahoney#1', role: 'sales', active: true, createdAtISO: new Date().toISOString() },
 ];
@@ -51,6 +56,15 @@ export function toggleActive(id: string, v: boolean){
 }
 export function removeUser(id: string){
   users = users.filter(x=>x.id!==id);
+}
+
+export function findUserById(id: string): DemoUser | undefined {
+  return users.find(u => u.id === id);
+}
+
+/** True, wenn der User SuperAdmin ist (Passwort/Löschen durch andere verboten). */
+export function isSuperAdminUser(u: DemoUser): boolean {
+  return u.role === 'superadmin';
 }
 export function isExpired(u: DemoUser){
   return !!(u.expiresAtISO && new Date(u.expiresAtISO).getTime() < Date.now());

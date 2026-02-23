@@ -13,6 +13,7 @@ export function middleware(req: NextRequest) {
   if (open || isAsset) return NextResponse.next()
 
   const authed = req.cookies.get('demo_authed')?.value === '1'
+  // Rolle in demo_role (superadmin, admin, partner, tenant_user, sales, demo)
   if (!authed) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'

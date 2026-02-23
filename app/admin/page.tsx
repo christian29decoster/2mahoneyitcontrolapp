@@ -2,11 +2,15 @@
 import { useEffect, useMemo, useState } from 'react';
 
 type User = {
-  id:string; username:string; role:'admin'|'sales'|'demo';
+  id:string; username:string; role:string;
   active:boolean; createdAtISO:string; expiresAtISO?:string;
 };
 
 type AuditItem = { atISO:string; username:string; ipMasked:string; tz?:string; ua?:string };
+
+type PartnerItem = { id: string; name: string; externalId?: string; active: boolean; createdAtISO: string };
+type TenantConnectors = { rmm?: { apiUrl?: string; tenantId?: string; label?: string }; sophos?: { tenantId?: string; partnerId?: string; label?: string }; [k: string]: unknown };
+type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string };
 
 function TabButton({active, children, onClick}:{active:boolean; children:React.ReactNode; onClick:()=>void}){
   return (
@@ -18,11 +22,24 @@ function TabButton({active, children, onClick}:{active:boolean; children:React.R
 }
 
 export default function AdminPage(){
-  const [tab, setTab] = useState<'users'|'audit'>('users');
+  const [tab, setTab] = useState<'users'|'audit'|'partners'|'tenants'>('users');
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [audit, setAudit] = useState<AuditItem[]>([]);
   const [form, setForm] = useState({ username:'', password:'Mahoney#1', role:'sales', expiresAtISO:'' });
+
+  const [partners, setPartners] = useState<PartnerItem[]>([]);
+  const [partnersLoading, setPartnersLoading] = useState(false);
+  const [partnerForm, setPartnerForm] = useState<{ id: string; name: string; externalId: string; active: boolean }>({ id: '', name: '', externalId: '', active: true });
+  const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
+
+  const [tenants, setTenants] = useState<TenantItem[]>([]);
+  const [tenantsLoading, setTenantsLoading] = useState(false);
+  const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors }>({
+    id: '', name: '', partnerId: '', active: true,
+    connectors: { rmm: {}, sophos: {} },
+  });
+  const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
 
   async function loadAll(){
     setLoading(true);
@@ -45,6 +62,82 @@ export default function AdminPage(){
     }
   }
   useEffect(()=>{ loadAll(); }, []);
+
+  async function loadPartners() {
+    setPartnersLoading(true);
+    try {
+      const r = await fetch('/api/partners');
+      if (!r.ok) throw new Error('forbidden');
+      const j = await r.json();
+      setPartners(j.items ?? []);
+    } catch {
+      setPartners([]);
+    } finally {
+      setPartnersLoading(false);
+    }
+  }
+  async function loadTenants() {
+    setTenantsLoading(true);
+    try {
+      const r = await fetch('/api/tenants');
+      if (!r.ok) throw new Error('forbidden');
+      const j = await r.json();
+      setTenants(j.items ?? []);
+    } catch {
+      setTenants([]);
+    } finally {
+      setTenantsLoading(false);
+    }
+  }
+  useEffect(() => { if (tab === 'partners') loadPartners(); }, [tab]);
+  useEffect(() => { if (tab === 'tenants') loadTenants(); }, [tab]);
+
+  async function savePartner() {
+    if (!partnerForm.name.trim()) { alert('Name erforderlich'); return; }
+    try {
+      if (editingPartnerId) {
+        const res = await fetch(`/api/partners/${editingPartnerId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: partnerForm.name, externalId: partnerForm.externalId || undefined, active: partnerForm.active }) });
+        if (!res.ok) { const e = await res.json(); alert(e.error || 'Fehler'); return; }
+        setEditingPartnerId(null);
+      } else {
+        const res = await fetch('/api/partners', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: partnerForm.id || undefined, name: partnerForm.name, externalId: partnerForm.externalId || undefined, active: partnerForm.active }) });
+        if (!res.ok) { const e = await res.json(); alert(e.error || 'Fehler'); return; }
+      }
+      setPartnerForm({ id: '', name: '', externalId: '', active: true });
+      await loadPartners();
+    } catch (err) { console.error(err); alert('Fehler beim Speichern'); }
+  }
+  function startEditPartner(p: PartnerItem) {
+    setEditingPartnerId(p.id);
+    setPartnerForm({ id: p.id, name: p.name, externalId: p.externalId ?? '', active: p.active });
+  }
+
+  async function saveTenant() {
+    if (!tenantForm.name.trim()) { alert('Name erforderlich'); return; }
+    try {
+      if (editingTenantId) {
+        const res = await fetch(`/api/tenants/${editingTenantId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors }) });
+        if (!res.ok) { const e = await res.json(); alert(e.error || 'Fehler'); return; }
+        setEditingTenantId(null);
+      } else {
+        const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors }) });
+        if (!res.ok) { const e = await res.json(); alert(e.error || 'Fehler'); return; }
+      }
+      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {} } });
+      await loadTenants();
+    } catch (err) { console.error(err); alert('Fehler beim Speichern'); }
+  }
+  function startEditTenant(t: TenantItem) {
+    setEditingTenantId(t.id);
+    setTenantForm({ id: t.id, name: t.name, partnerId: t.partnerId ?? '', active: t.active, connectors: { ...t.connectors } });
+  }
+  async function deleteTenant(id: string) {
+    if (!confirm('Tenant wirklich deaktivieren/entfernen?')) return;
+    try {
+      const res = await fetch(`/api/tenants/${id}`, { method: 'DELETE' });
+      if (res.ok) await loadTenants(); else alert((await res.json()).error || 'Fehler');
+    } catch (err) { console.error(err); alert('Fehler'); }
+  }
 
   async function addUser(){
     if (!form.username.trim()) {
@@ -113,29 +206,31 @@ export default function AdminPage(){
     }
   }
 
-  // guard: only admins
-  useEffect(()=>{
-    const roleCookie = (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1]||'').toLowerCase();
-    console.log('Current role cookie:', roleCookie);
-    console.log('All cookies:', document.cookie);
-    
-    if (roleCookie !== 'admin') {
-      console.log('Access denied. Redirecting...');
+  const [currentRole, setCurrentRole] = useState('');
+  const isSuperAdmin = currentRole === 'superadmin';
+
+  useEffect(() => {
+    const role = (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1] || '').toLowerCase();
+    setCurrentRole(role);
+    if (!['admin', 'superadmin'].includes(role)) {
       window.location.assign('/');
-    } else {
-      console.log('Admin access granted');
     }
   }, []);
 
   return (
     <div className="mx-auto w-full max-w-[920px] px-4 py-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <TabButton active={tab==='users'} onClick={()=>setTab('users')}>Users</TabButton>
           <TabButton active={tab==='audit'} onClick={()=>setTab('audit')}>Login Activity</TabButton>
+          <TabButton active={tab==='partners'} onClick={()=>setTab('partners')}>Partner</TabButton>
+          <TabButton active={tab==='tenants'} onClick={()=>setTab('tenants')}>Tenants</TabButton>
         </div>
       </div>
+      {currentRole === 'superadmin' && (
+        <p className="text-xs text-[var(--muted)] mt-1">SuperAdmin: Passwort und Löschen anderer SuperAdmins nur durch Sie änderbar.</p>
+      )}
 
       {tab==='users' && (
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -158,6 +253,10 @@ export default function AdminPage(){
                   <label className="text-xs text-[var(--muted)]">Role</label>
                   <select value={form.role} onChange={e=>setForm(s=>({...s, role:e.target.value}))}
                           className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2">
+                    {isSuperAdmin && <option value="superadmin">superadmin</option>}
+                    <option value="admin">admin</option>
+                    <option value="partner">partner</option>
+                    <option value="tenant_user">tenant_user</option>
                     <option value="sales">sales</option>
                     <option value="demo">demo</option>
                   </select>
@@ -198,17 +297,19 @@ export default function AdminPage(){
                       </td>
                       <td className="text-center">{u.expiresAtISO ? new Date(u.expiresAtISO).toLocaleString() : '-'}</td>
                       <td className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-2 items-center">
+                          {u.role === 'superadmin' && <span className="text-xs text-amber-400">geschützt</span>}
                           <button onClick={()=>setActive(u.id, !u.active)}
-                                  className="px-2 py-1 rounded-lg border border-[var(--border)]">
+                                  disabled={u.role === 'superadmin' && !isSuperAdmin}
+                                  className="px-2 py-1 rounded-lg border border-[var(--border)] disabled:opacity-50 disabled:cursor-not-allowed">
                             {u.active?'Disable':'Enable'}
                           </button>
-                          {u.role!=='admin' && (
+                          {(u.role !== 'admin' && u.role !== 'superadmin') || (u.role === 'superadmin' && isSuperAdmin) ? (
                             <button onClick={()=>delUser(u.id)}
                                     className="px-2 py-1 rounded-lg border border-[var(--border)] text-red-300">
                               Delete
                             </button>
-                          )}
+                          ) : null}
                         </div>
                       </td>
                     </tr>
@@ -241,6 +342,146 @@ export default function AdminPage(){
               </tbody>
             </table>
           )}
+        </div>
+      )}
+
+      {tab==='partners' && (
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-[var(--border)] p-4">
+            <div className="font-semibold mb-2">{editingPartnerId ? 'Partner bearbeiten' : 'Partner anlegen'}</div>
+            <div className="space-y-2">
+              {!editingPartnerId && (
+                <div>
+                  <label className="text-xs text-[var(--muted)]">ID (optional)</label>
+                  <input value={partnerForm.id} onChange={e=>setPartnerForm(s=>({...s, id:e.target.value}))}
+                         className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="z.B. partner-1"/>
+                </div>
+              )}
+              <div>
+                <label className="text-xs text-[var(--muted)]">Name</label>
+                <input value={partnerForm.name} onChange={e=>setPartnerForm(s=>({...s, name:e.target.value}))}
+                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+              </div>
+              <div>
+                <label className="text-xs text-[var(--muted)]">Externe ID (z.B. Sophos Partner-ID)</label>
+                <input value={partnerForm.externalId} onChange={e=>setPartnerForm(s=>({...s, externalId:e.target.value}))}
+                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+              </div>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={partnerForm.active} onChange={e=>setPartnerForm(s=>({...s, active:e.target.checked}))}/>
+                <span className="text-sm">Aktiv</span>
+              </label>
+              <div className="flex gap-2">
+                <button onClick={savePartner} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white">
+                  {editingPartnerId ? 'Speichern' : 'Anlegen'}
+                </button>
+                {editingPartnerId && (
+                  <button onClick={()=>{ setEditingPartnerId(null); setPartnerForm({ id: '', name: '', externalId: '', active: true }); }} className="px-4 py-2 rounded-xl border border-[var(--border)]">Abbrechen</button>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
+            <div className="font-semibold mb-2">Partner</div>
+            {partnersLoading ? <div className="text-sm text-[var(--muted)]">Laden…</div> : (
+              <table className="w-full text-sm">
+                <thead className="text-[var(--muted)]"><tr><th className="text-left py-2">ID</th><th>Name</th><th>Externe ID</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  {partners.map(p=>(
+                    <tr key={p.id} className="border-t border-[var(--border)]">
+                      <td className="py-2">{p.id}</td>
+                      <td>{p.name}</td>
+                      <td>{p.externalId ?? '-'}</td>
+                      <td><span className={`px-2 py-1 rounded-lg text-xs ${p.active?'bg-emerald-600/20 text-emerald-300':'bg-zinc-600/20 text-zinc-300'}`}>{p.active?'aktiv':'inaktiv'}</span></td>
+                      <td><button onClick={()=>startEditPartner(p)} className="px-2 py-1 rounded-lg border border-[var(--border)]">Bearbeiten</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {tab==='tenants' && (
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
+            <div className="font-semibold mb-2">{editingTenantId ? 'Tenant bearbeiten' : 'Tenant anlegen'}</div>
+            <div className="space-y-2">
+              {!editingTenantId && (
+                <div>
+                  <label className="text-xs text-[var(--muted)]">ID (optional)</label>
+                  <input value={tenantForm.id} onChange={e=>setTenantForm(s=>({...s, id:e.target.value}))}
+                         className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="z.B. tenant-1"/>
+                </div>
+              )}
+              <div>
+                <label className="text-xs text-[var(--muted)]">Name</label>
+                <input value={tenantForm.name} onChange={e=>setTenantForm(s=>({...s, name:e.target.value}))}
+                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+              </div>
+              <div>
+                <label className="text-xs text-[var(--muted)]">Partner-ID</label>
+                <input value={tenantForm.partnerId} onChange={e=>setTenantForm(s=>({...s, partnerId:e.target.value}))}
+                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="Leer = Mahoney"/>
+              </div>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={tenantForm.active} onChange={e=>setTenantForm(s=>({...s, active:e.target.checked}))}/>
+                <span className="text-sm">Aktiv</span>
+              </label>
+              <div className="text-xs font-medium text-[var(--muted)] mt-2">Konnektoren (RMM / Sophos)</div>
+              <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-3">
+                <div>
+                  <span className="text-xs text-[var(--muted)]">RMM (Datto)</span>
+                  <input value={tenantForm.connectors?.rmm?.apiUrl ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, apiUrl: e.target.value } } }))}
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="API-URL"/>
+                  <input value={tenantForm.connectors?.rmm?.tenantId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, tenantId: e.target.value } } }))}
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Tenant-ID"/>
+                  <input value={tenantForm.connectors?.rmm?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, label: e.target.value } } }))}
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label"/>
+                </div>
+                <div>
+                  <span className="text-xs text-[var(--muted)]">Sophos</span>
+                  <input value={tenantForm.connectors?.sophos?.tenantId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, tenantId: e.target.value } } }))}
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Tenant-ID"/>
+                  <input value={tenantForm.connectors?.sophos?.partnerId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, partnerId: e.target.value } } }))}
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Partner-ID"/>
+                  <input value={tenantForm.connectors?.sophos?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, label: e.target.value } } }))}
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label"/>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white">
+                  {editingTenantId ? 'Speichern' : 'Anlegen'}
+                </button>
+                {editingTenantId && (
+                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {} } }); }} className="px-4 py-2 rounded-xl border border-[var(--border)]">Abbrechen</button>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
+            <div className="font-semibold mb-2">Tenants</div>
+            {tenantsLoading ? <div className="text-sm text-[var(--muted)]">Laden…</div> : (
+              <table className="w-full text-sm">
+                <thead className="text-[var(--muted)]"><tr><th className="text-left py-2">ID</th><th>Name</th><th>Partner</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  {tenants.map(t=>(
+                    <tr key={t.id} className="border-t border-[var(--border)]">
+                      <td className="py-2">{t.id}</td>
+                      <td>{t.name}</td>
+                      <td>{t.partnerId ?? '-'}</td>
+                      <td><span className={`px-2 py-1 rounded-lg text-xs ${t.active?'bg-emerald-600/20 text-emerald-300':'bg-zinc-600/20 text-zinc-300'}`}>{t.active?'aktiv':'inaktiv'}</span></td>
+                      <td>
+                        <button onClick={()=>startEditTenant(t)} className="px-2 py-1 rounded-lg border border-[var(--border)] mr-1">Bearbeiten</button>
+                        <button onClick={()=>deleteTenant(t.id)} className="px-2 py-1 rounded-lg border border-[var(--border)] text-red-300">Löschen</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       )}
     </div>

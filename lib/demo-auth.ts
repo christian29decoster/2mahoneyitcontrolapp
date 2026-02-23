@@ -1,6 +1,7 @@
 import { findUser, isExpired } from './demo-users';
+import type { DemoRole } from './demo-users';
 
-export type Session = { username: string; role: 'admin'|'sales'|'demo' };
+export type Session = { username: string; role: DemoRole };
 
 export function checkCredentials(u: string, p: string): Session | null {
   const user = findUser(u);
