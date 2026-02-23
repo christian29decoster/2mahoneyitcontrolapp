@@ -273,11 +273,11 @@ export const governanceCategory: MarketplaceCategory = {
   ],
 }
 
-// ─── Platform & Data (MDU) – Layer 3, aktuelle Preisliste ──────────────────
+// ─── Platform & Data (MDU) – Layer 3, current price list ───────────────────
 export const dataMduCategory: MarketplaceCategory = {
   id: 'data-mdu',
   name: 'Platform & Data (MDU)',
-  description: 'Event-basierte Datenverarbeitung – RMM, EDR, Maschinen-Events',
+  description: 'Event-based data processing – RMM, EDR, machine events. Billing by volume only; RMM and EDR alerts are for display only.',
   tiers: [
     {
       id: 'mdu-tiered',
@@ -290,11 +290,11 @@ export const dataMduCategory: MarketplaceCategory = {
         '1M–50M: $0.10 per 1,000 events',
         '50M–200M: $0.08 per 1,000 events',
         '200M+: $0.05 per 1,000 events',
-        'Abrechnung nur nach Event-Volumen; RMM- und EDR-Alerts nur Anzeige',
-        'Transparente Abrechnung nach Volumen',
+        'Billing by event volume only; RMM and EDR alerts are for display',
+        'Transparent volume-based billing',
       ],
       mostPopular: true,
-      recommendedFor: 'Alle Stufen – Basis in jeder Plattform-Kalkulation',
+      recommendedFor: 'All tiers – base of every platform calculation',
     },
   ],
 }

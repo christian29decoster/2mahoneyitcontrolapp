@@ -152,7 +152,7 @@ export default function FinancialsPage() {
         )}
       </div>
 
-      {/* Platform & Data (MDU) – Geräte, Events, Kosten aus Preisliste */}
+      {/* Platform & Data (MDU) – devices, events, cost */}
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <Database className="w-5 h-5 text-[var(--primary)]" />
@@ -161,32 +161,35 @@ export default function FinancialsPage() {
         {usage && mduBreakdown ? (
           <>
             <p className="text-sm text-[var(--muted)] mb-4">
-              Alle Geräte zusammengefasst · geschätzte Events pro Monat · Kosten nach Mahoney-Preisliste (Layer 3).
+              All devices combined · {usage.eventsSource === 'siem' ? 'events from Sophos SIEM' : 'estimated events per month'} · cost per Mahoney price list (Layer 3).
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div>
-                <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Geräte gesamt</p>
+                <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Total devices</p>
                 <p className="text-2xl font-semibold text-[var(--text)] mt-1">{usage.deviceCount.toLocaleString()}</p>
-                <p className="text-xs text-[var(--muted)] mt-0.5">{usage.source === 'rmm' ? 'Live aus RMM' : 'Demo'}</p>
+                <p className="text-xs text-[var(--muted)] mt-0.5">{usage.source === 'rmm' ? 'Live from RMM' : 'Sample data (no RMM connected)'}</p>
               </div>
             <div>
-              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">{usage.eventsSource === 'siem' ? 'Events (Monat)' : 'Events (Monat, geschätzt)'}</p>
+              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">{usage.eventsSource === 'siem' ? 'Events (month)' : 'Events (month, estimated)'}</p>
               <p className="text-2xl font-semibold text-[var(--text)] mt-1">{(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).toLocaleString()}{usage.realEventsCapped ? ' (≥)' : ''}</p>
-              <p className="text-xs text-[var(--muted)] mt-0.5">{usage.eventsSource === 'siem' ? 'Aus Sophos SIEM' : '~10 Events/Gerät/Tag'}</p>
+              <p className="text-xs text-[var(--muted)] mt-0.5">{usage.eventsSource === 'siem' ? 'From Sophos SIEM' : '~10 events/device/day'}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">MDU-Kosten (Layer 3)</p>
+              <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">MDU cost (Layer 3)</p>
               <p className="text-2xl font-semibold text-[var(--text)] mt-1">{formatCurrency(mduBreakdown.costUsd)}/mo</p>
               <p className="text-xs text-[var(--muted)] mt-0.5">{mduBreakdown.summary}</p>
             </div>
             </div>
+            <p className="text-xs text-[var(--muted)] mt-2">
+              <strong>Projected cost this month</strong> (at current rate): {formatCurrency(mduBreakdown.costUsd)}/mo
+            </p>
             {(usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm' && (
               <div className="mt-4 pt-4 border-t border-[var(--border)]">
-                <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Echte Alerts (Datto RMM)</p>
+                <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Alerts (Datto RMM)</p>
                 <p className="text-sm text-[var(--text)]">
-                  <strong>{usage.realOpenAlertsCount ?? 0}</strong> offen
+                  <strong>{usage.realOpenAlertsCount ?? 0}</strong> open
                   {usage.realResolvedAlertsCount != null && (
-                    <> · <strong>{usage.realResolvedAlertsCount.toLocaleString()}</strong> gelöst (gesamt){usage.realResolvedCapped ? ' (≥, Auszug)' : ''}</>
+                    <> · <strong>{usage.realResolvedAlertsCount.toLocaleString()}</strong> resolved (total){usage.realResolvedCapped ? ' (≥, sample)' : ''}</>
                   )}
                 </p>
               </div>
@@ -195,16 +198,26 @@ export default function FinancialsPage() {
               <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-1">Sophos EDR</p>
               <p className="text-sm text-[var(--text)]">
                 {usage.sophosAlertsCount != null ? (
-                  <><strong>{usage.sophosAlertsCount.toLocaleString()}</strong> Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}</>
+                  <><strong>{usage.sophosAlertsCount.toLocaleString()}</strong> alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}</>
                 ) : usage.sophosConfigured ? (
-                  <span className="text-[var(--muted)]">– (API-Fehler oder keine Alerts)</span>
+                  <span className="text-[var(--muted)]">— (API error or no alerts)</span>
                 ) : (
-                  <span className="text-[var(--muted)]">Nicht konfiguriert</span>
+                  <span className="text-[var(--muted)]">Not configured</span>
                 )}
               </p>
             </div>
+            {mduBreakdown.costUsd > 0 && (
+              <div className="mt-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                <p className="text-sm text-[var(--text)]">
+                  You&apos;re accruing data processing costs. After 2 months of sustained usage we recommend upgrading your plan to reduce per-event fees and get better value.
+                </p>
+                <a href="/marketplace" className="inline-block mt-2 text-sm font-medium text-[var(--primary)] hover:underline">
+                  Go to Marketplace →
+                </a>
+              </div>
+            )}
             <p className="text-xs text-[var(--muted)] mt-4 pt-4 border-t border-[var(--border)]">
-              Preise: 0–1M inklusive · 1M–50M $0.10/1k · 50M–200M $0.08/1k · 200M+ $0.05/1k. Dieser Betrag fließt in die Plattform-Kalkulation ein.
+              Pricing: 0–1M included · 1M–50M $0.10/1k · 50M–200M $0.08/1k · 200M+ $0.05/1k. This amount is included in platform billing.
             </p>
           </>
         ) : (

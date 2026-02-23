@@ -18,6 +18,8 @@ import {
   type MarketplaceTier,
   type MarketplaceBundle,
 } from '@/lib/marketplace-pricing'
+import { MDU_TIERS, computeMduCost } from '@/lib/mdu-pricing'
+import { Database } from 'lucide-react'
 
 type SelectedItem = { type: 'tier'; tier: MarketplaceTier; categoryName: string } | { type: 'bundle'; bundle: MarketplaceBundle }
 
@@ -164,6 +166,55 @@ export default function MarketplacePage() {
           <h1 className="text-2xl font-bold text-[var(--text)]">Marketplace</h1>
           <p className="text-[var(--muted)]">Enterprise risk platform – high-anchor pricing, tier contrast, CFO-friendly</p>
         </div>
+
+        {/* Events & Data (MDU) – transparent pricing table */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Database className="w-5 h-5 text-[var(--primary)]" />
+            <h2 className="text-lg font-semibold text-[var(--text)]">Events & Data (MDU) – Transparent pricing</h2>
+          </div>
+          <p className="text-sm text-[var(--muted)]">
+            Layer 3 data processing is billed by event volume per month. RMM and EDR alert counts are for visibility only and do not affect MDU cost.
+          </p>
+          <Card className="p-4 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[var(--muted)] border-b border-[var(--border)]">
+                  <th className="pb-2 pr-4">Tier</th>
+                  <th className="pb-2 pr-4">Events / month</th>
+                  <th className="pb-2 pr-4">Price per 1,000 events</th>
+                  <th className="pb-2">Example monthly cost</th>
+                </tr>
+              </thead>
+              <tbody className="text-[var(--text)]">
+                {MDU_TIERS.map((tier, i) => {
+                  const prevUpTo = i === 0 ? 0 : MDU_TIERS[i - 1].upTo
+                  const rangeLabel = tier.upTo === Infinity ? '200M+' : `${prevUpTo === 0 ? '0' : (prevUpTo / 1_000_000).toFixed(0) + 'M'} – ${(tier.upTo / 1_000_000).toFixed(0)}M`
+                  const exampleEvents = [500_000, 10_000_000, 100_000_000, 250_000_000][i] ?? 500_000
+                  const example = computeMduCost(exampleEvents)
+                  return (
+                    <tr key={tier.label} className="border-b border-[var(--border)] last:border-0">
+                      <td className="py-3 pr-4 font-medium">{tier.label}</td>
+                      <td className="py-3 pr-4">{rangeLabel}</td>
+                      <td className="py-3 pr-4">{tier.perThousandUsd === 0 ? 'Included' : `$${tier.perThousandUsd.toFixed(2)}`}</td>
+                      <td className="py-3">
+                        {tier.perThousandUsd === 0 ? '$0 (included)' : `$${example.costUsd.toFixed(2)}/mo for ${(exampleEvents / 1_000_000).toFixed(0)}M events`}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </Card>
+          <div className="rounded-xl bg-[var(--surface-2)]/50 border border-[var(--border)] p-4">
+            <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-2">Quick examples</p>
+            <ul className="text-sm text-[var(--text)] space-y-1">
+              <li>500k events/mo → <strong>$0</strong> (within 0–1M included)</li>
+              <li>2M events/mo → <strong>${computeMduCost(2_000_000).costUsd.toFixed(2)}/mo</strong></li>
+              <li>50M events/mo → <strong>${computeMduCost(50_000_000).costUsd.toFixed(2)}/mo</strong></li>
+            </ul>
+          </div>
+        </section>
 
         {marketplaceCategories.map((category) => (
           <section key={category.id} className="space-y-4">

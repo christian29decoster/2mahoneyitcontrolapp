@@ -176,41 +176,41 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Events & MDU (Data) – Geräte, Events/Monat, Kosten */}
+              {/* Events & MDU (Data) – devices, events/month, cost */}
               <Card className="card-desktop p-5 border-[var(--border)]">
                 <div className="flex items-center gap-2 mb-3">
                   <Database className="w-4 h-4 text-[var(--primary)]" />
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)]">Events & Datenkosten (MDU)</h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)]">Events & Data cost (MDU)</h2>
                 </div>
                 {usage ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <p className="text-xs text-[var(--muted)]">Geräte gesamt</p>
+                        <p className="text-xs text-[var(--muted)]">Total devices</p>
                         <p className="text-xl font-semibold text-[var(--text)]">{usage.deviceCount.toLocaleString()}</p>
-                        <p className="text-[10px] text-[var(--muted)]">{usage.source === 'rmm' ? 'Live aus RMM' : 'Demo'}</p>
+                        <p className="text-[10px] text-[var(--muted)]">{usage.source === 'rmm' ? 'Live from RMM' : 'Sample data (no RMM connected)'}</p>
                       </div>
                     <div>
-                      <p className="text-xs text-[var(--muted)]">{usage.eventsSource === 'siem' ? 'Events (Monat)' : 'Events (Monat, geschätzt)'}</p>
+                      <p className="text-xs text-[var(--muted)]">{usage.eventsSource === 'siem' ? 'Events (month)' : 'Events (month, estimated)'}</p>
                       <p className="text-xl font-semibold text-[var(--text)]">{(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).toLocaleString()}{(usage.realEventsCapped ? ' (≥)' : '')}</p>
-                      <p className="text-[10px] text-[var(--muted)]">{usage.eventsSource === 'siem' ? 'Aus Sophos SIEM' : '~10 Events/Gerät/Tag'}</p>
+                      <p className="text-[10px] text-[var(--muted)]">{usage.eventsSource === 'siem' ? 'From Sophos SIEM' : '~10 events/device/day'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[var(--muted)]">MDU-Kosten (Layer 3)</p>
+                      <p className="text-xs text-[var(--muted)]">MDU cost (Layer 3)</p>
                       <p className="text-xl font-semibold text-[var(--text)] flex items-center gap-1">
                         <DollarSign className="w-4 h-4" />
                         {formatCurrency(computeMduCost(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).costUsd)}/mo
                       </p>
-                      <p className="text-[10px] text-[var(--muted)]">0–1M inklusive</p>
+                      <p className="text-[10px] text-[var(--muted)]">0–1M included</p>
                     </div>
                     </div>
                     {((usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm') && (
                       <div className="mt-3 pt-3 border-t border-[var(--border)]">
-                        <p className="text-xs font-medium text-[var(--muted)] mb-1">Echte Alerts (Datto RMM)</p>
+                        <p className="text-xs font-medium text-[var(--muted)] mb-1">Alerts (Datto RMM)</p>
                         <p className="text-sm text-[var(--text)]">
-                          <strong>{usage.realOpenAlertsCount ?? 0}</strong> offen
+                          <strong>{usage.realOpenAlertsCount ?? 0}</strong> open
                           {usage.realResolvedAlertsCount != null && (
-                            <> · <strong>{usage.realResolvedAlertsCount.toLocaleString()}</strong> gelöst{usage.realResolvedCapped ? ' (≥)' : ''}</>
+                            <> · <strong>{usage.realResolvedAlertsCount.toLocaleString()}</strong> resolved{usage.realResolvedCapped ? ' (≥)' : ''}</>
                           )}
                         </p>
                       </div>
@@ -219,19 +219,39 @@ export default function DashboardPage() {
                       <p className="text-xs font-medium text-[var(--muted)] mb-1">Sophos EDR</p>
                       <p className="text-sm text-[var(--text)]">
                         {usage.sophosAlertsCount != null ? (
-                          <><strong>{usage.sophosAlertsCount.toLocaleString()}</strong> Alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}</>
+                          <><strong>{usage.sophosAlertsCount.toLocaleString()}</strong> alerts{usage.sophosAlertsCapped ? ' (≥)' : ''}</>
                         ) : usage.sophosConfigured ? (
-                          <span className="text-[var(--muted)]">– (API-Fehler oder keine Alerts)</span>
+                          <span className="text-[var(--muted)]">— (API error or no alerts)</span>
                         ) : (
-                          <span className="text-[var(--muted)]">Nicht konfiguriert</span>
+                          <span className="text-[var(--muted)]">Not configured</span>
                         )}
                       </p>
                     </div>
-                    <p className="text-[10px] text-[var(--muted)] mt-3 border-t border-[var(--border)] pt-2">
-                      {computeMduCost(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).summary}
-                      {' · '}
-                      <a href="/financials" className="text-[var(--primary)] hover:underline">In Finanzen anzeigen</a>
-                    </p>
+                    {(() => {
+                      const mdu = computeMduCost(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth)
+                      const hasCost = mdu.costUsd > 0
+                      return (
+                        <>
+                          <p className="text-[10px] text-[var(--muted)] mt-3 border-t border-[var(--border)] pt-2">
+                            {mdu.summary}
+                            {' · '}
+                            <strong>Projected cost this month</strong> (at current rate): {formatCurrency(mdu.costUsd)}/mo
+                            {' · '}
+                            <a href="/financials" className="text-[var(--primary)] hover:underline">View in Financials</a>
+                          </p>
+                          {hasCost && (
+                            <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                              <p className="text-sm text-[var(--text)]">
+                                You&apos;re accruing data processing costs. After 2 months of sustained usage we recommend upgrading your plan to reduce per-event fees and get better value.
+                              </p>
+                              <a href="/marketplace" className="inline-block mt-2 text-sm font-medium text-[var(--primary)] hover:underline">
+                                Go to Marketplace →
+                              </a>
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()}
                   </>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2">
@@ -421,35 +441,43 @@ export default function DashboardPage() {
             <Card className="mt-4 p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Database className="w-4 h-4 text-[var(--primary)]" />
-                <h3 className="text-sm font-semibold text-[var(--text)]">Events & Datenkosten (MDU)</h3>
+                <h3 className="text-sm font-semibold text-[var(--text)]">Events & Data cost (MDU)</h3>
               </div>
               {usage ? (
                 <>
                   <div className="grid grid-cols-3 gap-3 text-center">
                     <div>
-                      <p className="text-[10px] text-[var(--muted)]">Geräte</p>
+                      <p className="text-[10px] text-[var(--muted)]">Devices</p>
                       <p className="text-lg font-semibold text-[var(--text)]">{usage.deviceCount}</p>
                     </div>
                   <div>
-                    <p className="text-[10px] text-[var(--muted)]">Events/Mo</p>
+                    <p className="text-[10px] text-[var(--muted)]">Events/mo</p>
                     <p className="text-lg font-semibold text-[var(--text)]">{((usage.eventsPerMonth ?? usage.estimatedEventsPerMonth) / 1000).toFixed(0)}k{usage.realEventsCapped ? '+' : ''}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-[var(--muted)]">Kosten</p>
+                    <p className="text-[10px] text-[var(--muted)]">Cost</p>
                     <p className="text-lg font-semibold text-[var(--text)]">{formatCurrency(computeMduCost(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).costUsd)}</p>
                   </div>
                   </div>
+                  <p className="text-[10px] text-[var(--muted)] mt-1">
+                    {usage.source === 'rmm' ? 'Live from RMM' : 'Sample data (no RMM connected)'}
+                    {' · '}
+                    Projected this month: {formatCurrency(computeMduCost(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).costUsd)}
+                  </p>
                   {((usage.realOpenAlertsCount != null || usage.realResolvedAlertsCount != null) && usage.source === 'rmm') && (
                     <p className="text-[10px] text-[var(--muted)] mt-2">
-                      RMM: {usage.realOpenAlertsCount ?? 0} offen · {usage.realResolvedAlertsCount?.toLocaleString() ?? 0} gelöst{usage.realResolvedCapped ? ' (≥)' : ''}
+                      RMM: {usage.realOpenAlertsCount ?? 0} open · {usage.realResolvedAlertsCount?.toLocaleString() ?? 0} resolved{usage.realResolvedCapped ? ' (≥)' : ''}
                     </p>
                   )}
                   <p className="text-[10px] text-[var(--muted)] mt-1">
                     Sophos EDR: {usage.sophosAlertsCount != null
-                      ? `${usage.sophosAlertsCount.toLocaleString()} Alerts${usage.sophosAlertsCapped ? ' (≥)' : ''}`
-                      : usage.sophosConfigured ? '–' : 'nicht konfiguriert'}
+                      ? `${usage.sophosAlertsCount.toLocaleString()} alerts${usage.sophosAlertsCapped ? ' (≥)' : ''}`
+                      : usage.sophosConfigured ? '—' : 'Not configured'}
                   </p>
-                  <a href="/financials" className="text-xs text-[var(--primary)] hover:underline mt-2 inline-block">In Finanzen →</a>
+                  {computeMduCost(usage.eventsPerMonth ?? usage.estimatedEventsPerMonth).costUsd > 0 && (
+                    <a href="/marketplace" className="text-xs text-[var(--primary)] font-medium hover:underline mt-2 inline-block">Upgrade to reduce costs → Marketplace</a>
+                  )}
+                  <a href="/financials" className="text-xs text-[var(--primary)] hover:underline mt-2 ml-0 inline-block block">View in Financials →</a>
                 </>
               ) : (
                 <div className="grid grid-cols-3 gap-3 text-center py-2">
