@@ -78,7 +78,7 @@ export default function DrawerNav({
   const [showAdminLink, setShowAdminLink] = useState(false)
   useEffect(() => {
     const role = (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1] || '').toLowerCase()
-    setShowAdminLink(role === 'admin')
+    setShowAdminLink(role === 'admin' || role === 'superadmin')
   }, [])
 
   const isPinnedSidebar = viewMode === 'desktop' && menuPinned
@@ -155,10 +155,10 @@ export default function DrawerNav({
 
           {showAdminLink && (
             <>
-              <SectionTitle>Admin</SectionTitle>
+              <SectionTitle>App-Verwaltung</SectionTitle>
               <Link href="/admin" onClick={handleNavClick} className={linkClass}>
                 <Wrench size={18} />
-                <span className="text-sm">Admin</span>
+                <span className="text-sm">Admin (User, Partner, Einstellungen)</span>
               </Link>
             </>
           )}

@@ -22,7 +22,7 @@ function TabButton({active, children, onClick}:{active:boolean; children:React.R
 }
 
 export default function AdminPage(){
-  const [tab, setTab] = useState<'users'|'audit'|'partners'|'tenants'>('users');
+  const [tab, setTab] = useState<'users'|'audit'|'partners'|'tenants'|'settings'>('users');
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [audit, setAudit] = useState<AuditItem[]>([]);
@@ -40,6 +40,11 @@ export default function AdminPage(){
     connectors: { rmm: {}, sophos: {} },
   });
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
+
+  type SettingsForm = { appName: string; sessionDurationMinutes: number; defaultRoleForNewUsers: string; adminNotice: string };
+  const [settings, setSettings] = useState<SettingsForm>({ appName: '', sessionDurationMinutes: 30, defaultRoleForNewUsers: 'demo', adminNotice: '' });
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
 
   async function loadAll(){
     setLoading(true);
@@ -91,6 +96,35 @@ export default function AdminPage(){
   }
   useEffect(() => { if (tab === 'partners') loadPartners(); }, [tab]);
   useEffect(() => { if (tab === 'tenants') loadTenants(); }, [tab]);
+
+  async function loadSettings() {
+    setSettingsLoading(true);
+    try {
+      const r = await fetch('/api/demo/settings');
+      if (!r.ok) return;
+      const j = await r.json();
+      setSettings({
+        appName: j.appName ?? '',
+        sessionDurationMinutes: j.sessionDurationMinutes ?? 30,
+        defaultRoleForNewUsers: j.defaultRoleForNewUsers ?? 'demo',
+        adminNotice: j.adminNotice ?? '',
+      });
+    } finally {
+      setSettingsLoading(false);
+    }
+  }
+  useEffect(() => { if (tab === 'settings') loadSettings(); }, [tab]);
+
+  async function saveSettings() {
+    setSettingsSaving(true);
+    try {
+      const r = await fetch('/api/demo/settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
+      if (!r.ok) { alert('Speichern fehlgeschlagen'); return; }
+      await loadSettings();
+    } finally {
+      setSettingsSaving(false);
+    }
+  }
 
   async function savePartner() {
     if (!partnerForm.name.trim()) { alert('Name erforderlich'); return; }
@@ -226,6 +260,7 @@ export default function AdminPage(){
           <TabButton active={tab==='audit'} onClick={()=>setTab('audit')}>Login Activity</TabButton>
           <TabButton active={tab==='partners'} onClick={()=>setTab('partners')}>Partner</TabButton>
           <TabButton active={tab==='tenants'} onClick={()=>setTab('tenants')}>Tenants</TabButton>
+          <TabButton active={tab==='settings'} onClick={()=>setTab('settings')}>Einstellungen</TabButton>
         </div>
       </div>
       {currentRole === 'superadmin' && (
@@ -482,6 +517,50 @@ export default function AdminPage(){
               </table>
             )}
           </div>
+        </div>
+      )}
+
+      {tab==='settings' && (
+        <div className="mt-4 rounded-2xl border border-[var(--border)] p-4 max-w-xl">
+          <div className="font-semibold mb-2">App-Parameter &amp; Einstellungen</div>
+          <p className="text-xs text-[var(--muted)] mb-4">Steuern Sie Anzeigename, Session-Dauer und Standard-Rolle. (Demo: In-Memory; Produktion später über DB/Env.)</p>
+          {settingsLoading ? (
+            <div className="text-sm text-[var(--muted)]">Laden…</div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-[var(--muted)]">App-Name (Anzeige)</label>
+                <input value={settings.appName} onChange={e=>setSettings(s=>({...s, appName:e.target.value}))}
+                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+              </div>
+              <div>
+                <label className="text-xs text-[var(--muted)]">Session-Dauer (Minuten)</label>
+                <input type="number" min={5} max={1440} value={settings.sessionDurationMinutes}
+                       onChange={e=>setSettings(s=>({...s, sessionDurationMinutes:Number(e.target.value)||30}))}
+                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+              </div>
+              <div>
+                <label className="text-xs text-[var(--muted)]">Standard-Rolle für neue User</label>
+                <select value={settings.defaultRoleForNewUsers} onChange={e=>setSettings(s=>({...s, defaultRoleForNewUsers:e.target.value}))}
+                        className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2">
+                  <option value="demo">demo</option>
+                  <option value="sales">sales</option>
+                  <option value="admin">admin</option>
+                  <option value="partner">partner</option>
+                  <option value="tenant_user">tenant_user</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-[var(--muted)]">Admin-Hinweis (optional, z. B. für Wartung)</label>
+                <textarea value={settings.adminNotice} onChange={e=>setSettings(s=>({...s, adminNotice:e.target.value}))}
+                          rows={2} className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+              </div>
+              <button onClick={saveSettings} disabled={settingsSaving}
+                      className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white disabled:opacity-50">
+                {settingsSaving ? 'Speichern…' : 'Einstellungen speichern'}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
