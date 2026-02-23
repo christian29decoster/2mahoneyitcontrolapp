@@ -41,8 +41,8 @@ export default function AdminPage(){
   });
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
 
-  type SettingsForm = { appName: string; sessionDurationMinutes: number; defaultRoleForNewUsers: string; adminNotice: string };
-  const [settings, setSettings] = useState<SettingsForm>({ appName: '', sessionDurationMinutes: 30, defaultRoleForNewUsers: 'demo', adminNotice: '' });
+  type SettingsForm = { appName: string; sessionDurationMinutes: number; defaultRoleForNewUsers: string; adminNotice: string; logoDataUrl: string };
+  const [settings, setSettings] = useState<SettingsForm>({ appName: '', sessionDurationMinutes: 30, defaultRoleForNewUsers: 'demo', adminNotice: '', logoDataUrl: '' });
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
 
@@ -108,17 +108,28 @@ export default function AdminPage(){
         sessionDurationMinutes: j.sessionDurationMinutes ?? 30,
         defaultRoleForNewUsers: j.defaultRoleForNewUsers ?? 'demo',
         adminNotice: j.adminNotice ?? '',
+        logoDataUrl: j.logoDataUrl ?? '',
       });
     } finally {
       setSettingsLoading(false);
     }
   }
+  const MAX_LOGO_BYTES = 300 * 1024; // 300 KB
+  function handleLogoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) { alert('Bitte ein Bild wählen (PNG, JPG, SVG).'); return; }
+    if (file.size > MAX_LOGO_BYTES) { alert(`Logo max. ${MAX_LOGO_BYTES / 1024} KB.`); return; }
+    const reader = new FileReader();
+    reader.onload = () => { setSettings(s => ({ ...s, logoDataUrl: (reader.result as string) ?? '' })); };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
   useEffect(() => { if (tab === 'settings') loadSettings(); }, [tab]);
 
   async function saveSettings() {
-    setSettingsSaving(true);
+      setSettingsSaving(true);
     try {
-      const r = await fetch('/api/demo/settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
+      const r = await fetch('/api/demo/settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...settings, logoDataUrl: settings.logoDataUrl || undefined }) });
       if (!r.ok) { alert('Speichern fehlgeschlagen'); return; }
       await loadSettings();
     } finally {
@@ -161,6 +172,7 @@ export default function AdminPage(){
       await loadTenants();
     } catch (err) { console.error(err); alert('Fehler beim Speichern'); }
   }
+  function clearLogo() { setSettings(s => ({ ...s, logoDataUrl: '' })); }
   function startEditTenant(t: TenantItem) {
     setEditingTenantId(t.id);
     setTenantForm({ id: t.id, name: t.name, partnerId: t.partnerId ?? '', active: t.active, connectors: { ...t.connectors } });
@@ -549,6 +561,19 @@ export default function AdminPage(){
                   <option value="partner">partner</option>
                   <option value="tenant_user">tenant_user</option>
                 </select>
+              </div>
+              <div>
+                <label className="text-xs text-[var(--muted)]">Logo für Anmeldeseite (optional, max. 300 KB)</label>
+                <div className="mt-1 flex flex-wrap items-center gap-3">
+                  <input type="file" accept="image/*" onChange={handleLogoFile}
+                         className="text-sm text-[var(--muted)] file:mr-2 file:rounded-lg file:border file:border-[var(--border)] file:bg-[var(--surface-2)] file:px-3 file:py-1.5 file:text-sm"/>
+                  {settings.logoDataUrl && (
+                    <>
+                      <img src={settings.logoDataUrl} alt="Logo" className="h-12 object-contain rounded border border-[var(--border)]"/>
+                      <button type="button" onClick={clearLogo} className="text-xs text-red-400 hover:underline">Entfernen</button>
+                    </>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="text-xs text-[var(--muted)]">Admin-Hinweis (optional, z. B. für Wartung)</label>

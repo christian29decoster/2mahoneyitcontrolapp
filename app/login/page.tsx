@@ -1,15 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { checkCredentials } from '@/lib/demo-auth'
 import { useHaptics } from '@/hooks/useHaptics'
+
+type Branding = { appName: string; logoDataUrl: string | null }
 
 export default function LoginPage() {
   const [u, setU] = useState('')
   const [p, setP] = useState('')
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [branding, setBranding] = useState<Branding | null>(null)
   const h = useHaptics()
+
+  useEffect(() => {
+    fetch('/api/demo/branding')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: Branding | null) => data && setBranding(data))
+      .catch(() => {})
+  }, [])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -50,40 +60,29 @@ export default function LoginPage() {
     <div className="min-h-dvh flex items-center justify-center px-4 bg-[var(--bg)]">
       <div className="w-full max-w-[440px] rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-[0_10px_35px_rgba(0,0,0,.45)] text-center">
         
-        {/* Logo */}
+        {/* Logo – from branding or default */}
         <div className="flex justify-center mb-6">
-          <div className="flex items-center space-x-4">
-            {/* SVG Logo */}
-            <svg width="48" height="48" viewBox="0 0 48 48" className="text-white">
-              {/* Central diamond */}
-              <polygon 
-                points="24,8 32,20 24,32 16,20" 
-                fill="currentColor"
-                className="drop-shadow-sm"
-              />
-              {/* Left diamond */}
-              <polygon 
-                points="8,20 16,28 8,36 0,28" 
-                fill="currentColor"
-                className="drop-shadow-sm"
-              />
-              {/* Right diamond */}
-              <polygon 
-                points="40,20 48,28 40,36 32,28" 
-                fill="currentColor"
-                className="drop-shadow-sm"
-              />
-            </svg>
-            {/* Text Logo */}
-            <div className="text-white font-bold text-3xl tracking-wider">
-              <span className="text-white">MAHONEY</span>
-              <span className="text-white ml-3">IT</span>
+          {branding?.logoDataUrl ? (
+            <img src={branding.logoDataUrl} alt={branding.appName || 'Logo'} className="max-h-16 w-auto object-contain" />
+          ) : (
+            <div className="flex items-center space-x-4">
+              <svg width="48" height="48" viewBox="0 0 48 48" className="text-white">
+                <polygon points="24,8 32,20 24,32 16,20" fill="currentColor" className="drop-shadow-sm" />
+                <polygon points="8,20 16,28 8,36 0,28" fill="currentColor" className="drop-shadow-sm" />
+                <polygon points="40,20 48,28 40,36 32,28" fill="currentColor" className="drop-shadow-sm" />
+              </svg>
+              <div className="text-white font-bold text-3xl tracking-wider">
+                <span className="text-white">MAHONEY</span>
+                <span className="text-white ml-3">IT</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Title + Slogan */}
-        <h1 className="text-2xl font-bold text-[var(--text)]">Welcome to Mahoney Control App</h1>
+        <h1 className="text-2xl font-bold text-[var(--text)]">
+          Welcome to {branding?.appName || 'Mahoney Control App'}
+        </h1>
         <p className="text-sm text-[var(--muted)] mt-1">Cybersecurity in your pocket</p>
 
 

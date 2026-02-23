@@ -12,6 +12,8 @@ export interface AppSettings {
   defaultRoleForNewUsers: string
   /** Hinweis/Info für Admins (optional). */
   adminNotice?: string
+  /** Logo für Login-Seite (Data URL, z. B. base64). Max ~300 KB empfohlen. */
+  logoDataUrl?: string
   updatedAtISO: string
 }
 

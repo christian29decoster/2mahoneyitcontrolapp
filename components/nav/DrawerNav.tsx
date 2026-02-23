@@ -24,6 +24,7 @@ import {
   Smartphone,
   Monitor,
   MessageSquare,
+  AlertTriangle,
 } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useViewModeStore } from '@/lib/viewMode.store'
@@ -138,6 +139,7 @@ export default function DrawerNav({
           <NavLink href="/financials" label="Financials" icon={DollarSign} onClick={handleNavClick} />
           <NavLink href="/contracts" label="Contracts" icon={FileText} onClick={handleNavClick} />
           <NavLink href="/projects" label="Projects" icon={FolderOpen} onClick={handleNavClick} />
+          <NavLink href="/incidents" label="Incidents" icon={AlertTriangle} onClick={handleNavClick} />
 
           <SectionTitle>AI & Growth</SectionTitle>
           <NavLink href="/mahoney-grow" label="AI Growth & Risk Intelligence" icon={LineChart} onClick={handleNavClick} />

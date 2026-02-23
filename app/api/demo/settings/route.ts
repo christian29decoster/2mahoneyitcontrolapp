@@ -31,6 +31,7 @@ export async function PATCH(req: NextRequest) {
     sessionDurationMinutes: body.sessionDurationMinutes,
     defaultRoleForNewUsers: body.defaultRoleForNewUsers,
     adminNotice: body.adminNotice,
+    logoDataUrl: body.logoDataUrl,
   })
   return NextResponse.json(updated)
 }
