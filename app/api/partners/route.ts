@@ -25,7 +25,6 @@ export async function POST(req: NextRequest) {
     name: body.name ?? 'Neuer Partner',
     externalId: body.externalId,
     active: body.active ?? true,
-    createdAtISO: new Date().toISOString(),
   })
   return NextResponse.json({ item: partner })
 }
