@@ -32,6 +32,7 @@ export default function IncidentsPage() {
   const [filterPriority, setFilterPriority] = useState<IncidentPriority | ''>('')
   const [showFilters, setShowFilters] = useState(false)
   const [slaReport, setSlaReport] = useState<SlaReport | null>(null)
+  const [dataSource, setDataSource] = useState<'local' | 'autotask' | 'mixed'>('local')
 
   function load() {
     setLoading(true)
@@ -41,7 +42,10 @@ export default function IncidentsPage() {
     if (filterPriority) params.set('priority', filterPriority)
     fetch(`/api/incidents?${params}`)
       .then((r) => r.json())
-      .then((data: { items: IncidentRecord[] }) => setItems(data.items ?? []))
+      .then((data: { items: IncidentRecord[]; source?: 'local' | 'autotask' | 'mixed' }) => {
+        setItems(data.items ?? [])
+        setDataSource(data.source ?? 'local')
+      })
       .catch(() => setItems([]))
       .finally(() => setLoading(false))
   }
@@ -168,6 +172,9 @@ export default function IncidentsPage() {
 
       <p className="text-sm text-[var(--muted)] mt-2">
         ITIL-aligned lifecycle: New → Assigned → In Progress → Resolved → Closed. Filter by status, category, or priority.
+        {(dataSource === 'autotask' || dataSource === 'mixed') && (
+          <span className="ml-2 text-[var(--primary)]">Including tickets from Autotask PSA.</span>
+        )}
       </p>
 
       {loading ? (
