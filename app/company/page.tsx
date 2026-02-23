@@ -177,7 +177,7 @@ export default function CompanyPage() {
                 <div>
                   <h1 className="text-2xl font-bold text-[var(--text)] mb-2">{companyName}</h1>
                   <p className="text-[var(--muted)]">Plan: {demoTenant.currentPlan.tier}</p>
-                  {selectedTenant.id && (
+                  {selectedTenant?.id && (
                     <p className="text-sm text-[var(--muted)] mt-1">ID: {selectedTenant.id}</p>
                   )}
                 </div>
