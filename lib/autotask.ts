@@ -151,7 +151,7 @@ export async function queryAutotaskCompanies(options?: { maxRecords?: number; ac
       console.error('Autotask Companies: 0 items. Response keys:', Object.keys(obj).join(', '))
     }
     if (options?.activeOnly && items.length > 0) {
-      items = items.filter((c) => (c as Record<string, unknown>).isActive !== false)
+      items = items.filter((c) => c.isActive !== false)
     }
     return items
   } catch (e) {
