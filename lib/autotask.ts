@@ -122,8 +122,8 @@ export async function queryAutotaskCompanies(options?: { maxRecords?: number; ac
   if (!config) return []
 
   const maxRecords = Math.min(200, Math.max(1, options?.maxRecords ?? 100))
-  const filter: { op: string; field: string; value?: string }[] = [{ op: 'exist', field: 'id' }]
-  if (options?.activeOnly) filter.push({ op: 'eq', field: 'isActive', value: 'true' })
+  const filter: { op: string; field: string; value?: string | boolean }[] = [{ op: 'exist', field: 'id' }]
+  if (options?.activeOnly) filter.push({ op: 'eq', field: 'isActive', value: true })
 
   try {
     const body = { filter, MaxRecords: maxRecords }
@@ -138,7 +138,12 @@ export async function queryAutotaskCompanies(options?: { maxRecords?: number; ac
       return []
     }
     const data = JSON.parse(raw) as { items?: AutotaskCompany[] }
-    return data?.items ?? []
+    let items = data?.items ?? []
+    if (items.length === 0 && options?.activeOnly) {
+      const fallback = await queryAutotaskCompanies({ maxRecords, activeOnly: false })
+      items = fallback
+    }
+    return items
   } catch (e) {
     console.error('Autotask Companies query error:', e)
     return []

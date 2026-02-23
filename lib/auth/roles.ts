@@ -23,6 +23,20 @@ export interface AuthSession {
   tenantId?: string
 }
 
+/** Standort pro Tenant (Company-Seite). */
+export interface TenantLocation {
+  name: string
+  address: string
+  lat: number
+  lng: number
+}
+
+/** Zertifikat pro Tenant (Company-Seite). */
+export interface TenantCertificate {
+  id: string
+  name: string
+}
+
 /** Tenant (Mandant) – von Mahoney oder Partner verwaltet. */
 export interface Tenant {
   id: string
@@ -33,6 +47,10 @@ export interface Tenant {
   connectors: TenantConnectors
   active: boolean
   createdAtISO: string
+  /** Standorte (Company-Seite); leer = Fallback auf Demo. */
+  locations?: TenantLocation[]
+  /** Zertifikate (Company-Seite); leer = Fallback auf Demo. */
+  certificates?: TenantCertificate[]
 }
 
 /** Pro Tenant: Zuordnung zu RMM, Sophos, Autotask und weiteren APIs. */

@@ -40,6 +40,10 @@ export default function AdminPage(){
     connectors: { rmm: {}, sophos: {}, autotask: {} },
   });
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
+  type AutotaskCompanyItem = { id: number; companyName?: string };
+  const [autotaskCompanies, setAutotaskCompanies] = useState<AutotaskCompanyItem[]>([]);
+  const [autotaskCompaniesLoading, setAutotaskCompaniesLoading] = useState(false);
+  const [autotaskCompaniesError, setAutotaskCompaniesError] = useState<string | null>(null);
 
   type SettingsForm = { appName: string; sessionDurationMinutes: number; defaultRoleForNewUsers: string; adminNotice: string; logoDataUrl: string };
   const [settings, setSettings] = useState<SettingsForm>({ appName: '', sessionDurationMinutes: 30, defaultRoleForNewUsers: 'demo', adminNotice: '', logoDataUrl: '' });
@@ -183,6 +187,29 @@ export default function AdminPage(){
       const res = await fetch(`/api/tenants/${id}`, { method: 'DELETE' });
       if (res.ok) await loadTenants(); else alert((await res.json()).error || 'Fehler');
     } catch (err) { console.error(err); alert('Fehler'); }
+  }
+
+  async function loadAutotaskCompanies() {
+    setAutotaskCompaniesLoading(true);
+    setAutotaskCompaniesError(null);
+    try {
+      const res = await fetch('/api/companies/autotask');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setAutotaskCompaniesError(data.error === 'forbidden' ? 'Keine Berechtigung' : `Fehler ${res.status}`);
+        setAutotaskCompanies([]);
+        return;
+      }
+      const data = await res.json();
+      const items = Array.isArray(data.items) ? data.items : [];
+      setAutotaskCompanies(items);
+      if (items.length === 0) setAutotaskCompaniesError('Keine Unternehmen von Autotask geladen (API prüfen oder Konfiguration).');
+    } catch (err) {
+      setAutotaskCompaniesError('Netzwerkfehler');
+      setAutotaskCompanies([]);
+    } finally {
+      setAutotaskCompaniesLoading(false);
+    }
   }
 
   async function addUser(){
@@ -497,11 +524,28 @@ export default function AdminPage(){
                          className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label"/>
                 </div>
                 <div>
-                  <span className="text-xs text-[var(--muted)]">Autotask PSA (Company-ID)</span>
+                  <span className="text-xs text-[var(--muted)]">Autotask PSA (Company zuordnen)</span>
+                  <div className="flex gap-2 mt-1">
+                    <button type="button" onClick={loadAutotaskCompanies} disabled={autotaskCompaniesLoading}
+                            className="px-2 py-1 rounded-lg border border-[var(--border)] text-sm bg-[var(--surface-2)] hover:bg-[var(--surface)] disabled:opacity-50">
+                      {autotaskCompaniesLoading ? 'Laden…' : 'Unternehmen aus Autotask laden'}
+                    </button>
+                  </div>
+                  {autotaskCompaniesError && <p className="text-xs text-amber-400 mt-1">{autotaskCompaniesError}</p>}
+                  {autotaskCompanies.length > 0 && (
+                    <select value={(tenantForm.connectors as Record<string,{ companyId?: string }|undefined>)?.autotask?.companyId ?? ''}
+                            onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))}
+                            className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-sm bg-[var(--surface-2)]">
+                      <option value="">— Kein Autotask-Unternehmen —</option>
+                      {autotaskCompanies.map(c=>(
+                        <option key={c.id} value={String(c.id)}>{c.companyName ?? `Company ${c.id}`}</option>
+                      ))}
+                    </select>
+                  )}
                   <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.companyId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Autotask Company-ID"/>
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Oder Company-ID manuell eingeben"/>
                   <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, label: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label"/>
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label (optional)"/>
                 </div>
               </div>
               <div className="flex gap-2 mt-2">

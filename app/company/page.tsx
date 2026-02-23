@@ -13,7 +13,16 @@ import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useActivityStore } from '@/lib/activity.store'
 
-type TenantItem = { id: string; name: string; partnerId?: string; active: boolean }
+type TenantLocation = { name: string; address: string; lat: number; lng: number }
+type TenantCertificate = { id: string; name: string }
+type TenantItem = {
+  id: string
+  name: string
+  partnerId?: string
+  active: boolean
+  locations?: TenantLocation[]
+  certificates?: TenantCertificate[]
+}
 
 function getRoleFromCookie(): string {
   if (typeof document === 'undefined') return 'demo'
@@ -111,8 +120,14 @@ export default function CompanyPage() {
   }
 
   const companyName = selectedTenant?.name ?? demoCompany.name
-  const locations = demoCompany.locations
-  const certificates = demoCompany.certificates
+  const locations =
+    selectedTenant?.locations && selectedTenant.locations.length > 0
+      ? selectedTenant.locations
+      : demoCompany.locations
+  const certificates =
+    selectedTenant?.certificates && selectedTenant.certificates.length > 0
+      ? selectedTenant.certificates
+      : demoCompany.certificates
   const showDetail = selectedTenant || (!canSeeMultipleCompanies && !tenantIdFromSession)
 
   if (canSeeMultipleCompanies && !selectedTenantId && !tenantsLoading && tenants.length === 0) {
