@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, Plus, MapPin, Wifi, RefreshCw } from 'lucide-react'
+import { Search, Filter, Plus, MapPin, Wifi, RefreshCw, Building2 } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { DeviceRow } from '@/components/DeviceRow'
 import { HapticButton } from '@/components/HapticButton'
@@ -16,6 +16,21 @@ import { useAuditStore } from '@/lib/store'
 import { useActivityStore } from '@/lib/activity.store'
 import { DeviceDetailSheet } from '@/components/DeviceDetailSheet'
 
+type TenantItem = { id: string; name: string }
+
+function getRoleFromCookie(): string {
+  if (typeof document === 'undefined') return 'demo'
+  const m = document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)
+  return (m?.[1] ?? 'demo').toLowerCase()
+}
+function getTenantIdFromCookie(): string | null {
+  if (typeof document === 'undefined') return null
+  const m = document.cookie.match(/(?:^|;) ?demo_tenant_id=([^;]+)/)
+  return m?.[1] ?? null
+}
+
+const DEVICES_TENANT_STORAGE_KEY = 'devices-selected-tenant-id'
+
 export default function DevicesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedFilter, setSelectedFilter] = useState('all')
@@ -24,6 +39,12 @@ export default function DevicesPage() {
   const [isRemapLoading, setIsRemapLoading] = useState(false)
   const [selectedDevice, setSelectedDevice] = useState<any>(null)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
+  const [role, setRole] = useState<string>('demo')
+  const [tenants, setTenants] = useState<TenantItem[]>([])
+  const [selectedTenantId, setSelectedTenantId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    try { return localStorage.getItem(DEVICES_TENANT_STORAGE_KEY) } catch { return null }
+  })
   /** Nutzerauswahl: Demo, Datto RMM oder Sophos EDR */
   const [dataMode, setDataMode] = useState<'demo' | 'rmm' | 'edr'>(() => {
     if (typeof window === 'undefined') return 'demo'
@@ -41,6 +62,10 @@ export default function DevicesPage() {
   const clearAuditCounts = useAuditStore(s => s.clearAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)
 
+  const canSeeMultipleCompanies = role === 'superadmin' || role === 'admin' || role === 'partner'
+  const sessionTenantId = getTenantIdFromCookie()
+  const effectiveTenantId = canSeeMultipleCompanies ? selectedTenantId : sessionTenantId
+
   const displayList = dataMode === 'demo' ? demoDevices : dataMode === 'rmm' ? rmmDevicesCache : edrDevicesCache
 
   const setDataModeAndPersist = (mode: 'demo' | 'rmm' | 'edr') => {
@@ -48,10 +73,16 @@ export default function DevicesPage() {
     try { localStorage.setItem('devices-data-mode', mode) } catch { /* ignore */ }
   }
 
+  const setSelectedTenantAndPersist = (id: string | null) => {
+    setSelectedTenantId(id)
+    try { if (id) localStorage.setItem(DEVICES_TENANT_STORAGE_KEY, id); else localStorage.removeItem(DEVICES_TENANT_STORAGE_KEY) } catch { /* ignore */ }
+  }
+
   const loadRmmDevices = () => {
     setDevicesLoading(true)
     setRmmError(null)
-    fetch('/api/rmm/devices')
+    const q = effectiveTenantId ? `?tenantId=${encodeURIComponent(effectiveTenantId)}` : ''
+    fetch(`/api/rmm/devices${q}`)
       .then((r) => r.json())
       .then((data: { source: string; devices: any[]; error?: string | null }) => {
         setRmmError(data.error ?? null)
@@ -71,7 +102,8 @@ export default function DevicesPage() {
   const loadEdrDevices = (showLoading = false) => {
     if (showLoading) setDevicesLoading(true)
     setEdrError(null)
-    fetch('/api/edr/devices')
+    const q = effectiveTenantId ? `?tenantId=${encodeURIComponent(effectiveTenantId)}` : ''
+    fetch(`/api/edr/devices${q}`)
       .then((r) => r.json())
       .then((data: { source: string; devices: any[]; error?: string | null }) => {
         setEdrError(data.error ?? null)
@@ -88,10 +120,19 @@ export default function DevicesPage() {
       .finally(() => { if (showLoading) setDevicesLoading(false) })
   }
 
+  useEffect(() => { setRole(getRoleFromCookie()) }, [])
+  useEffect(() => {
+    if (!canSeeMultipleCompanies) return
+    fetch('/api/tenants')
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((data: { items?: TenantItem[] }) => setTenants(Array.isArray(data.items) ? data.items : []))
+      .catch(() => setTenants([]))
+  }, [canSeeMultipleCompanies])
+
   useEffect(() => {
     loadRmmDevices()
     loadEdrDevices(false)
-  }, [])
+  }, [effectiveTenantId])
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -197,6 +238,26 @@ export default function DevicesPage() {
   return (
     <>
       <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+        {/* Company (Tenant) filter for SuperAdmin/Admin/Partner */}
+        {canSeeMultipleCompanies && tenants.length > 0 && (
+          <Card className="p-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Building2 className="w-4 h-4 text-[var(--muted)] shrink-0" />
+              <span className="text-sm font-medium text-[var(--muted)]">Company:</span>
+              <select
+                value={selectedTenantId ?? ''}
+                onChange={(e) => { h.impact('light'); setSelectedTenantAndPersist(e.target.value || null) }}
+                className="rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+              >
+                <option value="">All (default env)</option>
+                {tenants.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name} ({t.id})</option>
+                ))}
+              </select>
+            </div>
+          </Card>
+        )}
+
         {/* Header: Titel + Umschalter Demo / RMM / EDR + Remap */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-3 flex-wrap">

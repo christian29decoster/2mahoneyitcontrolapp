@@ -35,14 +35,16 @@ export interface Tenant {
   createdAtISO: string
 }
 
-/** Pro Tenant: Zuordnung zu RMM, Sophos und weiteren APIs. */
+/** Pro Tenant: Zuordnung zu RMM, Sophos, Autotask und weiteren APIs. */
 export interface TenantConnectors {
   /** Datto RMM – Account/Seite oder Tenant-ID, falls RMM multi-tenant. */
   rmm?: { apiUrl?: string; tenantId?: string; label?: string }
   /** Sophos – Tenant-/Partner-ID aus Sophos Central. */
   sophos?: { tenantId?: string; partnerId?: string; label?: string }
+  /** Autotask PSA – Company-ID für Ticket-/Unternehmenszuordnung. */
+  autotask?: { companyId?: string; label?: string }
   /** Erweiterbar für weitere APIs (z. B. backup, siem). */
-  [key: string]: { tenantId?: string; partnerId?: string; apiUrl?: string; label?: string } | undefined
+  [key: string]: { tenantId?: string; partnerId?: string; apiUrl?: string; label?: string; companyId?: string } | undefined
 }
 
 /** Partner – hat mehrere Tenants (Kunden). */

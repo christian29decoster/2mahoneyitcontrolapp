@@ -37,7 +37,7 @@ export default function AdminPage(){
   const [tenantsLoading, setTenantsLoading] = useState(false);
   const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors }>({
     id: '', name: '', partnerId: '', active: true,
-    connectors: { rmm: {}, sophos: {} },
+    connectors: { rmm: {}, sophos: {}, autotask: {} },
   });
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
 
@@ -168,7 +168,7 @@ export default function AdminPage(){
         const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Fehler'); return; }
       }
-      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {} } });
+      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} } });
       await loadTenants();
     } catch (err) { console.error(err); alert('Fehler beim Speichern'); }
   }
@@ -496,13 +496,20 @@ export default function AdminPage(){
                   <input value={tenantForm.connectors?.sophos?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, label: e.target.value } } }))}
                          className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label"/>
                 </div>
+                <div>
+                  <span className="text-xs text-[var(--muted)]">Autotask PSA (Company-ID)</span>
+                  <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.companyId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))}
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Autotask Company-ID"/>
+                  <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, label: e.target.value } } }))}
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label"/>
+                </div>
               </div>
               <div className="flex gap-2 mt-2">
                 <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white">
                   {editingTenantId ? 'Speichern' : 'Anlegen'}
                 </button>
                 {editingTenantId && (
-                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {} } }); }} className="px-4 py-2 rounded-xl border border-[var(--border)]">Abbrechen</button>
+                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} } }); }} className="px-4 py-2 rounded-xl border border-[var(--border)]">Abbrechen</button>
                 )}
               </div>
             </div>

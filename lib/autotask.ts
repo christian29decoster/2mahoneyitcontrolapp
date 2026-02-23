@@ -21,6 +21,15 @@ export function getAutotaskConfig(): AutotaskConfig | null {
   return { baseUrl, username, secret, integrationCode }
 }
 
+/** Raw company from Autotask API (Companies entity). */
+export interface AutotaskCompany {
+  id: number
+  companyName?: string
+  companyNumber?: string
+  isActive?: boolean
+  createDate?: string
+}
+
 /** Raw ticket from Autotask API (subset of fields we use). */
 export interface AutotaskTicket {
   id: number
@@ -102,6 +111,38 @@ export async function queryAutotaskTickets(options?: {
   }
 
   return results
+}
+
+/**
+ * Query Autotask Companies (max 200 per request per Autotask docs).
+ * Returns raw company array; empty on error or no config.
+ */
+export async function queryAutotaskCompanies(options?: { maxRecords?: number; activeOnly?: boolean }): Promise<AutotaskCompany[]> {
+  const config = getAutotaskConfig()
+  if (!config) return []
+
+  const maxRecords = Math.min(200, Math.max(1, options?.maxRecords ?? 100))
+  const filter: { op: string; field: string; value?: string }[] = [{ op: 'exist', field: 'id' }]
+  if (options?.activeOnly) filter.push({ op: 'eq', field: 'isActive', value: 'true' })
+
+  try {
+    const body = { filter, MaxRecords: maxRecords }
+    const res = await fetch(`${config.baseUrl}/Companies/query`, {
+      method: 'POST',
+      headers: autotaskHeaders(config),
+      body: JSON.stringify(body),
+    })
+    const raw = await res.text()
+    if (!res.ok) {
+      console.error('Autotask Companies query failed:', res.status, raw.slice(0, 300))
+      return []
+    }
+    const data = JSON.parse(raw) as { items?: AutotaskCompany[] }
+    return data?.items ?? []
+  } catch (e) {
+    console.error('Autotask Companies query error:', e)
+    return []
+  }
 }
 
 /** Map Autotask priority picklist ID to our P1–P4 (default mapping; adjust per tenant if needed). */

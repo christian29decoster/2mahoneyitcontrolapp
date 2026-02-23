@@ -21,6 +21,8 @@ let users: DemoUser[] = [
   { id: 'u-demo',  username: 'demo123', password: 'Demo321#', role: 'demo',  active: true, createdAtISO: new Date().toISOString() },
   { id: 'u-s-1', username: 'sales.jane', password: 'Mahoney#1', role: 'sales', active: true, createdAtISO: new Date().toISOString() },
   { id: 'u-s-2', username: 'sales.john', password: 'Mahoney#1', role: 'sales', active: true, createdAtISO: new Date().toISOString() },
+  { id: 'u-tenant-1', username: 'tenant.acme', password: 'Mahoney#1', role: 'tenant_user', tenantId: 'O-25-001', active: true, createdAtISO: new Date().toISOString() },
+  { id: 'u-partner-1', username: 'partner.demo', password: 'Mahoney#1', role: 'partner', partnerId: 'partner-1', active: true, createdAtISO: new Date().toISOString() },
 ];
 
 export function listUsers(){ return users.slice(); }

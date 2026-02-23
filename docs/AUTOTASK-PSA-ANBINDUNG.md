@@ -108,7 +108,15 @@ Die konkrete Umsetzung (nur Anzeige vs. Sync in den lokalen Store) ist im Code u
 
 ---
 
-## 8. Nützliche Links
+## 8. Unternehmen (Companies) für Multitenant
+
+- **API:** `GET /api/companies/autotask` liefert aktive Autotask-Unternehmen (Companies) für SuperAdmin/Admin/Partner.
+- **Mapping:** Ein Tenant (Mandant) kann einem Autotask-Company zugeordnet werden, z. B. in **Admin → Tenants** im Konnektor `autotask` mit `companyId: <Autotask-Company-ID>`. So können Incidents/Tickets und das Unternehmen konsistent aus Autotask bezogen werden.
+- **Implementierung:** `lib/autotask.ts` → `queryAutotaskCompanies()`; optional in Tenant-`connectors.autotask.companyId` speichern und bei Ticket-Abruf nach Company filtern (Tickets-API unterstützt heute noch keine Filterung nach Company).
+
+---
+
+## 9. Nützliche Links
 
 - [Tickets Entity](https://ww1.autotask.net/help/DeveloperHelp/Content/APIs/REST/Entities/TicketsEntity.htm)
 - [REST Security and Authentication](https://www.autotask.net/help/Developerhelp/Content/APIs/REST/General_Topics/REST_Security_Auth.htm)

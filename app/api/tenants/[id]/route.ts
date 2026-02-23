@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getTenantById, updateTenant, listTenants } from '@/lib/data/tenants'
-import { getActorRole, getActorPartnerId, canManageTenants } from '@/lib/auth/session-from-cookie'
+import { getActorRole, getActorPartnerId, getActorTenantId, canManageTenants } from '@/lib/auth/session-from-cookie'
 
 export const dynamic = 'force-dynamic'
 
-/** GET /api/tenants/[id] – Ein Tenant inkl. Connectors. */
+/** GET /api/tenants/[id] – Ein Tenant inkl. Connectors. tenant_user nur eigenes [id]. */
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const role = getActorRole(req)
-  if (!canManageTenants(role)) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
   const tenant = getTenantById(params.id)
   if (!tenant) return NextResponse.json({ error: 'not_found' }, { status: 404 })
-  if (role === 'partner' && tenant.partnerId !== getActorPartnerId(req))
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
-  return NextResponse.json({ item: tenant })
+  if (canManageTenants(role)) {
+    if (role === 'partner' && tenant.partnerId !== getActorPartnerId(req))
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 })
+    return NextResponse.json({ item: tenant })
+  }
+  if (role === 'tenant_user' && getActorTenantId(req) === params.id)
+    return NextResponse.json({ item: tenant })
+  return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 }
 
 /** PATCH /api/tenants/[id] – Tenant + Connectors bearbeiten. */

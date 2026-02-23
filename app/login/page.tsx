@@ -33,6 +33,8 @@ export default function LoginPage() {
         document.cookie = `demo_authed=1; Max-Age=1800; Path=/; SameSite=Lax`
         document.cookie = `demo_user=${u}; Max-Age=1800; Path=/; SameSite=Lax`
         document.cookie = `demo_role=${session.role}; Max-Age=1800; Path=/; SameSite=Lax`
+        if (session.partnerId) document.cookie = `demo_partner_id=${session.partnerId}; Max-Age=1800; Path=/; SameSite=Lax`
+        if (session.tenantId) document.cookie = `demo_tenant_id=${session.tenantId}; Max-Age=1800; Path=/; SameSite=Lax`
         
         // send audit (timezone + ua). The server will add masked IP.
         try {

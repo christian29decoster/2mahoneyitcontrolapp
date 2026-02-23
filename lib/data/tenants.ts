@@ -5,7 +5,40 @@
 
 import type { Tenant, TenantConnectors } from '@/lib/auth/roles'
 
-const store: Tenant[] = []
+const store: Tenant[] = [
+  {
+    id: 'O-25-001',
+    name: 'Acme Engineering Inc.',
+    partnerId: undefined,
+    connectors: {},
+    active: true,
+    createdAtISO: new Date().toISOString(),
+  },
+  {
+    id: 'tenant-2',
+    name: 'Contoso Ltd.',
+    partnerId: undefined,
+    connectors: {},
+    active: true,
+    createdAtISO: new Date().toISOString(),
+  },
+  {
+    id: 'tenant-3',
+    name: 'Fabrikam Solutions',
+    partnerId: undefined,
+    connectors: {},
+    active: true,
+    createdAtISO: new Date().toISOString(),
+  },
+  {
+    id: 'tenant-partner-1',
+    name: 'Partner-Kunde A',
+    partnerId: 'partner-1',
+    connectors: {},
+    active: true,
+    createdAtISO: new Date().toISOString(),
+  },
+]
 
 export function listTenants(partnerId?: string): Tenant[] {
   let list = store.slice()

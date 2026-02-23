@@ -5,7 +5,9 @@
 
 import type { Partner } from '@/lib/auth/roles'
 
-const store: Partner[] = []
+const store: Partner[] = [
+  { id: 'partner-1', name: 'SCC-IB-US-Team', externalId: undefined, active: true, createdAtISO: new Date().toISOString() },
+]
 
 export function listPartners(): Partner[] {
   return store.slice()

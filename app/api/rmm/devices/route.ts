@@ -1,25 +1,34 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import {
   getDattoRmmAccessToken,
   getDattoRmmDevices,
   DATTO_RMM_DEVICES_PATH,
   DATTO_RMM_MAX_PAGE_SIZE,
 } from '@/lib/rmm-datto'
+import { getTenantById } from '@/lib/data/tenants'
+import { getActorRole, getActorTenantId } from '@/lib/auth/session-from-cookie'
 
 export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/rmm/devices
- * Returns devices from Datto RMM when DATTO_RMM_API_URL, DATTO_RMM_API_KEY, DATTO_RMM_API_SECRET are set.
- * Otherwise returns { source: 'demo', devices: [] } so the frontend can fall back to demo data.
- * ?debug=1: returns raw first-page API response + Link header for pagination troubleshooting.
+ * Returns devices from Datto RMM. Optional ?tenantId= – dann RMM-Konnektor des Tenants (sonst Env).
+ * ?debug=1: returns raw first-page API response for pagination troubleshooting.
  */
-export async function GET(request: Request) {
-  const apiUrl = process.env.DATTO_RMM_API_URL
-  const apiKey = process.env.DATTO_RMM_API_KEY
-  const apiSecret = process.env.DATTO_RMM_API_SECRET
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const debug = searchParams.get('debug') === '1'
+  const queryTenantId = searchParams.get('tenantId')
+  const sessionTenantId = getActorTenantId(request)
+  const role = getActorRole(request)
+
+  let apiUrl = process.env.DATTO_RMM_API_URL
+  if (queryTenantId || sessionTenantId) {
+    const tenant = getTenantById(queryTenantId ?? sessionTenantId ?? '')
+    if (tenant?.connectors?.rmm?.apiUrl) apiUrl = tenant.connectors.rmm.apiUrl
+  }
+  const apiKey = process.env.DATTO_RMM_API_KEY
+  const apiSecret = process.env.DATTO_RMM_API_SECRET
 
   if (!apiUrl || !apiKey || !apiSecret) {
     return NextResponse.json({
@@ -27,6 +36,10 @@ export async function GET(request: Request) {
       devices: [],
       error: 'RMM nicht konfiguriert. Bitte DATTO_RMM_API_URL, DATTO_RMM_API_KEY und DATTO_RMM_API_SECRET in den Vercel-Einstellungen setzen.',
     })
+  }
+
+  if (queryTenantId && role === 'tenant_user' && queryTenantId !== sessionTenantId) {
+    return NextResponse.json({ source: 'demo', devices: [], error: 'forbidden' }, { status: 403 })
   }
 
   try {
