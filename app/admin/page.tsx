@@ -655,7 +655,8 @@ export default function AdminPage(){
                          className="text-sm text-[var(--muted)] file:mr-2 file:rounded-lg file:border file:border-[var(--border)] file:bg-[var(--surface-2)] file:px-3 file:py-1.5 file:text-sm"/>
                   {settings.logoDataUrl && (
                     <>
-                      <img src={settings.logoDataUrl} alt="Logo" className="h-12 object-contain rounded border border-[var(--border)]"/>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={settings.logoDataUrl} alt="Logo" className="h-12 object-contain rounded border border-[var(--border)]"/>
                       <button type="button" onClick={clearLogo} className="text-xs text-red-400 hover:underline">Entfernen</button>
                     </>
                   )}

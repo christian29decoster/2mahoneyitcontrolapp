@@ -208,7 +208,7 @@ export function mapAutotaskTicketToIncident(ticket: AutotaskTicket): IncidentRec
     respondedAtISO: ticket.firstResponseDateTime,
     resolvedAtISO: ticket.resolvedDateTime,
     dueByISO: ticket.resolvedDueDateTime ?? ticket.dueDateTime,
-    source: 'manual',
+    source: 'autotask',
     sourceRef: `autotask:${ticket.id}`,
     timeline,
     extra: {

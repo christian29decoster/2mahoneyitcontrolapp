@@ -70,6 +70,7 @@ export default function ProfilePage() {
               {/* Profile Picture */}
               {profileImage ? (
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={profileImage} 
                     alt="Profile Picture" 

@@ -47,7 +47,7 @@ export interface IncidentRecord {
   closedAtISO?: string
   dueByISO?: string
   assignedTo?: string
-  source?: 'manual' | 'rmm' | 'edr' | 'cloud'
+  source?: 'manual' | 'rmm' | 'edr' | 'cloud' | 'autotask'
   sourceRef?: string
   tenantId?: string
   timeline: IncidentTimelineEntry[]

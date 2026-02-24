@@ -65,7 +65,10 @@ export default function LoginPage() {
         {/* Logo – from branding or default */}
         <div className="flex justify-center mb-6">
           {branding?.logoDataUrl ? (
-            <img src={branding.logoDataUrl} alt={branding.appName || 'Logo'} className="max-h-16 w-auto object-contain" />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={branding.logoDataUrl} alt={branding.appName || 'Logo'} className="max-h-16 w-auto object-contain" />
+            </>
           ) : (
             <div className="flex items-center space-x-4">
               <svg width="48" height="48" viewBox="0 0 48 48" className="text-white">

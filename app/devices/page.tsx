@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Filter, Plus, MapPin, Wifi, RefreshCw, Building2 } from 'lucide-react'
 import { Card } from '@/components/Card'
@@ -78,7 +78,7 @@ export default function DevicesPage() {
     try { if (id) localStorage.setItem(DEVICES_TENANT_STORAGE_KEY, id); else localStorage.removeItem(DEVICES_TENANT_STORAGE_KEY) } catch { /* ignore */ }
   }
 
-  const loadRmmDevices = () => {
+  const loadRmmDevices = useCallback(() => {
     setDevicesLoading(true)
     setRmmError(null)
     const q = effectiveTenantId ? `?tenantId=${encodeURIComponent(effectiveTenantId)}` : ''
@@ -97,9 +97,9 @@ export default function DevicesPage() {
         setRmmDevicesCache([])
       })
       .finally(() => setDevicesLoading(false))
-  }
+  }, [effectiveTenantId])
 
-  const loadEdrDevices = (showLoading = false) => {
+  const loadEdrDevices = useCallback((showLoading = false) => {
     if (showLoading) setDevicesLoading(true)
     setEdrError(null)
     const q = effectiveTenantId ? `?tenantId=${encodeURIComponent(effectiveTenantId)}` : ''
@@ -118,7 +118,7 @@ export default function DevicesPage() {
         setEdrDevicesCache([])
       })
       .finally(() => { if (showLoading) setDevicesLoading(false) })
-  }
+  }, [effectiveTenantId])
 
   useEffect(() => { setRole(getRoleFromCookie()) }, [])
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function DevicesPage() {
   useEffect(() => {
     loadRmmDevices()
     loadEdrDevices(false)
-  }, [effectiveTenantId])
+  }, [loadRmmDevices, loadEdrDevices])
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()

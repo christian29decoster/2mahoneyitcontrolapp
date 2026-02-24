@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { AlertTriangle, Plus, Filter, TrendingUp } from 'lucide-react'
 import Card from '@/components/ui/Card'
@@ -34,7 +34,7 @@ export default function IncidentsPage() {
   const [slaReport, setSlaReport] = useState<SlaReport | null>(null)
   const [dataSource, setDataSource] = useState<'local' | 'autotask' | 'mixed'>('local')
 
-  function load() {
+  const load = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams()
     if (filterStatus) params.set('status', filterStatus)
@@ -48,11 +48,11 @@ export default function IncidentsPage() {
       })
       .catch(() => setItems([]))
       .finally(() => setLoading(false))
-  }
+  }, [filterStatus, filterCategory, filterPriority])
 
   useEffect(() => {
     load()
-  }, [filterStatus, filterCategory, filterPriority])
+  }, [load])
 
   useEffect(() => {
     fetch('/api/sla/report')
