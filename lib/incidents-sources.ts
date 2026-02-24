@@ -99,9 +99,12 @@ function mapSophosAlertToIncident(
   }
 }
 
-/** Incidents aus Datto RMM (offene Account-Alerts). Leeres Array wenn nicht konfiguriert. */
-export async function fetchIncidentsFromRmm(): Promise<IncidentRecord[]> {
-  const apiUrl = process.env.DATTO_RMM_API_URL
+/** Optional: RMM-Config aus Tenant-Konnektor (apiUrl); Key/Secret weiter aus Env. */
+export type RmmIncidentsConfig = { apiUrl: string } | null
+
+/** Incidents aus Datto RMM (offene Account-Alerts). Nutzt optional tenantConfig.apiUrl, sonst Env. */
+export async function fetchIncidentsFromRmm(tenantConfig: RmmIncidentsConfig = null): Promise<IncidentRecord[]> {
+  const apiUrl = tenantConfig?.apiUrl ?? process.env.DATTO_RMM_API_URL
   const apiKey = process.env.DATTO_RMM_API_KEY
   const apiSecret = process.env.DATTO_RMM_API_SECRET
   if (!apiUrl || !apiKey || !apiSecret) return []
@@ -116,11 +119,14 @@ export async function fetchIncidentsFromRmm(): Promise<IncidentRecord[]> {
   }
 }
 
-/** Incidents aus Sophos (Alerts). Leeres Array wenn nicht konfiguriert. */
-export async function fetchIncidentsFromSophos(): Promise<IncidentRecord[]> {
+/** Optional: Sophos Tenant- oder Partner-ID aus Tenant-Konnektor. */
+export type SophosIncidentsConfig = { tenantOrPartnerId: string } | null
+
+/** Incidents aus Sophos (Alerts). Nutzt optional tenantConfig.tenantOrPartnerId, sonst Env SOPHOS_TENANT_ID. */
+export async function fetchIncidentsFromSophos(tenantConfig: SophosIncidentsConfig = null): Promise<IncidentRecord[]> {
   const clientId = process.env.SOPHOS_CLIENT_ID
   const clientSecret = process.env.SOPHOS_CLIENT_SECRET
-  const tenantId = process.env.SOPHOS_TENANT_ID
+  const tenantId = tenantConfig?.tenantOrPartnerId ?? process.env.SOPHOS_TENANT_ID
   if (!clientId || !clientSecret || !tenantId) return []
 
   try {

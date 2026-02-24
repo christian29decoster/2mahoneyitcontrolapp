@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, Plus, Filter, TrendingUp } from 'lucide-react'
+import { AlertTriangle, Plus, Filter, TrendingUp, RefreshCw } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import {
   INCIDENT_STATUSES,
@@ -24,6 +24,12 @@ type SlaReport = {
   breaches: { incidentId: string; type: string; actualMinutes: number; targetMinutes: number }[]
 }
 
+type Integrations = {
+  autotask: { configured: boolean; count: number }
+  rmm: { configured: boolean; count: number }
+  sophos: { configured: boolean; count: number }
+}
+
 export default function IncidentsPage() {
   const [items, setItems] = useState<IncidentRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -33,6 +39,7 @@ export default function IncidentsPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [slaReport, setSlaReport] = useState<SlaReport | null>(null)
   const [dataSource, setDataSource] = useState<'local' | 'autotask' | 'mixed'>('local')
+  const [integrations, setIntegrations] = useState<Integrations | null>(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -42,9 +49,10 @@ export default function IncidentsPage() {
     if (filterPriority) params.set('priority', filterPriority)
     fetch(`/api/incidents?${params}`)
       .then((r) => r.json())
-      .then((data: { items: IncidentRecord[]; source?: 'local' | 'autotask' | 'mixed' }) => {
+      .then((data: { items: IncidentRecord[]; source?: 'local' | 'autotask' | 'mixed'; integrations?: Integrations }) => {
         setItems(data.items ?? [])
         setDataSource(data.source ?? 'local')
+        setIntegrations(data.integrations ?? null)
       })
       .catch(() => setItems([]))
       .finally(() => setLoading(false))
@@ -68,6 +76,15 @@ export default function IncidentsPage() {
     P4: 'bg-zinc-600/20 text-zinc-400',
   }
 
+  function incidentSourceLabel(inc: IncidentRecord): string {
+    if (inc.source === 'rmm') return 'RMM'
+    if (inc.source === 'edr') return 'EDR'
+    if (inc.id?.startsWith('autotask-') || inc.source === 'autotask') return 'Autotask'
+    if (inc.source === 'cloud') return 'Cloud'
+    if (inc.source === 'manual') return 'Manuell'
+    return 'Lokal'
+  }
+
   return (
     <div className="mx-auto w-full max-w-[960px] px-4 py-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -76,6 +93,16 @@ export default function IncidentsPage() {
           <h1 className="text-2xl font-bold text-[var(--text)]">Incidents</h1>
         </div>
         <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => load()}
+            disabled={loading}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] disabled:opacity-50"
+            title="Aktualisieren (Live-Daten neu laden)"
+          >
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            Aktualisieren
+          </button>
           <button
             type="button"
             onClick={() => setShowFilters((s) => !s)}
@@ -124,6 +151,32 @@ export default function IncidentsPage() {
             </div>
           </Card>
         </Link>
+      )}
+
+      {integrations != null && (
+        <Card className="mt-4 p-3 text-sm">
+          {dataSource === 'mixed' ? (
+            <p className="text-[var(--text)]">
+              <span className="font-medium text-[var(--primary)]">Live-Daten:</span>
+              {' '}
+              {[
+                integrations.autotask.count > 0 && `${integrations.autotask.count} von Autotask`,
+                integrations.rmm.count > 0 && `${integrations.rmm.count} von RMM (Datto)`,
+                integrations.sophos.count > 0 && `${integrations.sophos.count} von Sophos`,
+              ].filter(Boolean).join(', ') || '—'}
+            </p>
+          ) : (integrations.autotask.configured || integrations.rmm.configured || integrations.sophos.configured) ? (
+            <p className="text-[var(--muted)]">
+              Live-Verbindungen aktiv, derzeit keine Incidents von Autotask, RMM oder Sophos. Nur lokale/Demo-Einträge werden angezeigt.
+            </p>
+          ) : (
+            <p className="text-[var(--muted)]">
+              <span className="text-amber-400/90">Nur Demo-Daten.</span>
+              {' '}
+              Für Live-Daten Autotask PSA, RMM (Datto) oder Sophos verbinden (Einstellungen / Umgebungsvariablen: Autotask, DATTO_RMM_*, SOPHOS_*).
+            </p>
+          )}
+        </Card>
       )}
 
       {showFilters && (
@@ -196,6 +249,9 @@ export default function IncidentsPage() {
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--primary)]/20 text-[var(--primary)]" title="Quelle">
+                        {incidentSourceLabel(inc)}
+                      </span>
                       <span className={`px-2 py-1 rounded-lg text-xs font-medium ${priorityColor[inc.priority]}`}>
                         {inc.priority}
                       </span>
