@@ -194,6 +194,75 @@ export async function getSophosAlertsCountForTenant(
   return { count, capped: page > maxPages }
 }
 
+const SOPHOS_ALERTS_LIST_MAX = 150
+
+/** Alerts für einen Tenant als Liste (für Incidents). */
+export async function getSophosAlertsForTenant(
+  accessToken: string,
+  tenantId: string,
+  apiBase: string = SOPHOS_API_BASE,
+  options: { maxAlerts?: number; maxPages?: number } = {}
+): Promise<{ alerts: Record<string, unknown>[]; tenantId: string; tenantName?: string }> {
+  const { maxAlerts = SOPHOS_ALERTS_LIST_MAX, maxPages = SOPHOS_ALERTS_PAGES_PER_TENANT } = options
+  const all: Record<string, unknown>[] = []
+  let page = 1
+  const base = apiBase.replace(/\/+$/, '')
+  const url = new URL(SOPHOS_ALERTS_PATH, base)
+  url.searchParams.set('pageSize', String(SOPHOS_ALERTS_PAGE_SIZE))
+
+  while (page <= maxPages && all.length < maxAlerts) {
+    url.searchParams.set('page', String(page))
+    const res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'X-Tenant-ID': tenantId,
+      },
+      cache: 'no-store',
+    })
+    if (!res.ok) {
+      if (res.status === 403 || res.status === 404) break
+      const text = await res.text()
+      throw new Error(`Sophos alerts: ${res.status} ${text.slice(0, 200)}`)
+    }
+    const data = await res.json()
+    const items = (data.items ?? data.alerts ?? []) as Record<string, unknown>[]
+    for (const a of items) {
+      if (all.length >= maxAlerts) break
+      if (a && typeof a === 'object') all.push(a)
+    }
+    const pages = data.pages as { total?: number; current?: number } | undefined
+    const total = pages?.total ?? 0
+    if (total > 0 && page >= total) break
+    if (!items.length || items.length < SOPHOS_ALERTS_PAGE_SIZE) break
+    page += 1
+    await new Promise((r) => setTimeout(r, 50))
+  }
+  return { alerts: all, tenantId, tenantName: undefined }
+}
+
+/** Partner: Alerts aller Tenants als Liste (für Incidents). */
+export async function getSophosPartnerAlertsList(
+  accessToken: string,
+  partnerId: string,
+  maxAlertsTotal: number = SOPHOS_ALERTS_LIST_MAX
+): Promise<{ alerts: Array<Record<string, unknown> & { _tenantId?: string; _tenantName?: string }> }> {
+  const tenants = await getSophosPartnerTenants(accessToken, partnerId, SOPHOS_PARTNER_MAX_TENANTS)
+  const all: Array<Record<string, unknown> & { _tenantId?: string; _tenantName?: string }> = []
+  for (const tenant of tenants) {
+    if (all.length >= maxAlertsTotal) break
+    const apiHost = tenant.apiHost ?? SOPHOS_API_BASE
+    const result = await getSophosAlertsForTenant(accessToken, tenant.id, apiHost, {
+      maxAlerts: maxAlertsTotal - all.length,
+      maxPages: 10,
+    })
+    for (const a of result.alerts) {
+      all.push({ ...a, _tenantId: tenant.id, _tenantName: tenant.name })
+    }
+    await new Promise((r) => setTimeout(r, 50))
+  }
+  return { alerts: all }
+}
+
 /**
  * Alerts für einen einzelnen Tenant/Organization abrufen (z. B. ohne Partner-Flow).
  * Nutzt globalen API-Host und übergebene tenantId mit X-Tenant-ID.

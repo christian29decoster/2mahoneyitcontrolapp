@@ -219,6 +219,59 @@ export default function IncidentDetailPage() {
             </p>
           </Card>
 
+          {(item.source || item.sourceRef) && (
+            <Card className="p-4">
+              <div className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-3">
+                Quelle
+              </div>
+              <p className="text-sm">
+                <span className="font-medium text-[var(--text)]">
+                  {item.source === 'rmm' && 'RMM (Datto)'}
+                  {item.source === 'edr' && 'Sophos / EDR'}
+                  {(item.source === 'autotask' || item.id?.startsWith('autotask-')) && 'Autotask PSA'}
+                  {item.source === 'manual' && !item.id?.startsWith('autotask-') && 'Manuell'}
+                  {item.source === 'cloud' && 'Cloud'}
+                  {item.source && !['rmm', 'edr', 'autotask', 'manual', 'cloud'].includes(item.source) && item.source}
+                  {!item.source && !item.id?.startsWith('autotask-') && '—'}
+                </span>
+                {item.sourceRef && (
+                  <span className="block mt-1 text-[var(--muted)] font-mono text-xs truncate" title={item.sourceRef}>
+                    {item.sourceRef}
+                  </span>
+                )}
+              </p>
+            </Card>
+          )}
+
+          {item.eventLog && item.eventLog.length > 0 && (
+            <Card className="p-4">
+              <div className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-3">
+                Event-Log (Vergoldung)
+              </div>
+              <ul className="space-y-2 text-sm">
+                {item.eventLog.map((e, i) => (
+                  <li key={i} className="flex flex-col gap-0.5 border-b border-[var(--border)] pb-2 last:border-0 last:pb-0">
+                    <span className="text-[var(--muted)] text-xs">
+                      {new Date(e.atISO).toLocaleString()}
+                      {e.source && (
+                        <span className="ml-2 px-1.5 py-0.5 rounded bg-[var(--surface-2)] font-medium">{e.source}</span>
+                      )}
+                    </span>
+                    <span className="text-[var(--text)]">{e.message}</span>
+                    {e.raw != null && (
+                      <details className="mt-1">
+                        <summary className="text-[var(--muted)] cursor-pointer text-xs">Rohdaten anzeigen</summary>
+                        <pre className="mt-1 p-2 rounded bg-[var(--surface-2)] text-xs overflow-x-auto max-h-32 overflow-y-auto">
+                          {JSON.stringify(e.raw, null, 2)}
+                        </pre>
+                      </details>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
           {allowedNext.length > 0 && (
             <Card className="p-4">
               <div className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-2">

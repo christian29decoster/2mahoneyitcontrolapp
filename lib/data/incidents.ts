@@ -26,6 +26,14 @@ export interface IncidentTimelineEntry {
   text: string
 }
 
+/** Event-Log-Eintrag (z. B. aus RMM/Sophos) – Grundlage für Vergoldung/Billing. */
+export interface IncidentEventLogEntry {
+  atISO: string
+  message: string
+  source?: string
+  raw?: unknown
+}
+
 export interface IncidentRecord {
   id: string
   title: string
@@ -43,6 +51,8 @@ export interface IncidentRecord {
   sourceRef?: string
   tenantId?: string
   timeline: IncidentTimelineEntry[]
+  /** Event-Logs aus RMM/Sophos/etc. – Grundlage für Vergoldung. */
+  eventLog?: IncidentEventLogEntry[]
   /** Optional payload for vendor-specific data (e.g. AWS incident details). */
   extra?: Record<string, unknown>
 }

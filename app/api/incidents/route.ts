@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { listIncidents, createIncident, getIncidentById } from '@/lib/data/incidents'
 import type { IncidentCategory, IncidentPriority, IncidentStatus } from '@/lib/data/incidents'
 import { fetchIncidentsFromAutotask, getAutotaskConfig } from '@/lib/autotask'
+import { fetchIncidentsFromRmm, fetchIncidentsFromSophos } from '@/lib/incidents-sources'
 import type { IncidentRecord } from '@/lib/data/incidents'
 
 export const dynamic = 'force-dynamic'
@@ -14,48 +15,38 @@ export async function GET(req: NextRequest) {
   const priority = searchParams.get('priority') as IncidentPriority | null
   const tenantId = searchParams.get('tenantId') ?? undefined
 
-  let items: IncidentRecord[]
+  const local = listIncidents({
+    ...(status && { status }),
+    ...(category && { category }),
+    ...(priority && { priority }),
+    ...(tenantId && { tenantId }),
+  })
 
-  if (getAutotaskConfig()) {
-    try {
-      const fromAutotask = await fetchIncidentsFromAutotask({ sinceDays: 90 })
-      const local = listIncidents({
-        ...(status && { status }),
-        ...(category && { category }),
-        ...(priority && { priority }),
-        ...(tenantId && { tenantId }),
-      })
-      const byId = new Map<string, IncidentRecord>()
-      fromAutotask.forEach((i) => byId.set(i.id, i))
-      local.forEach((i) => byId.set(i.id, i))
-      items = Array.from(byId.values()).sort(
-        (a, b) => new Date(b.loggedAtISO).getTime() - new Date(a.loggedAtISO).getTime()
-      )
-      if (status) items = items.filter((i) => i.status === status)
-      if (category) items = items.filter((i) => i.category === category)
-      if (priority) items = items.filter((i) => i.priority === priority)
-      if (tenantId != null) items = items.filter((i) => i.tenantId === tenantId)
-    } catch (e) {
-      console.error('Autotask fetch failed, using local only:', e)
-      items = listIncidents({
-        ...(status && { status }),
-        ...(category && { category }),
-        ...(priority && { priority }),
-        ...(tenantId && { tenantId }),
-      })
-    }
-  } else {
-    items = listIncidents({
-      ...(status && { status }),
-      ...(category && { category }),
-      ...(priority && { priority }),
-      ...(tenantId && { tenantId }),
-    })
-  }
+  const byId = new Map<string, IncidentRecord>()
+  local.forEach((i) => byId.set(i.id, i))
 
-  const source = getAutotaskConfig()
-    ? (items.some((i) => i.id.startsWith('autotask-')) ? 'mixed' : 'autotask')
-    : 'local'
+  const hasAutotask = getAutotaskConfig()
+  const [fromAutotask, fromRmm, fromSophos] = await Promise.all([
+    hasAutotask ? fetchIncidentsFromAutotask({ sinceDays: 90 }).catch((e) => (console.error('Autotask fetch failed:', e), [] as IncidentRecord[])) : Promise.resolve([]),
+    fetchIncidentsFromRmm().catch((e) => (console.error('RMM incidents fetch failed:', e), [] as IncidentRecord[])),
+    fetchIncidentsFromSophos().catch((e) => (console.error('Sophos incidents fetch failed:', e), [] as IncidentRecord[])),
+  ])
+  fromAutotask.forEach((i) => byId.set(i.id, i))
+  fromRmm.forEach((i) => byId.set(i.id, i))
+  fromSophos.forEach((i) => byId.set(i.id, i))
+
+  let items = Array.from(byId.values()).sort(
+    (a, b) => new Date(b.loggedAtISO).getTime() - new Date(a.loggedAtISO).getTime()
+  )
+  if (status) items = items.filter((i) => i.status === status)
+  if (category) items = items.filter((i) => i.category === category)
+  if (priority) items = items.filter((i) => i.priority === priority)
+  if (tenantId != null) items = items.filter((i) => i.tenantId === tenantId)
+
+  const source =
+    items.some((i) => i.id.startsWith('autotask-')) || items.some((i) => i.id.startsWith('rmm-')) || items.some((i) => i.id.startsWith('sophos-'))
+      ? 'mixed'
+      : 'local'
   return NextResponse.json({ items, source })
 }
 
