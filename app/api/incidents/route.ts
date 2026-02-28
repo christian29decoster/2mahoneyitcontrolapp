@@ -9,12 +9,14 @@ import { getActorRole, getActorTenantId } from '@/lib/auth/session-from-cookie'
 
 export const dynamic = 'force-dynamic'
 
-/** GET /api/incidents – list; merges local + Autotask + alle RMM + alle EDR (global + alle Tenant-Konnektoren). Optional ?tenantId= filtert Anzeige. */
+/** GET /api/incidents – list; merges local + Autotask + alle RMM + alle EDR (offen + gelöst). ?lastDays=30 (default) nur letzte 30 Tage, lastDays=0 = alle. */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status') as IncidentStatus | null
   const category = searchParams.get('category') as IncidentCategory | null
   const priority = searchParams.get('priority') as IncidentPriority | null
+  const lastDaysParam = searchParams.get('lastDays')
+  const lastDays = lastDaysParam === '0' || lastDaysParam === 'all' ? 0 : Math.max(0, parseInt(lastDaysParam ?? '30', 10) || 30)
   const queryTenantId = searchParams.get('tenantId') ?? undefined
   const sessionTenantId = getActorTenantId(req)
   const role = getActorRole(req)
@@ -79,6 +81,10 @@ export async function GET(req: NextRequest) {
   if (category) items = items.filter((i) => i.category === category)
   if (priority) items = items.filter((i) => i.priority === priority)
   if (queryTenantId != null) items = items.filter((i) => i.tenantId === queryTenantId)
+  if (lastDays > 0) {
+    const cutoff = Date.now() - lastDays * 24 * 60 * 60 * 1000
+    items = items.filter((i) => new Date(i.loggedAtISO).getTime() >= cutoff)
+  }
 
   const source =
     items.some((i) => i.id.startsWith('autotask-')) || items.some((i) => i.id.startsWith('rmm-')) || items.some((i) => i.id.startsWith('sophos-'))

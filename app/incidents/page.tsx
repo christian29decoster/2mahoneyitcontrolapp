@@ -44,6 +44,7 @@ export default function IncidentsPage() {
   const load = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams()
+    params.set('lastDays', '30')
     if (filterStatus) params.set('status', filterStatus)
     if (filterCategory) params.set('category', filterCategory)
     if (filterPriority) params.set('priority', filterPriority)
@@ -224,7 +225,7 @@ export default function IncidentsPage() {
       )}
 
       <p className="text-sm text-[var(--muted)] mt-2">
-        ITIL-aligned lifecycle: New → Assigned → In Progress → Resolved → Closed. Filter by status, category, or priority.
+        Anzeige: <strong className="text-[var(--text)]">letzte 30 Tage</strong>. ITIL-Lifecycle: New → Assigned → In Progress → Resolved → Closed. Filter by status, category, or priority.
         {(dataSource === 'autotask' || dataSource === 'mixed') && (
           <span className="ml-2 text-[var(--primary)]">Including tickets from Autotask PSA.</span>
         )}

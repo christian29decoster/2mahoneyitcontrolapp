@@ -426,6 +426,43 @@ export async function getDattoRmmAccountAlertsOpen(
   return { count }
 }
 
+/** Account-weite gelöste Alerts als Liste (für Incidents, z. B. letzte 30 Tage). */
+export async function getDattoRmmAccountAlertsResolvedList(
+  apiUrl: string,
+  accessToken: string,
+  maxAlerts: number = RMM_ALERTS_LIST_MAX,
+  maxPages: number = ACCOUNT_ALERTS_RESOLVED_MAX_PAGES
+): Promise<{ alerts: Record<string, unknown>[] }> {
+  const base = apiUrl.replace(/\/api\/?$/, '')
+  const all: Record<string, unknown>[] = []
+  let pageNum = 1
+  let nextUrl: string | null = `${base}${DATTO_RMM_ACCOUNT_ALERTS_RESOLVED_PATH}?max=${ACCOUNT_ALERTS_PAGE_SIZE}&page=1`
+  while (nextUrl && all.length < maxAlerts && pageNum <= maxPages) {
+    const res: Response = await fetch(nextUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
+    })
+    if (!res.ok) throw new Error(`Account alerts resolved: ${res.status}`)
+    const data = await res.json()
+    const alerts = (data.alerts ?? []) as Record<string, unknown>[]
+    for (const a of alerts) {
+      if (all.length >= maxAlerts) break
+      if (a && typeof a === 'object') all.push(a)
+    }
+    const pageDetails = data.pageDetails as Record<string, unknown> | undefined
+    const nextPageStr = (pageDetails?.nextPageUrl ?? pageDetails?.nextPageURL ?? data.nextPageUrl) as string | null | undefined
+    nextUrl = resolveNextPageUrl(base, nextPageStr ?? null)
+    if (!nextUrl && alerts.length === ACCOUNT_ALERTS_PAGE_SIZE) {
+      pageNum += 1
+      nextUrl = `${base}${DATTO_RMM_ACCOUNT_ALERTS_RESOLVED_PATH}?max=${ACCOUNT_ALERTS_PAGE_SIZE}&page=${pageNum}`
+    } else if (nextUrl) {
+      pageNum += 1
+    }
+    if (nextUrl) await new Promise((r) => setTimeout(r, 60))
+  }
+  return { alerts: all }
+}
+
 /** Account-weite gelöste Alerts – GET /v2/account/alerts/resolved (max. N Seiten, um API zu schonen). */
 export async function getDattoRmmAccountAlertsResolved(
   apiUrl: string,

@@ -3,11 +3,12 @@
  * Siehe docs/ITIL-AUSBAU-UND-QUALITAET.md
  */
 
-import type { IncidentRecord, IncidentPriority, IncidentCategory } from '@/lib/data/incidents'
+import type { IncidentRecord, IncidentPriority, IncidentCategory, IncidentStatus } from '@/lib/data/incidents'
 import type { IncidentEventLogEntry } from '@/lib/data/incidents'
 import {
   getDattoRmmAccessToken,
   getDattoRmmAccountAlertsOpenList,
+  getDattoRmmAccountAlertsResolvedList,
 } from '@/lib/rmm-datto'
 import {
   getSophosAccessToken,
@@ -43,7 +44,7 @@ function toISO(t: unknown): string {
   return new Date().toISOString()
 }
 
-function mapRmmAlertToIncident(alert: Record<string, unknown>, index: number): IncidentRecord {
+function mapRmmAlertToIncident(alert: Record<string, unknown>, index: number, status: IncidentStatus = 'New'): IncidentRecord {
   const uid = alert.uid ?? alert.id ?? `rmm-${index}`
   const id = `rmm-${uid}`
   const name = (alert.name ?? alert.message ?? 'RMM Alert') as string
@@ -60,7 +61,7 @@ function mapRmmAlertToIncident(alert: Record<string, unknown>, index: number): I
     description: message || `Alert from RMM${deviceUid ? ` (device ${deviceUid})` : ''}.`,
     category: 'Other' as IncidentCategory,
     priority: rmmSeverityToPriority(alert.severity ?? alert.priority),
-    status: 'New',
+    status,
     loggedAtISO: created,
     source: 'rmm',
     sourceRef,
@@ -102,7 +103,7 @@ function mapSophosAlertToIncident(
 /** Optional: RMM-Config aus Tenant-Konnektor (apiUrl); Key/Secret weiter aus Env. */
 export type RmmIncidentsConfig = { apiUrl: string } | null
 
-/** Incidents aus Datto RMM (offene Account-Alerts). Nutzt optional tenantConfig.apiUrl, sonst Env. */
+/** Incidents aus Datto RMM (offene + gelöste Account-Alerts). Nutzt optional tenantConfig.apiUrl, sonst Env. */
 export async function fetchIncidentsFromRmm(tenantConfig: RmmIncidentsConfig = null): Promise<IncidentRecord[]> {
   const apiUrl = tenantConfig?.apiUrl ?? process.env.DATTO_RMM_API_URL
   const apiKey = process.env.DATTO_RMM_API_KEY
@@ -111,8 +112,13 @@ export async function fetchIncidentsFromRmm(tenantConfig: RmmIncidentsConfig = n
 
   try {
     const token = await getDattoRmmAccessToken(apiUrl, apiKey, apiSecret)
-    const { alerts } = await getDattoRmmAccountAlertsOpenList(apiUrl, token, 150)
-    return alerts.map((a, i) => mapRmmAlertToIncident(a, i))
+    const [open, resolved] = await Promise.all([
+      getDattoRmmAccountAlertsOpenList(apiUrl, token, 200),
+      getDattoRmmAccountAlertsResolvedList(apiUrl, token, 200, 15),
+    ])
+    const openIncidents = open.alerts.map((a, i) => mapRmmAlertToIncident(a, i, 'New'))
+    const resolvedIncidents = resolved.alerts.map((a, i) => mapRmmAlertToIncident(a, i + open.alerts.length, 'Resolved'))
+    return [...openIncidents, ...resolvedIncidents]
   } catch (e) {
     console.error('RMM incidents fetch error:', e)
     return []

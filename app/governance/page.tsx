@@ -20,7 +20,8 @@ import {
   type FrameworkId,
   type GovernanceControl,
 } from '@/lib/governance'
-import { Scale, TrendingUp, TrendingDown, Download, HelpCircle } from 'lucide-react'
+import Link from 'next/link'
+import { Scale, TrendingUp, TrendingDown, Download, HelpCircle, ClipboardList } from 'lucide-react'
 
 const TAB_OVERVIEW = 'overview'
 const TAB_CONTROLS = 'controls'
@@ -130,6 +131,20 @@ export default function GovernancePage() {
           </button>
         </div>
       </div>
+
+      {/* SOC Compliance & Handbook – Fragebogen für Kunden */}
+      <Link href="/governance/soc-questionnaire">
+        <Card className="p-4 flex items-center gap-4 hover:border-[var(--primary)]/40 transition-colors cursor-pointer">
+          <div className="p-2 rounded-xl bg-[var(--primary)]/20">
+            <ClipboardList className="w-6 h-6 text-[var(--primary)]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-[var(--text)]">SOC-Compliance & Handbook</h3>
+            <p className="text-sm text-[var(--muted)]">Fragebogen für neue und Bestandskunden – Compliance- und Handbook-Informationen für das SOC abfragen und daraus Ihr SOC-Handbook erzeugen.</p>
+          </div>
+          <span className="text-sm text-[var(--primary)] shrink-0">Öffnen →</span>
+        </Card>
+      </Link>
 
       {/* Framework selector */}
       <Card className="p-4">
