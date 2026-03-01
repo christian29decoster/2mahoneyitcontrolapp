@@ -30,6 +30,7 @@ import {
   Server,
   Building2,
 } from 'lucide-react'
+import ThemeToggle from '@/components/ThemeToggle'
 
 /** Official admin / app registration URLs for each provider. */
 const CONNECTORS = [
@@ -110,7 +111,15 @@ export default function SettingsPage() {
         </h2>
         <Card className="p-2">
           <div className="flex flex-col gap-1">
-            <SettingsRow icon={Palette} label="Theme / Appearance" right={<Badge variant="secondary">System</Badge>} />
+            <div className="flex items-center justify-between gap-3 py-3 px-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/50">
+              <span className="flex items-center gap-3 text-sm text-[var(--text)]">
+                <Palette size={18} className="text-[var(--muted)] shrink-0" />
+                Theme / Darstellung
+              </span>
+              <div className="shrink-0 w-[140px]">
+                <ThemeToggle />
+              </div>
+            </div>
             <SettingsRow icon={Building2} label="Organisation & tenants" />
             <SettingsRow icon={Shield} label="Security & access" />
           </div>

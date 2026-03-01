@@ -31,6 +31,7 @@ import { useHaptics } from '@/hooks/useHaptics'
 import { useViewModeStore } from '@/lib/viewMode.store'
 import { useCopilotStore } from '@/lib/copilot.store'
 import LogoutButton from '@/components/auth/LogoutButton'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export const SIDEBAR_WIDTH_PX = 260
 
@@ -169,6 +170,10 @@ export default function DrawerNav({
         </nav>
 
       <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-3">
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] mb-1.5">Darstellung</div>
+          <ThemeToggle />
+        </div>
         <div className="flex rounded-xl border border-[var(--border)] overflow-hidden">
           <button
             type="button"
