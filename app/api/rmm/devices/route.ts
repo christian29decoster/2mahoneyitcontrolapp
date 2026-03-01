@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
       devices = devices.filter((d) => getDeviceLocation(d) === locationFilter)
     }
     if (locationsOnly) {
-      const locations = [...new Set(devices.map(getDeviceLocation).filter(Boolean))].sort()
+      const locations = Array.from(new Set(devices.map(getDeviceLocation).filter(Boolean))).sort()
       return NextResponse.json({ source: 'rmm', locations, error: null })
     }
     return NextResponse.json({ source: 'rmm', devices, error: null })
