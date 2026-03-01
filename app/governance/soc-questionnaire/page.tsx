@@ -12,7 +12,9 @@ import {
   type QuestionnaireSection,
   type QuestionnaireField,
 } from '@/lib/soc-questionnaire'
-import { ArrowLeft, ArrowRight, FileText, Save, CheckCircle } from 'lucide-react'
+import { ArrowLeft, ArrowRight, FileText, Save, CheckCircle, Monitor } from 'lucide-react'
+
+type RmmDevice = { name: string; type: string; os: string; version?: string; status: string; location?: string }
 
 const STORAGE_KEY = 'soc-questionnaire-answers'
 
@@ -135,6 +137,12 @@ function FieldRenderer({
   return null
 }
 
+function getRole(): string {
+  if (typeof document === 'undefined') return ''
+  const m = document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)
+  return (m?.[1] ?? '').toLowerCase()
+}
+
 export default function SocQuestionnairePage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
@@ -142,6 +150,12 @@ export default function SocQuestionnairePage() {
   const [loaded, setLoaded] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [handbookCreating, setHandbookCreating] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [locations, setLocations] = useState<string[]>([])
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
+  const [devicesForLocation, setDevicesForLocation] = useState<RmmDevice[]>([])
+  const [locationsLoading, setLocationsLoading] = useState(false)
+  const [devicesLoading, setDevicesLoading] = useState(false)
 
   useEffect(() => {
     setStoredAnswers(answers)
@@ -168,6 +182,39 @@ export default function SocQuestionnairePage() {
     setSaveStatus(result.ok ? 'saved' : 'error')
     if (result.ok) setTimeout(() => setSaveStatus('idle'), 2500)
   }, [answers])
+
+  useEffect(() => {
+    setIsAdmin(['admin', 'superadmin'].includes(getRole()))
+  }, [])
+
+  // Admin: Locations aus Datto RMM laden (für Dropdown Kunde/Location)
+  useEffect(() => {
+    if (!isAdmin) return
+    setLocationsLoading(true)
+    fetch('/api/rmm/devices?locationsOnly=1', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data: { locations?: string[]; error?: string }) => {
+        if (Array.isArray(data.locations)) setLocations(data.locations)
+        setLocationsLoading(false)
+      })
+      .catch(() => setLocationsLoading(false))
+  }, [isAdmin])
+
+  // Admin: Bei Location-Auswahl Geräte für diesen Kunden laden
+  useEffect(() => {
+    if (!isAdmin || !selectedLocation) {
+      setDevicesForLocation([])
+      return
+    }
+    setDevicesLoading(true)
+    fetch(`/api/rmm/devices?location=${encodeURIComponent(selectedLocation)}`, { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data: { devices?: RmmDevice[]; error?: string }) => {
+        setDevicesForLocation(Array.isArray(data.devices) ? data.devices : [])
+        setDevicesLoading(false)
+      })
+      .catch(() => setDevicesLoading(false))
+  }, [isAdmin, selectedLocation])
 
   const section = SOC_QUESTIONNAIRE_SECTIONS[step]
   const isLastStep = step === SOC_QUESTIONNAIRE_SECTIONS.length - 1
@@ -208,6 +255,72 @@ export default function SocQuestionnairePage() {
           <span className="text-sm">Speichern</span>
         </button>
       </div>
+
+      {/* Admin: Dropdown Kunde/Location (Datto RMM) – Filter für Geräte im Formular */}
+      {isAdmin && (
+        <Card className="p-4 mb-6">
+          <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)] mb-2">
+            Kunde / Location (nur Admin) – Einschränkung auf Geräte aus Devices & Staff (Datto RMM)
+          </label>
+          <select
+            value={selectedLocation ?? ''}
+            onChange={(e) => setSelectedLocation(e.target.value || null)}
+            disabled={locationsLoading}
+            className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-[var(--text)]"
+          >
+            <option value="">— Alle Locations / Keine Filterung —</option>
+            {locations.map((loc) => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
+          </select>
+          {selectedLocation && (
+            <div className="mt-4">
+              <h4 className="text-sm font-medium text-[var(--text)] mb-2 flex items-center gap-2">
+                <Monitor size={16} />
+                Geräte für diesen Kunden ({selectedLocation}) – Basis für SOC-Bewertung
+              </h4>
+              {devicesLoading ? (
+                <p className="text-sm text-[var(--muted)]">Lade Geräte…</p>
+              ) : devicesForLocation.length === 0 ? (
+                <p className="text-sm text-[var(--muted)]">Keine Geräte für diese Location in Datto RMM gefunden.</p>
+              ) : (
+                <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-[var(--muted)] border-b border-[var(--border)] bg-[var(--surface-2)]">
+                        <th className="px-3 py-2 font-medium">Name</th>
+                        <th className="px-3 py-2 font-medium">Typ</th>
+                        <th className="px-3 py-2 font-medium">OS</th>
+                        <th className="px-3 py-2 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {devicesForLocation.slice(0, 50).map((d, i) => (
+                        <tr key={i} className="border-b border-[var(--border)] last:border-0">
+                          <td className="px-3 py-2 text-[var(--text)]">{d.name}</td>
+                          <td className="px-3 py-2 text-[var(--muted)]">{d.type}</td>
+                          <td className="px-3 py-2 text-[var(--muted)]">{d.os}</td>
+                          <td className="px-3 py-2">
+                            <span className={d.status === 'Online' ? 'text-emerald-500' : 'text-[var(--muted)]'}>{d.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {devicesForLocation.length > 50 && (
+                    <p className="text-xs text-[var(--muted)] px-3 py-2 border-t border-[var(--border)]">
+                      … und {devicesForLocation.length - 50} weitere Geräte (nur erste 50 angezeigt).
+                    </p>
+                  )}
+                  <p className="text-xs text-[var(--muted)] px-3 py-2 bg-[var(--surface-2)]">
+                    Gesamt: {devicesForLocation.length} Gerät(e) für die SOC-Compliance-Bewertung dieser Location.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Progress – wirtschaftspsychologisch: sichtbarer Fortschritt */}
       <div className="mb-8">

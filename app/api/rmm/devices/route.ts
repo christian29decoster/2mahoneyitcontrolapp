@@ -10,14 +10,25 @@ import { getActorRole, getActorTenantId } from '@/lib/auth/session-from-cookie'
 
 export const dynamic = 'force-dynamic'
 
+function getDeviceLocation(device: { location?: string | { name?: string }; rmmData?: { siteName?: string } }): string {
+  const loc = device.location
+  if (typeof loc === 'string') return loc
+  if (loc && typeof loc === 'object' && loc.name) return loc.name
+  return device.rmmData?.siteName ?? ''
+}
+
 /**
  * GET /api/rmm/devices
  * Returns devices from Datto RMM. Optional ?tenantId= – dann RMM-Konnektor des Tenants (sonst Env).
+ * ?locationsOnly=1: returns { locations: string[] } (unique Location/Site-Namen für Admin-Dropdown).
+ * ?location=Name: filtert Geräte auf diese Location (Kunde, z. B. "S&Z Elektronik GmbH").
  * ?debug=1: returns raw first-page API response for pagination troubleshooting.
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const debug = searchParams.get('debug') === '1'
+  const locationsOnly = searchParams.get('locationsOnly') === '1'
+  const locationFilter = searchParams.get('location')?.trim() || null
   const queryTenantId = searchParams.get('tenantId')
   const sessionTenantId = getActorTenantId(request)
   const role = getActorRole(request)
@@ -119,7 +130,14 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const devices = await getDattoRmmDevices(apiUrl, token)
+    let devices = await getDattoRmmDevices(apiUrl, token)
+    if (locationFilter) {
+      devices = devices.filter((d) => getDeviceLocation(d) === locationFilter)
+    }
+    if (locationsOnly) {
+      const locations = [...new Set(devices.map(getDeviceLocation).filter(Boolean))].sort()
+      return NextResponse.json({ source: 'rmm', locations, error: null })
+    }
     return NextResponse.json({ source: 'rmm', devices, error: null })
   } catch (e) {
     let message = e instanceof Error ? e.message : 'RMM-Anfrage fehlgeschlagen'
