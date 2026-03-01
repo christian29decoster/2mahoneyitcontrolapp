@@ -153,7 +153,7 @@ export function DeviceDetailSheet({
             <div className="mb-4 p-3 rounded-[12px] bg-[var(--primary)]/10 border border-[var(--primary)]/20">
               <h4 className="font-medium text-[var(--text)] mb-3 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-[var(--primary)]" />
-                Daten aus Datto RMM
+                Data from Datto RMM
               </h4>
 
               {/* Aktionen: Web Remote, RMM öffnen, Isolation */}
@@ -496,7 +496,7 @@ export function DeviceDetailSheet({
                         <span className="text-[var(--muted)] shrink-0">{String((s as Record<string, unknown>).version ?? (s as Record<string, unknown>).displayVersion ?? '')}</span>
                       </div>
                     ))}
-                    {rmmSoftware.length > 30 && <p className="text-[var(--muted)] text-xs pt-1">… und {rmmSoftware.length - 30} weitere</p>}
+                    {rmmSoftware.length > 30 && <p className="text-[var(--muted)] text-xs pt-1">… and {rmmSoftware.length - 30} more</p>}
                   </div>
                 </div>
               )}
@@ -506,7 +506,7 @@ export function DeviceDetailSheet({
                 <div className="mt-3 pt-3 border-t border-[var(--border)]">
                   <h5 className="font-medium text-[var(--text)] mb-2 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-[var(--warning)]" />
-                    Offene Alerts ({rmmAlerts.length})
+                    Open alerts ({rmmAlerts.length})
                   </h5>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
                     {rmmAlerts.slice(0, 10).map((a, i) => (
@@ -521,7 +521,7 @@ export function DeviceDetailSheet({
                         {a.timestamp && <p className="text-[var(--muted)] text-xs mt-1">{new Date(a.timestamp).toLocaleString()}</p>}
                       </div>
                     ))}
-                    {rmmAlerts.length > 10 && <p className="text-[var(--muted)] text-xs">… und {rmmAlerts.length - 10} weitere</p>}
+                    {rmmAlerts.length > 10 && <p className="text-[var(--muted)] text-xs">… and {rmmAlerts.length - 10} more</p>}
                   </div>
                 </div>
               )}

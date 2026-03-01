@@ -23,11 +23,11 @@ export default function ThemeToggle() {
           setTheme('light')
         }}
         className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium ${theme === 'light' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:bg-[var(--surface-2)]'}`}
-        aria-label="Hellmodus"
-        title="Hellmodus"
+        aria-label="Light mode"
+        title="Light mode"
       >
         <Sun size={14} />
-        Hell
+        Light
       </button>
       <button
         type="button"
@@ -36,11 +36,11 @@ export default function ThemeToggle() {
           setTheme('dark')
         }}
         className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium ${theme === 'dark' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:bg-[var(--surface-2)]'}`}
-        aria-label="Dunkelmodus"
-        title="Dunkelmodus"
+        aria-label="Dark mode"
+        title="Dark mode"
       >
         <Moon size={14} />
-        Dunkel
+        Dark
       </button>
     </div>
   )

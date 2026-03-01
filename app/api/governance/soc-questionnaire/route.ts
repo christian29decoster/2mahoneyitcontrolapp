@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const tenantId = getActorTenantId(req)
   if (!tenantId) {
-    return NextResponse.json({ error: 'Kein Mandant zugeordnet. Bitte anmelden bzw. Mandant wählen.' }, { status: 400 })
+    return NextResponse.json({ error: 'No tenant assigned. Please sign in or select a tenant.' }, { status: 400 })
   }
   let body: { answers?: SocQuestionnaireAnswers }
   try {

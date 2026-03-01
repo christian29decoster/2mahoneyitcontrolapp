@@ -31,7 +31,7 @@ export const copy = {
     industry: 'Industry',
     size: 'Company Size',
     location: 'Location',
-    /** RMM/Datto: Kunde = Company (RMM nennt es "Location"). Für Geräte-Tabelle/Filter. */
+    /** RMM/Datto: customer = Company (RMM calls it "Location"). For device table/filter. */
     companyLabel: 'Company',
     securityLevel: 'Security Level',
   },

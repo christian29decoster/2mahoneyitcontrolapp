@@ -222,14 +222,14 @@ export default function IncidentDetailPage() {
           {(item.source || item.sourceRef) && (
             <Card className="p-4">
               <div className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-3">
-                Quelle
+                Source
               </div>
               <p className="text-sm">
                 <span className="font-medium text-[var(--text)]">
                   {item.source === 'rmm' && 'RMM (Datto)'}
                   {item.source === 'edr' && 'Sophos / EDR'}
                   {(item.source === 'autotask' || item.id?.startsWith('autotask-')) && 'Autotask PSA'}
-                  {item.source === 'manual' && !item.id?.startsWith('autotask-') && 'Manuell'}
+                  {item.source === 'manual' && !item.id?.startsWith('autotask-') && 'Manual'}
                   {item.source === 'cloud' && 'Cloud'}
                   {item.source && !['rmm', 'edr', 'autotask', 'manual', 'cloud'].includes(item.source) && item.source}
                   {!item.source && !item.id?.startsWith('autotask-') && '—'}
@@ -246,7 +246,7 @@ export default function IncidentDetailPage() {
           {item.eventLog && item.eventLog.length > 0 && (
             <Card className="p-4">
               <div className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-3">
-                Event-Log (Vergoldung)
+                Event log (billing)
               </div>
               <ul className="space-y-2 text-sm">
                 {item.eventLog.map((e, i) => (
@@ -260,7 +260,7 @@ export default function IncidentDetailPage() {
                     <span className="text-[var(--text)]">{e.message}</span>
                     {e.raw != null && (
                       <details className="mt-1">
-                        <summary className="text-[var(--muted)] cursor-pointer text-xs">Rohdaten anzeigen</summary>
+                        <summary className="text-[var(--muted)] cursor-pointer text-xs">Show raw data</summary>
                         <pre className="mt-1 p-2 rounded bg-[var(--surface-2)] text-xs overflow-x-auto max-h-32 overflow-y-auto">
                           {JSON.stringify(e.raw, null, 2)}
                         </pre>

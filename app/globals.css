@@ -17,7 +17,7 @@
   --danger: #ef4444;
 }
 
-/* Hellmodus (Light Theme) */
+/* Light theme */
 html[data-theme="light"] {
   --bg: #f1f5f9;
   --surface: #ffffff;

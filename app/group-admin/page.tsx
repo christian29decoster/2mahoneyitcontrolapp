@@ -80,14 +80,14 @@ export default function GroupAdminPage() {
       setUnlocked(true)
       setPassword('')
     } else {
-      setPasswordError('Falsches Passwort.')
+      setPasswordError('Wrong password.')
     }
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <p className="text-sm text-[var(--muted)]">Lade …</p>
+        <p className="text-sm text-[var(--muted)]">Loading…</p>
       </div>
     )
   }
@@ -98,7 +98,7 @@ export default function GroupAdminPage() {
         <Card className="p-6 text-center">
           <Lock className="w-10 h-10 text-[var(--muted)] mx-auto mb-3" />
           <h1 className="text-lg font-bold text-[var(--text)] mb-2">Group Admin</h1>
-          <p className="text-sm text-[var(--muted)]">Dieser Bereich ist derzeit nicht verfügbar (Feature nicht aktiv).</p>
+          <p className="text-sm text-[var(--muted)]">This area is currently unavailable (feature not active).</p>
         </Card>
       </div>
     )
@@ -112,14 +112,14 @@ export default function GroupAdminPage() {
             <Lock className="w-5 h-5 text-[var(--muted)]" />
             <h1 className="text-xl font-bold text-[var(--text)]">Group Admin</h1>
           </div>
-          <p className="text-sm text-[var(--muted)] mb-4">Bitte Passwort eingeben, um die Mahoney IT Group Admin-Ansicht zu öffnen.</p>
-          <p className="text-xs text-[var(--muted)] mb-4">Hinweis: Nintendo</p>
+          <p className="text-sm text-[var(--muted)] mb-4">Enter password to open the Mahoney IT Group Admin view.</p>
+          <p className="text-xs text-[var(--muted)] mb-4">Hint: Nintendo</p>
           <form onSubmit={handlePasswordSubmit} className="space-y-3">
             <input
               type="password"
               value={password}
               onChange={(e) => { setPassword(e.target.value); setPasswordError('') }}
-              placeholder="Passwort"
+              placeholder="Password"
               className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-3 text-[var(--text)] placeholder:text-[var(--muted)]"
               autoFocus
               autoComplete="current-password"
@@ -129,7 +129,7 @@ export default function GroupAdminPage() {
               type="submit"
               className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-medium"
             >
-              Entsperren
+              Unlock
             </button>
           </form>
         </Card>
@@ -138,24 +138,24 @@ export default function GroupAdminPage() {
   }
 
   const tabs = [
-    { id: TAB_STAMMDATEN, label: 'Stammdaten', icon: FileText },
-    { id: TAB_UMSATZ, label: 'Umsatz', icon: Euro },
-    { id: TAB_THEMEN, label: 'Onboarding-Themen', icon: ClipboardList },
-    { id: TAB_ADMIN, label: 'Admin-Infos', icon: StickyNote },
+    { id: TAB_STAMMDATEN, label: 'Master data', icon: FileText },
+    { id: TAB_UMSATZ, label: 'Revenue', icon: Euro },
+    { id: TAB_THEMEN, label: 'Onboarding topics', icon: ClipboardList },
+    { id: TAB_ADMIN, label: 'Admin info', icon: StickyNote },
   ] as const
 
   return (
     <motion.div className="mx-auto w-full max-w-[960px] px-4 py-4 space-y-6" variants={stagger} initial="initial" animate="animate">
       <div>
         <h1 className="text-2xl font-bold text-[var(--text)]">Mahoney IT Group Admins</h1>
-        <p className="text-sm text-[var(--muted)]">Kunden-Onboarding, Umsatz und Onboarding-Themen (intern)</p>
+        <p className="text-sm text-[var(--muted)]">Customer onboarding, revenue and onboarding topics (internal)</p>
       </div>
 
       {/* Kundenauswahl */}
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-2">
           <Building2 className="w-4 h-4 text-[var(--muted)]" />
-          <span className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Kunde</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Customer</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {customers.map((c) => (
@@ -176,7 +176,7 @@ export default function GroupAdminPage() {
       </Card>
 
       {!customer ? (
-        <p className="text-sm text-[var(--muted)]">Kein Kunde ausgewählt.</p>
+        <p className="text-sm text-[var(--muted)]">No customer selected.</p>
       ) : (
         <>
           <div className="flex flex-wrap gap-1 border-b border-[var(--border)]">
@@ -213,55 +213,55 @@ function StammdatenSection({ customer }: { customer: CustomerOnboarding }) {
       <Card className="p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3 flex items-center gap-2">
           <Building2 size={14} />
-          Unternehmen
+          Company
         </h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <Row label="Firma" value={customer.companyName} />
-          <Row label="Rechtsform" value={customer.legalForm} />
-          <Row label="Branche" value={customer.industry} />
-          <Row label="USt-IdNr." value={customer.vatId} />
-          <Row label="Steuernummer" value={customer.taxId} />
-          <Row label="Adresse" value={`${customer.address.street}, ${customer.address.postalCode} ${customer.address.city}, ${customer.address.country}`} />
+          <Row label="Company" value={customer.companyName} />
+          <Row label="Legal form" value={customer.legalForm} />
+          <Row label="Industry" value={customer.industry} />
+          <Row label="VAT ID" value={customer.vatId} />
+          <Row label="Tax ID" value={customer.taxId} />
+          <Row label="Address" value={`${customer.address.street}, ${customer.address.postalCode} ${customer.address.city}, ${customer.address.country}`} />
         </dl>
       </Card>
       <Card className="p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3 flex items-center gap-2">
           <User size={14} />
-          Ansprechpartner
+          Contacts
         </h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <Row label="Hauptansprechpartner" value={customer.primaryContact.name} />
-          <Row label="E-Mail" value={customer.primaryContact.email} />
-          <Row label="Telefon" value={customer.primaryContact.phone} />
-          <Row label="Rolle" value={customer.primaryContact.role} />
+          <Row label="Primary contact" value={customer.primaryContact.name} />
+          <Row label="Email" value={customer.primaryContact.email} />
+          <Row label="Phone" value={customer.primaryContact.phone} />
+          <Row label="Role" value={customer.primaryContact.role} />
           {customer.technicalContact && (
             <>
-              <Row label="Techn. Ansprechpartner" value={customer.technicalContact.name} />
-              <Row label="Techn. E-Mail" value={customer.technicalContact.email} />
-              <Row label="Techn. Telefon" value={customer.technicalContact.phone} />
+              <Row label="Technical contact" value={customer.technicalContact.name} />
+              <Row label="Technical email" value={customer.technicalContact.email} />
+              <Row label="Technical phone" value={customer.technicalContact.phone} />
             </>
           )}
         </dl>
       </Card>
       <Card className="p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3">Vertrag & Leistungen</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3">Contract & services</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <Row label="Vertragsbeginn" value={customer.contractStart} />
-          <Row label="Vertragsende" value={customer.contractEnd} />
-          <Row label="Tarif" value={customer.planTier} />
-          <Row label="Lizenzen (Seats)" value={String(customer.seats)} />
-          <Row label="Geräte" value={String(customer.devices)} />
-          <Row label="Gebuchte Services" value={customer.bookedServices.join(', ')} />
-          <Row label="Rahmenvertrag unterzeichnet" value={customer.msaSignedAt ?? '–'} />
-          <Row label="AV-Vertrag unterzeichnet" value={customer.dpaSignedAt ?? '–'} />
+          <Row label="Contract start" value={customer.contractStart} />
+          <Row label="Contract end" value={customer.contractEnd} />
+          <Row label="Plan tier" value={customer.planTier} />
+          <Row label="Licenses (seats)" value={String(customer.seats)} />
+          <Row label="Devices" value={String(customer.devices)} />
+          <Row label="Booked services" value={customer.bookedServices.join(', ')} />
+          <Row label="MSA signed" value={customer.msaSignedAt ?? '–'} />
+          <Row label="DPA signed" value={customer.dpaSignedAt ?? '–'} />
         </dl>
       </Card>
       <Card className="p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3">Audit & Governance</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <Row label="Audit-Status" value={auditStatusLabel(customer.auditStatus)} />
-          <Row label="Nächstes Audit (geplant)" value={customer.auditNextDue ?? '–'} />
-          <Row label="Governance-Framework" value={customer.governanceFramework ?? '–'} />
+          <Row label="Audit status" value={auditStatusLabel(customer.auditStatus)} />
+          <Row label="Next audit (scheduled)" value={customer.auditNextDue ?? '–'} />
+          <Row label="Governance framework" value={customer.governanceFramework ?? '–'} />
         </dl>
       </Card>
     </motion.div>
@@ -279,10 +279,10 @@ function Row({ label, value }: { label: string; value: string | undefined }) {
 
 function auditStatusLabel(s: string) {
   const map: Record<string, string> = {
-    not_scheduled: 'Nicht geplant',
-    scheduled: 'Geplant',
-    in_progress: 'Läuft',
-    completed: 'Abgeschlossen',
+    not_scheduled: 'Not scheduled',
+    scheduled: 'Scheduled',
+    in_progress: 'In progress',
+    completed: 'Completed',
   }
   return map[s] ?? s
 }
@@ -297,15 +297,15 @@ function UmsatzSection({ customer }: { customer: CustomerOnboarding }) {
       <Card className="p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3 flex items-center gap-2">
           <Euro size={14} />
-          Umsatz der letzten Monate
+          Revenue (last months)
         </h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-[var(--muted)] border-b border-[var(--border)]">
-                <th className="pb-2 pr-4">Monat</th>
-                <th className="pb-2 pr-4 text-right">Umsatz (EUR)</th>
-                <th className="pb-2 pr-4 text-right">Umsatz (USD)</th>
+                <th className="pb-2 pr-4">Month</th>
+                <th className="pb-2 pr-4 text-right">Revenue (EUR)</th>
+                <th className="pb-2 pr-4 text-right">Revenue (USD)</th>
               </tr>
             </thead>
             <tbody>
@@ -320,13 +320,13 @@ function UmsatzSection({ customer }: { customer: CustomerOnboarding }) {
           </table>
         </div>
         <div className="mt-4 pt-4 border-t border-[var(--border)] flex flex-wrap gap-4 text-sm">
-          <span className="text-[var(--muted)]">Summe ({months.length} Monate): <strong className="text-[var(--text)]">{formatEur(totalEur)}</strong></span>
-          <span className="text-[var(--muted)]">Durchschnitt/Monat: <strong className="text-[var(--text)]">{formatEur(avgEur)}</strong></span>
+          <span className="text-[var(--muted)]">Total ({months.length} months): <strong className="text-[var(--text)]">{formatEur(totalEur)}</strong></span>
+          <span className="text-[var(--muted)]">Average/month: <strong className="text-[var(--text)]">{formatEur(avgEur)}</strong></span>
         </div>
       </Card>
       {months[0]?.servicesBreakdown && (
         <Card className="p-5">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)] mb-2">Aufschlüsselung (aktuellster Monat)</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)] mb-2">Breakdown (latest month)</h3>
           <ul className="space-y-1 text-sm">
             {months[0].servicesBreakdown.map((s) => (
               <li key={s.name} className="flex justify-between gap-4">
@@ -354,10 +354,10 @@ function ThemenSection({ customer }: { customer: CustomerOnboarding }) {
       <Card className="p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3 flex items-center gap-2">
           <ClipboardList size={14} />
-          Onboarding-Themen anmelden
+          Register onboarding topics
         </h2>
         <p className="text-sm text-[var(--muted)] mb-4">
-          Themen für das Kunden-Onboarding: Audit, IT-Governance und weitere für Admins relevante Schulungen.
+          Topics for customer onboarding: audit, IT governance and other admin-relevant training.
         </p>
         {Object.entries(byCategory).map(([category, topics]) => (
           <div key={category} className="mb-4 last:mb-0">
@@ -379,11 +379,11 @@ function ThemenSection({ customer }: { customer: CustomerOnboarding }) {
                       <div className="font-medium text-[var(--text)]">{t.label}</div>
                       <div className="text-xs text-[var(--muted)]">{t.description}</div>
                       {t.completedAt && (
-                        <div className="text-[10px] text-[var(--muted)] mt-1">Abgeschlossen: {t.completedAt}</div>
+                        <div className="text-[10px] text-[var(--muted)] mt-1">Completed: {t.completedAt}</div>
                       )}
                     </div>
                     <span className={`shrink-0 text-xs px-2 py-1 rounded-lg ${registered ? 'bg-emerald-600/20 text-emerald-300' : 'bg-[var(--surface-elev)] text-[var(--muted)]'}`}>
-                      {registered ? 'Angemeldet' : 'Offen'}
+                      {registered ? 'Registered' : 'Open'}
                     </span>
                   </li>
                 )
@@ -402,20 +402,20 @@ function AdminInfoSection({ customer }: { customer: CustomerOnboarding }) {
       <Card className="p-5">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3 flex items-center gap-2">
           <StickyNote size={14} />
-          Interne Notizen
+          Internal notes
         </h2>
         <p className="text-sm text-[var(--text)] whitespace-pre-wrap">{customer.internalNotes ?? '–'}</p>
       </Card>
       <Card className="p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3">Nächste Schritte</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3">Next steps</h2>
         <p className="text-sm text-[var(--text)] whitespace-pre-wrap">{customer.nextSteps ?? '–'}</p>
       </Card>
       <Card className="p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3">Übergabe / Eskalation</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3">Handover / escalation</h2>
         <p className="text-sm text-[var(--text)] whitespace-pre-wrap">{customer.handoverNotes ?? '–'}</p>
       </Card>
       <div className="text-[10px] text-[var(--muted)]">
-        Zuletzt aktualisiert: {customer.updatedAt ? new Date(customer.updatedAt).toLocaleString('de-DE') : '–'}
+        Last updated: {customer.updatedAt ? new Date(customer.updatedAt).toLocaleString() : '–'}
       </div>
     </motion.div>
   )

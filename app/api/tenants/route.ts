@@ -22,14 +22,14 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const id = body.id ?? `tenant-${Date.now()}`
   const existing = getTenantById(id)
-  if (existing) return NextResponse.json({ error: 'Tenant-ID existiert bereits.' }, { status: 400 })
+  if (existing) return NextResponse.json({ error: 'Tenant ID already exists.' }, { status: 400 })
   const partnerId = body.partnerId ?? undefined
   if (role === 'partner' && partnerId !== getActorPartnerId(req)) {
-    return NextResponse.json({ error: 'Partner kann nur Tenants mit eigenem partnerId anlegen.' }, { status: 403 })
+    return NextResponse.json({ error: 'Partner can only create tenants with their own partnerId.' }, { status: 403 })
   }
   const tenant = createTenant({
     id,
-    name: body.name ?? 'Neuer Mandant',
+    name: body.name ?? 'New tenant',
     partnerId,
     connectors: body.connectors ?? {},
     active: body.active ?? true,

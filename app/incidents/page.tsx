@@ -82,8 +82,8 @@ export default function IncidentsPage() {
     if (inc.source === 'edr') return 'EDR'
     if (inc.id?.startsWith('autotask-') || inc.source === 'autotask') return 'Autotask'
     if (inc.source === 'cloud') return 'Cloud'
-    if (inc.source === 'manual') return 'Manuell'
-    return 'Lokal'
+    if (inc.source === 'manual') return 'Manual'
+    return 'Local'
   }
 
   return (
@@ -99,10 +99,10 @@ export default function IncidentsPage() {
             onClick={() => load()}
             disabled={loading}
             className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] disabled:opacity-50"
-            title="Aktualisieren (Live-Daten neu laden)"
+            title="Refresh (reload live data)"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-            Aktualisieren
+            Refresh
           </button>
           <button
             type="button"
@@ -158,28 +158,28 @@ export default function IncidentsPage() {
         <Card className="mt-4 p-3 text-sm">
           {dataSource === 'mixed' ? (
             <p className="text-[var(--text)]">
-              <span className="font-medium text-[var(--primary)]">Live-Daten:</span>
+              <span className="font-medium text-[var(--primary)]">Live data:</span>
               {' '}
               {[
-                integrations.autotask.count > 0 && `${integrations.autotask.count} von Autotask`,
-                integrations.rmm.count > 0 && `${integrations.rmm.count} von RMM (Datto)`,
-                integrations.sophos.count > 0 && `${integrations.sophos.count} von Sophos`,
+                integrations.autotask.count > 0 && `${integrations.autotask.count} from Autotask`,
+                integrations.rmm.count > 0 && `${integrations.rmm.count} from RMM (Datto)`,
+                integrations.sophos.count > 0 && `${integrations.sophos.count} from Sophos`,
               ].filter(Boolean).join(', ') || '—'}
             </p>
           ) : (integrations.autotask.configured || integrations.rmm.configured || integrations.sophos.configured) ? (
             <p className="text-[var(--muted)]">
-              Live-Verbindungen aktiv, derzeit keine Incidents von Autotask, RMM oder Sophos. Nur lokale/Demo-Einträge werden angezeigt.
+              Live connections active; no incidents from Autotask, RMM, or Sophos at the moment. Only local/demo entries are shown.
               {integrations.sophos.configured && integrations.sophos.count === 0 && (
                 <span className="block mt-1 text-amber-400/90">
-                  Sophos/EDR ist verbunden; in den letzten 30 Tagen wurden keine Alerts geliefert. Bei <strong>Partner-Accounts</strong> (Partner-ID aus dem Sophos-Profil): <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_USE_PARTNER_API=true</code> setzen und <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_TENANT_ID</code> = Partner-ID. EU-Region: optional <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_API_BASE=https://api-eu01.central.sophos.com</code>. Admin-Diagnose: <a href="/api/admin/sophos-status" target="_blank" rel="noopener noreferrer" className="underline">/api/admin/sophos-status</a> (zeigt Tenants &amp; Alerts).
+                  Sophos/EDR is connected; no alerts in the last 30 days. For <strong>partner accounts</strong> (Partner ID from Sophos profile): set <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_USE_PARTNER_API=true</code> and <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_TENANT_ID</code> = Partner ID. EU region: optional <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_API_BASE=https://api-eu01.central.sophos.com</code>. Admin diagnostic: <a href="/api/admin/sophos-status" target="_blank" rel="noopener noreferrer" className="underline">/api/admin/sophos-status</a> (shows tenants &amp; alerts).
                 </span>
               )}
             </p>
           ) : (
             <p className="text-[var(--muted)]">
-              <span className="text-amber-400/90">Nur Demo-Daten.</span>
+              <span className="text-amber-400/90">Demo data only.</span>
               {' '}
-              Für Live-Daten Autotask PSA, RMM (Datto) oder Sophos verbinden (Einstellungen / Umgebungsvariablen: Autotask, DATTO_RMM_*, SOPHOS_*).
+              For live data, connect Autotask PSA, RMM (Datto), or Sophos (Settings / environment variables: Autotask, DATTO_RMM_*, SOPHOS_*).
             </p>
           )}
         </Card>
@@ -230,7 +230,7 @@ export default function IncidentsPage() {
       )}
 
       <p className="text-sm text-[var(--muted)] mt-2">
-        Anzeige: <strong className="text-[var(--text)]">letzte 30 Tage</strong>. ITIL-Lifecycle: New → Assigned → In Progress → Resolved → Closed. Filter by status, category, or priority.
+        Display: <strong className="text-[var(--text)]">last 30 days</strong>. ITIL-Lifecycle: New → Assigned → In Progress → Resolved → Closed. Filter by status, category, or priority.
         {(dataSource === 'autotask' || dataSource === 'mixed') && (
           <span className="ml-2 text-[var(--primary)]">Including tickets from Autotask PSA.</span>
         )}
@@ -255,7 +255,7 @@ export default function IncidentsPage() {
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--primary)]/20 text-[var(--primary)]" title="Quelle">
+                      <span className="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--primary)]/20 text-[var(--primary)]" title="Source">
                         {incidentSourceLabel(inc)}
                       </span>
                       <span className={`px-2 py-1 rounded-lg text-xs font-medium ${priorityColor[inc.priority]}`}>

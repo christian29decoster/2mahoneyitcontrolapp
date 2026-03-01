@@ -114,7 +114,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-3 py-3 px-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/50">
               <span className="flex items-center gap-3 text-sm text-[var(--text)]">
                 <Palette size={18} className="text-[var(--muted)] shrink-0" />
-                Theme / Darstellung
+                Theme / Display
               </span>
               <div className="shrink-0 w-[140px]">
                 <ThemeToggle />

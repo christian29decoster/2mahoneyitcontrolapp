@@ -547,21 +547,20 @@ export default function MahoneyGrowPage() {
               Strategic Purpose
             </h2>
             <p className="text-xs text-[var(--muted)] mb-3">
-              Mahoney Grow schlägt die Brücke von technischen Security-Operationen zur
-              Geschäftsführungsebene:
+              Mahoney Grow bridges technical security operations with the executive level:
             </p>
             <ul className="space-y-2 text-sm text-[var(--text)]">
               <li className="flex gap-2">
                 <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
-                <span>Verwandelt Rohdaten aus Event- &amp; SIEM-Logs in Executive-Dashboards</span>
+                <span>Turns raw event and SIEM log data into executive dashboards</span>
               </li>
               <li className="flex gap-2">
                 <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
-                <span>Lieferung wachstumsorientierter Risiko-Analysen und Prognosen</span>
+                <span>Delivers growth-oriented risk analyses and forecasts</span>
               </li>
               <li className="flex gap-2">
                 <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
-                <span>AI-gestützte Empfehlungen für Security-Investitionen und Wachstum</span>
+                <span>AI-driven recommendations for security investment and growth</span>
               </li>
             </ul>
           </Card>

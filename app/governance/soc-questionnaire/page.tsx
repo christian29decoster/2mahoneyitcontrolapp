@@ -46,10 +46,10 @@ async function saveToServer(answers: SocQuestionnaireAnswers): Promise<{ ok: boo
       body: JSON.stringify({ answers }),
     })
     const data = await res.json()
-    if (!res.ok) return { ok: false, error: data.error ?? 'Speichern fehlgeschlagen' }
+    if (!res.ok) return { ok: false, error: data.error ?? 'Save failed' }
     return { ok: true }
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : 'Netzwerkfehler' }
+    return { ok: false, error: e instanceof Error ? e.message : 'Network error' }
   }
 }
 
@@ -101,7 +101,7 @@ function FieldRenderer({
         required={field.required}
         className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-[var(--text)]"
       >
-        <option value="">— Bitte wählen —</option>
+        <option value="">— Please select —</option>
         {(field.options ?? []).map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
@@ -238,7 +238,7 @@ export default function SocQuestionnairePage() {
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-[var(--text)]">SOC-Compliance & Handbook</h1>
           <p className="text-sm text-[var(--muted)]">
-            Fragebogen für neue und Bestandskunden – Grundlage für Ihr SOC-Handbook und Governance-Unterlagen
+            Questionnaire for new and existing customers – basis for your SOC handbook and governance documents
           </p>
         </div>
         <button
@@ -246,13 +246,13 @@ export default function SocQuestionnairePage() {
           onClick={handleSave}
           disabled={saveStatus === 'saving'}
           className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text)] hover:bg-[var(--surface)] disabled:opacity-50 shrink-0"
-          title="Fortschritt pro Mandant speichern"
+          title="Save progress per tenant"
         >
           {saveStatus === 'saving' && <span className="animate-pulse">…</span>}
           {saveStatus === 'saved' && <CheckCircle size={16} className="text-emerald-500" />}
-          {saveStatus === 'error' && <span className="text-red-400 text-xs">Fehler</span>}
+          {saveStatus === 'error' && <span className="text-red-400 text-xs">Error</span>}
           <Save size={16} />
-          <span className="text-sm">Speichern</span>
+          <span className="text-sm">Save</span>
         </button>
       </div>
 
@@ -260,7 +260,7 @@ export default function SocQuestionnairePage() {
       {isAdmin && (
         <Card className="p-4 mb-6">
           <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)] mb-2">
-            Company (nur Admin) – Einschränkung auf Geräte aus Devices & Staff (Datto RMM: Location = Company)
+            Company (admin only) – limit to devices from Devices & Staff (Datto RMM: Location = Company)
           </label>
           <select
             value={selectedLocation ?? ''}
@@ -268,7 +268,7 @@ export default function SocQuestionnairePage() {
             disabled={locationsLoading}
             className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-[var(--text)]"
           >
-            <option value="">— Alle Companies / Keine Filterung —</option>
+            <option value="">— All companies / No filter —</option>
             {locations.map((loc) => (
               <option key={loc} value={loc}>{loc}</option>
             ))}
@@ -277,12 +277,12 @@ export default function SocQuestionnairePage() {
             <div className="mt-4">
               <h4 className="text-sm font-medium text-[var(--text)] mb-2 flex items-center gap-2">
                 <Monitor size={16} />
-                Geräte für diese Company ({selectedLocation}) – Basis für SOC-Bewertung
+                Devices for this company ({selectedLocation}) – basis for SOC assessment
               </h4>
               {devicesLoading ? (
-                <p className="text-sm text-[var(--muted)]">Lade Geräte…</p>
+                <p className="text-sm text-[var(--muted)]">Loading devices…</p>
               ) : devicesForLocation.length === 0 ? (
-                <p className="text-sm text-[var(--muted)]">Keine Geräte für diese Company in Datto RMM gefunden.</p>
+                <p className="text-sm text-[var(--muted)]">No devices for this company found in Datto RMM.</p>
               ) : (
                 <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
                   <table className="w-full text-sm">
@@ -309,11 +309,11 @@ export default function SocQuestionnairePage() {
                   </table>
                   {devicesForLocation.length > 50 && (
                     <p className="text-xs text-[var(--muted)] px-3 py-2 border-t border-[var(--border)]">
-                      … und {devicesForLocation.length - 50} weitere Geräte (nur erste 50 angezeigt).
+                      … and {devicesForLocation.length - 50} more devices (first 50 shown).
                     </p>
                   )}
                   <p className="text-xs text-[var(--muted)] px-3 py-2 bg-[var(--surface-2)]">
-                    Gesamt: {devicesForLocation.length} Gerät(e) für die SOC-Compliance-Bewertung dieser Company.
+                    Total: {devicesForLocation.length} device(s) for this company’s SOC compliance assessment.
                   </p>
                 </div>
               )}
@@ -325,8 +325,8 @@ export default function SocQuestionnairePage() {
       {/* Progress – wirtschaftspsychologisch: sichtbarer Fortschritt */}
       <div className="mb-8">
         <div className="flex justify-between text-xs text-[var(--muted)] mb-1">
-          <span>Schritt {step + 1} von {SOC_QUESTIONNAIRE_SECTIONS.length}</span>
-          <span>{Math.round(progressPct)}% abgeschlossen</span>
+          <span>Step {step + 1} of {SOC_QUESTIONNAIRE_SECTIONS.length}</span>
+          <span>{Math.round(progressPct)}% complete</span>
         </div>
         <div className="h-2 rounded-full bg-[var(--surface-2)] overflow-hidden">
           <motion.div
@@ -372,7 +372,7 @@ export default function SocQuestionnairePage() {
                           {field.label}
                           {field.required && <span className="text-red-400 ml-0.5">*</span>}
                           {field.autoFromRmm && (
-                            <span className="ml-1.5 text-[10px] text-emerald-500">(aus RMM übernehmbar)</span>
+                            <span className="ml-1.5 text-[10px] text-emerald-500">(can be taken from RMM)</span>
                           )}
                         </label>
                         <FieldRenderer
@@ -402,7 +402,7 @@ export default function SocQuestionnairePage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--surface)]"
         >
           <ArrowLeft size={16} />
-          Zurück
+          Back
         </button>
         {!isLastStep ? (
           <button
@@ -410,7 +410,7 @@ export default function SocQuestionnairePage() {
             onClick={() => setStep((s) => Math.min(SOC_QUESTIONNAIRE_SECTIONS.length - 1, s + 1))}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-white"
           >
-            Weiter
+            Next
             <ArrowRight size={16} />
           </button>
         ) : (
@@ -426,13 +426,13 @@ export default function SocQuestionnairePage() {
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-white disabled:opacity-70"
           >
             <FileText size={16} />
-            {handbookCreating ? 'Wird gespeichert…' : 'Handbook erstellen'}
+            {handbookCreating ? 'Saving…' : 'Create handbook'}
           </button>
         )}
       </div>
 
       <p className="text-center text-xs text-[var(--muted)] mt-6">
-        Mit „Speichern“ werden die Angaben Ihrem Mandanten zugeordnet und serverseitig gespeichert. Zusätzlich werden sie lokal im Browser gehalten. Ohne Mandant bleibt nur die lokale Speicherung – dann beim nächsten Besuch mit Mandant erneut speichern.
+        Using “Save” assigns your entries to your tenant and stores them on the server. They are also kept locally in the browser. Without a tenant, only local storage is used – save again on your next visit with a tenant.
       </p>
     </div>
   )

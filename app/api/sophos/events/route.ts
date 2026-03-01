@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
   if (!clientId || !clientSecret || !tenantId) {
     return NextResponse.json(
-      { error: 'Sophos nicht konfiguriert (SOPHOS_CLIENT_ID, SOPHOS_CLIENT_SECRET, SOPHOS_TENANT_ID).' },
+      { error: 'Sophos not configured (SOPHOS_CLIENT_ID, SOPHOS_CLIENT_SECRET, SOPHOS_TENANT_ID).' },
       { status: 400 }
     )
   }

@@ -19,10 +19,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const id = body.id ?? `partner-${Date.now()}`
   const existing = getPartnerById(id)
-  if (existing) return NextResponse.json({ error: 'Partner-ID existiert bereits.' }, { status: 400 })
+  if (existing) return NextResponse.json({ error: 'Partner ID already exists.' }, { status: 400 })
   const partner = createPartner({
     id,
-    name: body.name ?? 'Neuer Partner',
+    name: body.name ?? 'New partner',
     externalId: body.externalId,
     active: body.active ?? true,
   })

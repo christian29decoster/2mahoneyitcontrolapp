@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   if (!getAutotaskConfig()) {
     return NextResponse.json(
-      { source: 'autotask', items: [], error: 'Autotask nicht konfiguriert (AUTOTASK_BASE_URL, USERNAME, SECRET, INTEGRATION_CODE in Vercel prüfen).' },
+      { source: 'autotask', items: [], error: 'Autotask not configured (check AUTOTASK_BASE_URL, USERNAME, SECRET, INTEGRATION_CODE in Vercel).' },
       { status: 503 }
     )
   }

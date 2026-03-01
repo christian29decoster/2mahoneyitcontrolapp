@@ -93,7 +93,7 @@ export default function DevicesPage() {
         }
       })
       .catch(() => {
-        setRmmError('Netzwerkfehler beim Laden der RMM-Daten.')
+        setRmmError('Network error loading RMM data.')
         setRmmDevicesCache([])
       })
       .finally(() => setDevicesLoading(false))
@@ -114,7 +114,7 @@ export default function DevicesPage() {
         }
       })
       .catch(() => {
-        setEdrError('Netzwerkfehler beim Laden der EDR-Daten.')
+        setEdrError('Network error loading EDR data.')
         setEdrDevicesCache([])
       })
       .finally(() => { if (showLoading) setDevicesLoading(false) })
@@ -176,14 +176,14 @@ export default function DevicesPage() {
 
   const handleAddDevice = () => {
     h.impact('medium')
-    addActivity({ type: 'added', title: 'Gerät hinzugefügt', message: 'Plan & Kosten aktualisiert' })
+    addActivity({ type: 'added', title: 'Device added', message: 'Plan & costs updated' })
     addToast('success', 'Device added. Plan & costs updated.')
     setIsAddDeviceOpen(false)
   }
   
   const handleAddStaff = () => {
     h.impact('medium')
-    addActivity({ type: 'added', title: 'Mitarbeiter hinzugefügt' })
+    addActivity({ type: 'added', title: 'Staff added' })
     addToast('success', 'Staff added.')
     setIsAddStaffOpen(false)
   }
@@ -200,7 +200,7 @@ export default function DevicesPage() {
     setTimeout(() => {
       setIsRemapLoading(false)
       h.success()
-      addActivity({ type: 'changed', title: 'Geräte-Mapping aktualisiert', message: '24 Geräte zugeordnet' })
+      addActivity({ type: 'changed', title: 'Device mapping updated', message: '24 devices assigned' })
       addToast('success', 'Mapping successful. 24 devices updated.')
     }, 2000)
   }
@@ -223,14 +223,14 @@ export default function DevicesPage() {
 
   const handleSendMessage = () => {
     h.impact('light')
-    addActivity({ type: 'changed', title: 'Nachricht an Gerätenutzer gesendet' })
+    addActivity({ type: 'changed', title: 'Message sent to device user' })
     addToast('success', 'Message Sent', 'Message sent to device user.')
     setSelectedDevice(null)
   }
 
   const handleIsolateDevice = () => {
     h.impact('heavy')
-    addActivity({ type: 'changed', title: 'Gerät isoliert', message: 'Vom Netzwerk getrennt' })
+    addActivity({ type: 'changed', title: 'Device isolated', message: 'Disconnected from network' })
     addToast('warning', 'Device Isolated', 'Device has been isolated from network.')
     setSelectedDevice(null)
   }
@@ -299,7 +299,7 @@ export default function DevicesPage() {
             </div>
             {dataMode === 'demo' && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--surface-elev)] text-[var(--muted)] border border-[var(--border)]">
-                Demo-Daten
+                Demo data
               </span>
             )}
             {dataMode === 'edr' && (
@@ -312,7 +312,7 @@ export default function DevicesPage() {
                   onClick={() => loadEdrDevices(true)}
                   disabled={devicesLoading}
                   className="p-1.5 rounded-lg text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--text)] disabled:opacity-50"
-                  title="EDR-Daten neu laden"
+                  title="Reload EDR data"
                 >
                   <RefreshCw className={`w-4 h-4 ${devicesLoading ? 'animate-spin' : ''}`} />
                 </button>
@@ -322,14 +322,14 @@ export default function DevicesPage() {
               <>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                   <Wifi className="w-3.5 h-3.5" />
-                  Live aus Datto RMM
+                  Live from Datto RMM
                 </span>
                 <button
                   type="button"
                   onClick={() => loadRmmDevices()}
                   disabled={devicesLoading}
                   className="p-1.5 rounded-lg text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--text)] disabled:opacity-50"
-                  title="RMM-Daten neu laden"
+                  title="Reload RMM data"
                 >
                   <RefreshCw className={`w-4 h-4 ${devicesLoading ? 'animate-spin' : ''}`} />
                 </button>
@@ -347,10 +347,10 @@ export default function DevicesPage() {
         {dataMode === 'rmm' && rmmError && rmmDevicesCache.length === 0 && (
           <div className="p-4 rounded-[16px] bg-amber-500/10 border border-amber-500/30">
             <p className="text-sm text-[var(--text)] mb-3">
-              <strong>RMM-Daten konnten nicht geladen werden.</strong> {rmmError}
+              <strong>RMM data could not be loaded.</strong> {rmmError}
             </p>
             <HapticButton
-              label={devicesLoading ? 'Laden…' : 'RMM-Daten erneut laden'}
+              label={devicesLoading ? 'Loading…' : 'Reload RMM data'}
               variant="surface"
               onClick={devicesLoading ? undefined : loadRmmDevices}
               className="text-sm"
@@ -362,7 +362,7 @@ export default function DevicesPage() {
         {dataMode === 'rmm' && displayList.length > 0 && (
           <div className="p-4 rounded-[16px] bg-[var(--primary)]/10 border border-[var(--primary)]/20">
             <p className="text-sm text-[var(--text)]">
-              <strong>Geräte aus Datto RMM.</strong> Klicken Sie auf ein Gerät für Seriennummer, IP, Domain, Company und weitere Details.
+              <strong>Devices from Datto RMM.</strong> Click a device for serial number, IP, domain, company and more details.
             </p>
           </div>
         )}
@@ -371,7 +371,7 @@ export default function DevicesPage() {
         {dataMode === 'rmm' && displayList.length === 0 && !devicesLoading && !rmmError && (
           <div className="p-4 rounded-[16px] bg-[var(--surface)] border border-[var(--border)]">
             <p className="text-sm text-[var(--muted)]">
-              Keine Geräte in Datto RMM gefunden. Prüfen Sie im RMM-Portal, ob Geräte angelegt sind.
+              No devices found in Datto RMM. Check the RMM portal to see if devices are set up.
             </p>
           </div>
         )}
@@ -380,10 +380,10 @@ export default function DevicesPage() {
         {dataMode === 'edr' && edrError && edrDevicesCache.length === 0 && (
           <div className="p-4 rounded-[16px] bg-amber-500/10 border border-amber-500/30">
             <p className="text-sm text-[var(--text)] mb-3">
-              <strong>EDR-Daten konnten nicht geladen werden.</strong> {edrError}
+              <strong>EDR data could not be loaded.</strong> {edrError}
             </p>
             <HapticButton
-              label={devicesLoading ? 'Laden…' : 'EDR-Daten erneut laden'}
+              label={devicesLoading ? 'Loading…' : 'Reload EDR data'}
               variant="surface"
               onClick={devicesLoading ? undefined : () => loadEdrDevices(true)}
               className="text-sm"
@@ -395,7 +395,7 @@ export default function DevicesPage() {
         {dataMode === 'edr' && displayList.length > 0 && (
           <div className="p-4 rounded-[16px] bg-[var(--primary)]/10 border border-[var(--primary)]/20">
             <p className="text-sm text-[var(--text)]">
-              <strong>Geräte aus Sophos EDR.</strong> Endpoints mit Health-Status und Tenant.
+              <strong>Devices from Sophos EDR.</strong> Endpoints with health status and tenant.
             </p>
           </div>
         )}
@@ -404,7 +404,7 @@ export default function DevicesPage() {
         {dataMode === 'edr' && displayList.length === 0 && !devicesLoading && !edrError && (
           <div className="p-4 rounded-[16px] bg-[var(--surface)] border border-[var(--border)]">
             <p className="text-sm text-[var(--muted)]">
-              Keine EDR-Endpoints gefunden. Prüfen Sie Sophos Central und die API-Konfiguration.
+              No EDR endpoints found. Check Sophos Central and the API configuration.
             </p>
           </div>
         )}
@@ -446,10 +446,10 @@ export default function DevicesPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-sm text-[var(--muted)]">
             {dataMode === 'rmm' && devicesLoading
-              ? 'Laden…'
+              ? 'Loading…'
               : totalPages > 1
-                ? `Geräte ${(currentPage - 1) * DEVICES_PER_PAGE + 1}–${Math.min(currentPage * DEVICES_PER_PAGE, totalFiltered)} von ${totalFiltered}`
-                : `${totalFiltered} Gerät${totalFiltered !== 1 ? 'e' : ''}`}
+                ? `Devices ${(currentPage - 1) * DEVICES_PER_PAGE + 1}–${Math.min(currentPage * DEVICES_PER_PAGE, totalFiltered)} of ${totalFiltered}`
+                : `${totalFiltered} device${totalFiltered !== 1 ? 's' : ''}`}
           </div>
         </div>
 
@@ -471,7 +471,7 @@ export default function DevicesPage() {
               disabled={currentPage <= 1}
               className="px-3 py-1.5 rounded-[10px] text-sm font-medium bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--surface-elev)]"
             >
-              Zurück
+              Back
             </button>
             <div className="flex flex-wrap justify-center gap-1">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
@@ -495,7 +495,7 @@ export default function DevicesPage() {
               disabled={currentPage >= totalPages}
               className="px-3 py-1.5 rounded-[10px] text-sm font-medium bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--surface-elev)]"
             >
-              Weiter
+              Next
             </button>
           </div>
         )}
@@ -542,7 +542,7 @@ export default function DevicesPage() {
             <label className="block text-sm font-medium text-[var(--text)] mb-2">Company</label>
             <input
               type="text"
-              placeholder="Company (z. B. aus RMM Location)"
+              placeholder="Company (e.g. from RMM Location)"
               className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
             />
           </div>

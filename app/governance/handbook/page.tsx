@@ -77,13 +77,13 @@ export default function HandbookPage() {
         <Card className="p-8 text-center">
           <FileText className="w-12 h-12 mx-auto text-[var(--muted)] mb-4" />
           <p className="text-[var(--muted)] mb-4">
-            Es liegen noch keine Fragebogen-Daten vor. Bitte durchlaufen Sie zuerst den <strong>Compliance- & Handbook-Fragebogen</strong>, um Ihr SOC-Handbook zu erzeugen.
+            No questionnaire data yet. Please complete the <strong>Compliance & Handbook questionnaire</strong> first to generate your SOC handbook.
           </p>
           <Link
             href="/governance/soc-questionnaire"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-white"
           >
-            Zum Fragebogen
+            Go to questionnaire
           </Link>
         </Card>
       </div>
@@ -105,9 +105,9 @@ export default function HandbookPage() {
           <h1 className="text-xl font-bold text-[var(--text)]">SOC-Handbook</h1>
         </div>
         <Card className="p-8 text-center">
-          <p className="text-[var(--muted)] mb-4">Der Fragebogen wurde noch nicht ausgefüllt. Bitte beantworten Sie mindestens einige Fragen.</p>
+          <p className="text-[var(--muted)] mb-4">The questionnaire has not been completed yet. Please answer at least some questions.</p>
           <Link href="/governance/soc-questionnaire" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-white">
-            Zum Fragebogen
+            Go to questionnaire
           </Link>
         </Card>
       </div>
@@ -127,15 +127,15 @@ export default function HandbookPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text)] hover:bg-[var(--surface)]"
         >
           <Download size={16} />
-          Drucken / Als PDF speichern
+          Print / Save as PDF
         </button>
       </div>
 
       <div className="handbook-doc space-y-8 print:space-y-6">
         <header className="border-b border-[var(--border)] pb-4">
           <h1 className="text-2xl font-bold text-[var(--text)] print:text-xl">SOC Compliance & Governance Handbook</h1>
-          <p className="text-sm text-[var(--muted)] mt-1">Erzeugt aus dem SOC Customer Onboarding Questionnaire · ISO 27001 | NIS2 | GDPR | SOC 2</p>
-          <p className="text-xs text-[var(--muted)] mt-2">Stand: {new Date().toLocaleDateString('de-DE', { dateStyle: 'long' })}</p>
+          <p className="text-sm text-[var(--muted)] mt-1">Generated from the SOC Customer Onboarding Questionnaire · ISO 27001 | NIS2 | GDPR | SOC 2</p>
+          <p className="text-xs text-[var(--muted)] mt-2">As of: {new Date().toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
         </header>
 
         {SOC_QUESTIONNAIRE_SECTIONS.map((section) => {
@@ -187,7 +187,7 @@ export default function HandbookPage() {
         })}
 
         <footer className="pt-6 border-t border-[var(--border)] text-xs text-[var(--muted)]">
-          Dieses Handbook wurde aus Ihren Angaben im SOC-Compliance-Fragebogen erzeugt. Es dient als Referenz für SOC-Dienste und Governance-Unterlagen. Bei Änderungen bitte Fragebogen aktualisieren und Handbook erneut erzeugen.
+          This handbook was generated from your SOC compliance questionnaire. It serves as a reference for SOC services and governance. To make changes, update the questionnaire and regenerate the handbook.
         </footer>
       </div>
 
@@ -198,7 +198,7 @@ export default function HandbookPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-white"
         >
           <Download size={16} />
-          Drucken / Als PDF speichern
+          Print / Save as PDF
         </button>
       </div>
     </div>

@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       source: 'demo',
       devices: [],
-      error: 'RMM nicht konfiguriert. Bitte DATTO_RMM_API_URL, DATTO_RMM_API_KEY und DATTO_RMM_API_SECRET in den Vercel-Einstellungen setzen.',
+      error: 'RMM not configured. Set DATTO_RMM_API_URL, DATTO_RMM_API_KEY and DATTO_RMM_API_SECRET in Vercel environment.',
     })
   }
 
@@ -140,9 +140,9 @@ export async function GET(request: NextRequest) {
     }
     return NextResponse.json({ source: 'rmm', devices, error: null })
   } catch (e) {
-    let message = e instanceof Error ? e.message : 'RMM-Anfrage fehlgeschlagen'
+    let message = e instanceof Error ? e.message : 'RMM request failed'
     if (message.includes('401')) {
-      message += ' API Key/Secret prüfen (Vercel: keine Leerzeichen), in RMM: Setup → API Access aktiviert?'
+      message += ' Check API Key/Secret (Vercel: no spaces), in RMM: Setup → API Access enabled?'
     }
     console.error('Datto RMM devices error:', e)
     return NextResponse.json(

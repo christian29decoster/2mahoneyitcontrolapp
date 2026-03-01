@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   const role = getActorRole(req)
   if (role !== 'admin' && role !== 'superadmin') {
-    return NextResponse.json({ error: 'Nur für Admin/SuperAdmin' }, { status: 403 })
+    return NextResponse.json({ error: 'Admin/SuperAdmin only' }, { status: 403 })
   }
 
   const usePartnerApi = process.env.SOPHOS_USE_PARTNER_API === 'true' || !!process.env.SOPHOS_PARTNER_ID
@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
   if (!clientId || !clientSecret) {
     return NextResponse.json({
       ok: false,
-      error: 'SOPHOS_CLIENT_ID oder SOPHOS_CLIENT_SECRET fehlt',
-      hint: 'In Vercel Environment Variables setzen.',
+      error: 'SOPHOS_CLIENT_ID or SOPHOS_CLIENT_SECRET missing',
+      hint: 'Set in Vercel Environment Variables.',
     })
   }
 
@@ -29,8 +29,8 @@ export async function GET(req: NextRequest) {
   if (!idToUse) {
     return NextResponse.json({
       ok: false,
-      error: usePartnerApi ? 'SOPHOS_PARTNER_ID oder SOPHOS_TENANT_ID fehlt (Partner-Modus)' : 'SOPHOS_TENANT_ID fehlt',
-      hint: usePartnerApi ? 'Partner-ID aus Sophos-Profil (Settings) eintragen; SOPHOS_USE_PARTNER_API=true setzen.' : 'Tenant-UUID oder Partner-ID eintragen.',
+      error: usePartnerApi ? 'SOPHOS_PARTNER_ID or SOPHOS_TENANT_ID missing (partner mode)' : 'SOPHOS_TENANT_ID missing',
+      hint: usePartnerApi ? 'Enter Partner ID from Sophos profile (Settings); set SOPHOS_USE_PARTNER_API=true.' : 'Enter tenant UUID or Partner ID.',
     })
   }
 
@@ -46,8 +46,8 @@ export async function GET(req: NextRequest) {
           mode: 'partner',
           tenantsCount: 0,
           alertsCount: 0,
-          error: 'Keine Tenants gefunden',
-          hint: 'X-Partner-ID wird an Partner-API gesendet. Prüfen Sie, ob die Partner-ID (aus Sophos-Profil) korrekt ist und der API-User Partner-Berechtigung hat. Ggf. SOPHOS_API_BASE für Region setzen (z. B. https://api-eu01.central.sophos.com).',
+          error: 'No tenants found',
+          hint: 'X-Partner-ID is sent to Partner API. Check that Partner ID (from Sophos profile) is correct and the API user has partner permission. Optionally set SOPHOS_API_BASE for region (e.g. https://api-eu01.central.sophos.com).',
         })
       }
       let totalAlerts = 0
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
         tenantsCount: tenants.length,
         alertsCount: totalAlerts,
         sampleAlertIds: sampleIds.slice(0, 10),
-        hint: totalAlerts === 0 ? 'Alerts werden pro Tenant abgefragt. Wenn im Sophos-Dashboard Alerts sichtbar sind, prüfen Sie die Region (SOPHOS_API_BASE) und Berechtigung „Alerts“ Read-only.' : undefined,
+        hint: totalAlerts === 0 ? 'Alerts are queried per tenant. If alerts are visible in Sophos dashboard, check region (SOPHOS_API_BASE) and "Alerts" read-only permission.' : undefined,
       })
     }
 
@@ -83,14 +83,14 @@ export async function GET(req: NextRequest) {
       tenantsCount: 1,
       alertsCount: result.alerts.length,
       sampleAlertIds: sampleIds,
-      hint: result.alerts.length === 0 ? 'X-Tenant-ID wird gesendet. Bei Partner-Account: SOPHOS_USE_PARTNER_API=true setzen und SOPHOS_TENANT_ID = Partner-ID (aus Profil).' : undefined,
+      hint: result.alerts.length === 0 ? 'X-Tenant-ID is sent. For partner account: set SOPHOS_USE_PARTNER_API=true and SOPHOS_TENANT_ID = Partner ID (from profile).' : undefined,
     })
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     return NextResponse.json({
       ok: false,
       error: message,
-      hint: 'Token (client_credentials) oder Alerts-API fehlgeschlagen. Berechtigung „Alerts“ Read-only für den API-User prüfen; bei Partner: X-Partner-ID und regionale API (SOPHOS_API_BASE) prüfen.',
+      hint: 'Token (client_credentials) or Alerts API failed. Check "Alerts" read-only permission for API user; for partner: check X-Partner-ID and regional API (SOPHOS_API_BASE).',
     })
   }
 }

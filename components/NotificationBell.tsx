@@ -96,7 +96,7 @@ export default function NotificationBell() {
                       markAllRead()
                     }}
                     className="p-2 rounded-lg hover:bg-[var(--surface-2)] text-[var(--muted)]"
-                    aria-label="Alle gelesen"
+                    aria-label="Mark all read"
                   >
                     <RefreshCw size={14} />
                   </button>
@@ -108,7 +108,7 @@ export default function NotificationBell() {
                       setOpen(false)
                     }}
                     className="p-2 rounded-lg hover:bg-[var(--surface-2)] text-[var(--muted)]"
-                    aria-label="Alle löschen"
+                    aria-label="Clear all"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -119,7 +119,7 @@ export default function NotificationBell() {
           <div className="overflow-y-auto flex-1">
             {activities.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-[var(--muted)]">
-                Keine Aktivitäten. Änderungen in der App erscheinen hier in Echtzeit.
+                No activity. App changes appear here in real time.
               </div>
             ) : (
               activities.map((a) => <ActivityRow key={a.id} a={a} />)

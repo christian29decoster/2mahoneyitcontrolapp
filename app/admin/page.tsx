@@ -133,7 +133,7 @@ export default function AdminPage(){
   const MAX_LOGO_BYTES = 300 * 1024; // 300 KB
   function handleLogoFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) { alert('Bitte ein Bild wählen (PNG, JPG, SVG).'); return; }
+    if (!file || !file.type.startsWith('image/')) { alert('Please choose an image (PNG, JPG, SVG).'); return; }
     if (file.size > MAX_LOGO_BYTES) { alert(`Logo max. ${MAX_LOGO_BYTES / 1024} KB.`); return; }
     const reader = new FileReader();
     reader.onload = () => { setSettings(s => ({ ...s, logoDataUrl: (reader.result as string) ?? '' })); };
@@ -165,7 +165,7 @@ export default function AdminPage(){
       setSettingsSaving(true);
     try {
       const r = await fetch('/api/demo/settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...settings, logoDataUrl: settings.logoDataUrl || undefined }) });
-      if (!r.ok) { alert('Speichern fehlgeschlagen'); return; }
+      if (!r.ok) { alert('Save failed'); return; }
       await loadSettings();
     } finally {
       setSettingsSaving(false);
@@ -177,15 +177,15 @@ export default function AdminPage(){
     try {
       if (editingPartnerId) {
         const res = await fetch(`/api/partners/${editingPartnerId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: partnerForm.name, externalId: partnerForm.externalId || undefined, active: partnerForm.active }) });
-        if (!res.ok) { const e = await res.json(); alert(e.error || 'Fehler'); return; }
+        if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
         setEditingPartnerId(null);
       } else {
         const res = await fetch('/api/partners', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: partnerForm.id || undefined, name: partnerForm.name, externalId: partnerForm.externalId || undefined, active: partnerForm.active }) });
-        if (!res.ok) { const e = await res.json(); alert(e.error || 'Fehler'); return; }
+        if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
       }
       setPartnerForm({ id: '', name: '', externalId: '', active: true });
       await loadPartners();
-    } catch (err) { console.error(err); alert('Fehler beim Speichern'); }
+    } catch (err) { console.error(err); alert('Error saving'); }
   }
   function startEditPartner(p: PartnerItem) {
     setEditingPartnerId(p.id);
@@ -197,15 +197,15 @@ export default function AdminPage(){
     try {
       if (editingTenantId) {
         const res = await fetch(`/api/tenants/${editingTenantId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors }) });
-        if (!res.ok) { const e = await res.json(); alert(e.error || 'Fehler'); return; }
+        if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
         setEditingTenantId(null);
       } else {
         const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors }) });
-        if (!res.ok) { const e = await res.json(); alert(e.error || 'Fehler'); return; }
+        if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
       }
       setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} } });
       await loadTenants();
-    } catch (err) { console.error(err); alert('Fehler beim Speichern'); }
+    } catch (err) { console.error(err); alert('Error saving'); }
   }
   function clearLogo() { setSettings(s => ({ ...s, logoDataUrl: '' })); }
   function startEditTenant(t: TenantItem) {
@@ -213,11 +213,11 @@ export default function AdminPage(){
     setTenantForm({ id: t.id, name: t.name, partnerId: t.partnerId ?? '', active: t.active, connectors: { ...t.connectors } });
   }
   async function deleteTenant(id: string) {
-    if (!confirm('Tenant wirklich deaktivieren/entfernen?')) return;
+    if (!confirm('Really deactivate or remove this tenant?')) return;
     try {
       const res = await fetch(`/api/tenants/${id}`, { method: 'DELETE' });
-      if (res.ok) await loadTenants(); else alert((await res.json()).error || 'Fehler');
-    } catch (err) { console.error(err); alert('Fehler'); }
+      if (res.ok) await loadTenants(); else alert((await res.json()).error || 'Error');
+    } catch (err) { console.error(err); alert('Error'); }
   }
 
   async function loadAutotaskCompanies() {
@@ -227,14 +227,14 @@ export default function AdminPage(){
       const res = await fetch('/api/companies/autotask');
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setAutotaskCompaniesError(data.error === 'forbidden' ? 'Keine Berechtigung' : (data.error || `Fehler ${res.status}`));
+        setAutotaskCompaniesError(data.error === 'forbidden' ? 'No permission' : (data.error || `Error ${res.status}`));
         setAutotaskCompanies([]);
         return;
       }
       const data = await res.json();
       const items = Array.isArray(data.items) ? data.items : [];
       setAutotaskCompanies(items);
-      if (items.length === 0) setAutotaskCompaniesError('Keine Unternehmen geladen. In Autotask: API-User-Berechtigung für Companies (View) prüfen; ggf. Zone (webservices3 vs. webservices4) und Variablen in Vercel prüfen.');
+      if (items.length === 0) setAutotaskCompaniesError('No companies loaded. In Autotask: check API user permission for Companies (View); check zone (webservices3 vs. webservices4) and env vars in Vercel.');
     } catch (err) {
       setAutotaskCompaniesError('Netzwerkfehler');
       setAutotaskCompanies([]);
@@ -250,7 +250,7 @@ export default function AdminPage(){
       const res = await fetch('/api/tenants/import-autotask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(data.error || `Fehler ${res.status}`);
+        alert(data.error || `Error ${res.status}`);
         return;
       }
       setImportAutotaskResult({ imported: data.imported ?? 0, skipped: data.skipped ?? 0 });
@@ -350,12 +350,12 @@ export default function AdminPage(){
           <TabButton active={tab==='audit'} onClick={()=>setTab('audit')}>Login Activity</TabButton>
           <TabButton active={tab==='partners'} onClick={()=>setTab('partners')}>Partner</TabButton>
           <TabButton active={tab==='tenants'} onClick={()=>setTab('tenants')}>Tenants</TabButton>
-          <TabButton active={tab==='billing'} onClick={()=>setTab('billing')}>Abrechnungsbereich</TabButton>
-          <TabButton active={tab==='settings'} onClick={()=>setTab('settings')}>Einstellungen</TabButton>
+          <TabButton active={tab==='billing'} onClick={()=>setTab('billing')}>Billing</TabButton>
+          <TabButton active={tab==='settings'} onClick={()=>setTab('settings')}>Settings</TabButton>
         </div>
       </div>
       {currentRole === 'superadmin' && (
-        <p className="text-xs text-[var(--muted)] mt-1">SuperAdmin: Passwort und Löschen anderer SuperAdmins nur durch Sie änderbar.</p>
+        <p className="text-xs text-[var(--muted)] mt-1">SuperAdmin: Only you can change passwords and delete other SuperAdmins.</p>
       )}
 
       {tab==='users' && (
@@ -424,7 +424,7 @@ export default function AdminPage(){
                       <td className="text-center">{u.expiresAtISO ? new Date(u.expiresAtISO).toLocaleString() : '-'}</td>
                       <td className="text-right">
                         <div className="flex justify-end gap-2 items-center">
-                          {u.role === 'superadmin' && <span className="text-xs text-amber-400">geschützt</span>}
+                          {u.role === 'superadmin' && <span className="text-xs text-amber-400">protected</span>}
                           <button onClick={()=>setActive(u.id, !u.active)}
                                   disabled={u.role === 'superadmin' && !isSuperAdmin}
                                   className="px-2 py-1 rounded-lg border border-[var(--border)] disabled:opacity-50 disabled:cursor-not-allowed">
@@ -474,13 +474,13 @@ export default function AdminPage(){
       {tab==='partners' && (
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="rounded-2xl border border-[var(--border)] p-4">
-            <div className="font-semibold mb-2">{editingPartnerId ? 'Partner bearbeiten' : 'Partner anlegen'}</div>
+            <div className="font-semibold mb-2">{editingPartnerId ? 'Edit partner' : 'Add partner'}</div>
             <div className="space-y-2">
               {!editingPartnerId && (
                 <div>
                   <label className="text-xs text-[var(--muted)]">ID (optional)</label>
                   <input value={partnerForm.id} onChange={e=>setPartnerForm(s=>({...s, id:e.target.value}))}
-                         className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="z.B. partner-1"/>
+                         className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="e.g. partner-1"/>
                 </div>
               )}
               <div>
@@ -489,27 +489,27 @@ export default function AdminPage(){
                        className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
               </div>
               <div>
-                <label className="text-xs text-[var(--muted)]">Externe ID (z.B. Sophos Partner-ID)</label>
+                <label className="text-xs text-[var(--muted)]">External ID (e.g. Sophos Partner ID)</label>
                 <input value={partnerForm.externalId} onChange={e=>setPartnerForm(s=>({...s, externalId:e.target.value}))}
                        className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
               </div>
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={partnerForm.active} onChange={e=>setPartnerForm(s=>({...s, active:e.target.checked}))}/>
-                <span className="text-sm">Aktiv</span>
+                <span className="text-sm">Active</span>
               </label>
               <div className="flex gap-2">
                 <button onClick={savePartner} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white">
-                  {editingPartnerId ? 'Speichern' : 'Anlegen'}
+                  {editingPartnerId ? 'Save' : 'Add'}
                 </button>
                 {editingPartnerId && (
-                  <button onClick={()=>{ setEditingPartnerId(null); setPartnerForm({ id: '', name: '', externalId: '', active: true }); }} className="px-4 py-2 rounded-xl border border-[var(--border)]">Abbrechen</button>
+                  <button onClick={()=>{ setEditingPartnerId(null); setPartnerForm({ id: '', name: '', externalId: '', active: true }); }} className="px-4 py-2 rounded-xl border border-[var(--border)]">Cancel</button>
                 )}
               </div>
             </div>
           </div>
           <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
             <div className="font-semibold mb-2">Partner</div>
-            {partnersLoading ? <div className="text-sm text-[var(--muted)]">Laden…</div> : (
+            {partnersLoading ? <div className="text-sm text-[var(--muted)]">Loading…</div> : (
               <table className="w-full text-sm">
                 <thead className="text-[var(--muted)]"><tr><th className="text-left py-2">ID</th><th>Name</th><th>Externe ID</th><th>Status</th><th></th></tr></thead>
                 <tbody>
@@ -518,8 +518,8 @@ export default function AdminPage(){
                       <td className="py-2">{p.id}</td>
                       <td>{p.name}</td>
                       <td>{p.externalId ?? '-'}</td>
-                      <td><span className={`px-2 py-1 rounded-lg text-xs ${p.active?'bg-emerald-600/20 text-emerald-300':'bg-zinc-600/20 text-zinc-300'}`}>{p.active?'aktiv':'inaktiv'}</span></td>
-                      <td><button onClick={()=>startEditPartner(p)} className="px-2 py-1 rounded-lg border border-[var(--border)]">Bearbeiten</button></td>
+                      <td><span className={`px-2 py-1 rounded-lg text-xs ${p.active?'bg-emerald-600/20 text-emerald-300':'bg-zinc-600/20 text-zinc-300'}`}>{p.active?'active':'inactive'}</span></td>
+                      <td><button onClick={()=>startEditPartner(p)} className="px-2 py-1 rounded-lg border border-[var(--border)]">Edit</button></td>
                     </tr>
                   ))}
                 </tbody>
@@ -532,13 +532,13 @@ export default function AdminPage(){
       {tab==='tenants' && (
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
-            <div className="font-semibold mb-2">{editingTenantId ? 'Tenant bearbeiten' : 'Tenant anlegen'}</div>
+            <div className="font-semibold mb-2">{editingTenantId ? 'Edit tenant' : 'Add tenant'}</div>
             <div className="space-y-2">
               {!editingTenantId && (
                 <div>
                   <label className="text-xs text-[var(--muted)]">ID (optional)</label>
                   <input value={tenantForm.id} onChange={e=>setTenantForm(s=>({...s, id:e.target.value}))}
-                         className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="z.B. tenant-1"/>
+                         className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="e.g. tenant-1"/>
                 </div>
               )}
               <div>
@@ -547,15 +547,15 @@ export default function AdminPage(){
                        className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
               </div>
               <div>
-                <label className="text-xs text-[var(--muted)]">Partner-ID</label>
+                <label className="text-xs text-[var(--muted)]">Partner ID</label>
                 <input value={tenantForm.partnerId} onChange={e=>setTenantForm(s=>({...s, partnerId:e.target.value}))}
-                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="Leer = Mahoney"/>
+                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="Empty = Mahoney"/>
               </div>
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={tenantForm.active} onChange={e=>setTenantForm(s=>({...s, active:e.target.checked}))}/>
-                <span className="text-sm">Aktiv</span>
+                <span className="text-sm">Active</span>
               </label>
-              <div className="text-xs font-medium text-[var(--muted)] mt-2">Konnektoren (RMM / Sophos)</div>
+              <div className="text-xs font-medium text-[var(--muted)] mt-2">Connectors (RMM / Sophos)</div>
               <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-3">
                 <div>
                   <span className="text-xs text-[var(--muted)]">RMM (Datto)</span>
@@ -576,11 +576,11 @@ export default function AdminPage(){
                          className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label"/>
                 </div>
                 <div>
-                  <span className="text-xs text-[var(--muted)]">Autotask PSA (Company zuordnen)</span>
+                  <span className="text-xs text-[var(--muted)]">Autotask PSA (map company)</span>
                   <div className="flex gap-2 mt-1">
                     <button type="button" onClick={loadAutotaskCompanies} disabled={autotaskCompaniesLoading}
                             className="px-2 py-1 rounded-lg border border-[var(--border)] text-sm bg-[var(--surface-2)] hover:bg-[var(--surface)] disabled:opacity-50">
-                      {autotaskCompaniesLoading ? 'Laden…' : 'Unternehmen aus Autotask laden'}
+                      {autotaskCompaniesLoading ? 'Loading…' : 'Load companies from Autotask'}
                     </button>
                   </div>
                   {autotaskCompaniesError && <p className="text-xs text-amber-400 mt-1">{autotaskCompaniesError}</p>}
@@ -588,24 +588,24 @@ export default function AdminPage(){
                     <select value={(tenantForm.connectors as Record<string,{ companyId?: string }|undefined>)?.autotask?.companyId ?? ''}
                             onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))}
                             className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-sm bg-[var(--surface-2)]">
-                      <option value="">— Kein Autotask-Unternehmen —</option>
+                      <option value="">— No Autotask company —</option>
                       {autotaskCompanies.map(c=>(
                         <option key={c.id} value={String(c.id)}>{(c as { companyName?: string; CompanyName?: string }).companyName ?? (c as { CompanyName?: string }).CompanyName ?? `Company ${c.id}`}</option>
                       ))}
                     </select>
                   )}
                   <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.companyId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Oder Company-ID manuell eingeben"/>
+                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Or enter company ID manually"/>
                   <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, label: e.target.value } } }))}
                          className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label (optional)"/>
                 </div>
               </div>
               <div className="flex gap-2 mt-2">
                 <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white">
-                  {editingTenantId ? 'Speichern' : 'Anlegen'}
+                  {editingTenantId ? 'Save' : 'Add'}
                 </button>
                 {editingTenantId && (
-                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} } }); }} className="px-4 py-2 rounded-xl border border-[var(--border)]">Abbrechen</button>
+                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} } }); }} className="px-4 py-2 rounded-xl border border-[var(--border)]">Cancel</button>
                 )}
               </div>
             </div>
@@ -613,19 +613,19 @@ export default function AdminPage(){
           <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
             <div className="font-semibold mb-2">Tenants</div>
             <div className="mb-4 p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
-              <div className="text-xs font-medium text-[var(--muted)] mb-2">Autotask-Kunden einspielen</div>
-              <p className="text-xs text-[var(--muted)] mb-2">Lädt aktive Unternehmen aus Autotask und legt für jede Company einen neuen Tenant an (ID: autotask-123). Bereits verknüpfte werden übersprungen.</p>
+              <div className="text-xs font-medium text-[var(--muted)] mb-2">Import Autotask customers</div>
+              <p className="text-xs text-[var(--muted)] mb-2">Loads active companies from Autotask and creates a new tenant per company (ID: autotask-123). Existing mappings are skipped.</p>
               <button type="button" onClick={importAutotaskCompanies} disabled={importAutotaskLoading}
                       className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-sm bg-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/30 disabled:opacity-50">
-                {importAutotaskLoading ? 'Import läuft…' : 'Unternehmen aus Autotask importieren'}
+                {importAutotaskLoading ? 'Importing…' : 'Import companies from Autotask'}
               </button>
               {importAutotaskResult && (
                 <p className="text-xs mt-2 text-[var(--text)]">
-                  {importAutotaskResult.imported} importiert, {importAutotaskResult.skipped} bereits vorhanden.
+                  {importAutotaskResult.imported} imported, {importAutotaskResult.skipped} already present.
                 </p>
               )}
             </div>
-            {tenantsLoading ? <div className="text-sm text-[var(--muted)]">Laden…</div> : (
+            {tenantsLoading ? <div className="text-sm text-[var(--muted)]">Loading…</div> : (
               <table className="w-full text-sm">
                 <thead className="text-[var(--muted)]"><tr><th className="text-left py-2">ID</th><th>Name</th><th>Partner</th><th>Status</th><th></th></tr></thead>
                 <tbody>
@@ -634,10 +634,10 @@ export default function AdminPage(){
                       <td className="py-2">{t.id}</td>
                       <td>{t.name}</td>
                       <td>{t.partnerId ?? '-'}</td>
-                      <td><span className={`px-2 py-1 rounded-lg text-xs ${t.active?'bg-emerald-600/20 text-emerald-300':'bg-zinc-600/20 text-zinc-300'}`}>{t.active?'aktiv':'inaktiv'}</span></td>
+                      <td><span className={`px-2 py-1 rounded-lg text-xs ${t.active?'bg-emerald-600/20 text-emerald-300':'bg-zinc-600/20 text-zinc-300'}`}>{t.active?'active':'inactive'}</span></td>
                       <td>
-                        <button onClick={()=>startEditTenant(t)} className="px-2 py-1 rounded-lg border border-[var(--border)] mr-1">Bearbeiten</button>
-                        <button onClick={()=>deleteTenant(t.id)} className="px-2 py-1 rounded-lg border border-[var(--border)] text-red-300">Löschen</button>
+                        <button onClick={()=>startEditTenant(t)} className="px-2 py-1 rounded-lg border border-[var(--border)] mr-1">Edit</button>
+                        <button onClick={()=>deleteTenant(t.id)} className="px-2 py-1 rounded-lg border border-[var(--border)] text-red-300">Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -651,9 +651,9 @@ export default function AdminPage(){
       {tab==='billing' && (
         <div className="mt-4 space-y-4">
           <div className="rounded-2xl border border-[var(--border)] p-4">
-            <div className="font-semibold mb-2">Kostenreferenzen (Marketplace)</div>
+            <div className="font-semibold mb-2">Cost References (Marketplace)</div>
             <p className="text-xs text-[var(--muted)] mb-3">
-              Die Abrechnung basiert auf gewerteten Incidents (Resolved/Closed) und den Event-Daten aus RMM, EDR/Sophos und Autotask. Die konkreten Kosten und Tarife finden Sie im Marketplace.
+              Billing is based on evaluated incidents (Resolved/Closed) and event data from RMM, EDR/Sophos, and Autotask. Specific costs and rates are in the Marketplace.
             </p>
             {billingCostRefs && (
               <>
@@ -674,22 +674,22 @@ export default function AdminPage(){
                     ))}
                   </ul>
                 </div>
-                <a href={billingCostRefs.marketplaceLink} className="text-sm text-[var(--primary)] hover:underline">Zum Marketplace →</a>
+                <a href={billingCostRefs.marketplaceLink} className="text-sm text-[var(--primary)] hover:underline">To Marketplace →</a>
               </>
             )}
           </div>
           <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
-            <div className="font-semibold mb-2">Monatliche Kumulation (für Rechnung)</div>
-            <p className="text-xs text-[var(--muted)] mb-3">Pro Monat: Anzahl Meldungen (Incidents), Events-Summe, Schwellwertprüfung (1M Events inklusive) und MDU-Kosten. Am Monatsende für die Rechnung nutzbar.</p>
+            <div className="font-semibold mb-2">Monthly Accumulation (for Invoice)</div>
+            <p className="text-xs text-[var(--muted)] mb-3">Per month: number of alerts (incidents), event total, threshold check (1M events included), and MDU cost. Usable for invoicing at month end.</p>
             {billingLoading ? (
-              <div className="text-sm text-[var(--muted)]">Laden…</div>
+              <div className="text-sm text-[var(--muted)]">Loading…</div>
             ) : billingMonthlyTotals.length === 0 ? (
-              <div className="text-sm text-[var(--muted)]">Keine Daten für monatliche Kumulation (keine gewerteten Incidents in den letzten 90 Tagen).</div>
+              <div className="text-sm text-[var(--muted)]">No data for monthly accumulation (no evaluated incidents in the last 90 days).</div>
             ) : (
               <>
                 <table className="w-full text-sm mb-3">
                   <thead className="text-[var(--muted)]">
-                    <tr><th className="text-left py-2">Monat</th><th className="text-right">Meldungen</th><th className="text-right">Events</th><th className="text-center">Schwellwert (1M)</th><th className="text-right">MDU (USD)</th></tr>
+                    <tr><th className="text-left py-2">Month</th><th className="text-right">Alerts</th><th className="text-right">Events</th><th className="text-center">Threshold (1M)</th><th className="text-right">MDU (USD)</th></tr>
                   </thead>
                   <tbody>
                     {billingMonthlyTotals.map((row) => (
@@ -699,9 +699,9 @@ export default function AdminPage(){
                         <td className="text-right">{row.eventsCount.toLocaleString()}</td>
                         <td className="text-center">
                           {row.thresholdExceeded ? (
-                            <span className="px-2 py-1 rounded-lg text-xs bg-amber-600/20 text-amber-300">überschritten</span>
+                            <span className="px-2 py-1 rounded-lg text-xs bg-amber-600/20 text-amber-300">exceeded</span>
                           ) : (
-                            <span className="px-2 py-1 rounded-lg text-xs bg-emerald-600/20 text-emerald-300">unter 1M</span>
+                            <span className="px-2 py-1 rounded-lg text-xs bg-emerald-600/20 text-emerald-300">under 1M</span>
                           )}
                         </td>
                         <td className="text-right">{row.mduCostUsd > 0 ? `$${row.mduCostUsd.toFixed(2)}` : '—'}</td>
@@ -713,33 +713,33 @@ export default function AdminPage(){
                   <button
                     type="button"
                     onClick={() => {
-                      const lines = ['Abrechnungsdaten (Monatliche Kumulation)', '—'];
+                      const lines = ['Billing data (monthly accumulation)', '—'];
                       billingMonthlyTotals.forEach((row) => {
-                        lines.push(`${row.label}: ${row.incidentsCount} Meldungen, ${row.eventsCount.toLocaleString()} Events, Schwellwert ${row.thresholdExceeded ? 'überschritten' : 'unter 1M'}, MDU: ${row.mduCostUsd > 0 ? `$${row.mduCostUsd.toFixed(2)}` : '0'}`);
+                        lines.push(`${row.label}: ${row.incidentsCount} alerts, ${row.eventsCount.toLocaleString()} events, threshold ${row.thresholdExceeded ? 'exceeded' : 'under 1M'}, MDU: ${row.mduCostUsd > 0 ? `$${row.mduCostUsd.toFixed(2)}` : '0'}`);
                       });
                       const text = lines.join('\n');
-                      navigator.clipboard.writeText(text).then(() => { setBillingCopyDone(true); setTimeout(() => setBillingCopyDone(false), 2000); }).catch(() => alert('Kopieren fehlgeschlagen'));
+                      navigator.clipboard.writeText(text).then(() => { setBillingCopyDone(true); setTimeout(() => setBillingCopyDone(false), 2000); }).catch(() => alert('Copy failed'));
                     }}
                     className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-sm bg-[var(--surface-2)] hover:bg-[var(--surface)]"
                   >
-                    {billingCopyDone ? 'Kopiert!' : 'Für Rechnung kopieren'}
+                    {billingCopyDone ? 'Copied!' : 'Copy for invoice'}
                   </button>
-                  <span className="text-xs text-[var(--muted)]">Kumulierte Monatswerte als Text (in Rechnung oder E-Mail einfügen).</span>
+                  <span className="text-xs text-[var(--muted)]">Accumulated monthly values as text (paste into invoice or email).</span>
                 </div>
               </>
             )}
           </div>
           <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
-            <div className="font-semibold mb-2">Gewertete Incidents (Resolved/Closed) – letzte 90 Tage</div>
-            <p className="text-xs text-[var(--muted)] mb-3">Alle gezogenen Events und Daten pro Incident sind unten einsehbar (Event-Log aufklappen). Grundlage für die Abrechnung.</p>
+            <div className="font-semibold mb-2">Evaluated Incidents (Resolved/Closed) – last 90 days</div>
+            <p className="text-xs text-[var(--muted)] mb-3">All pulled events and data per incident are viewable below (expand Event log). Basis for billing.</p>
             {billingLoading ? (
-              <div className="text-sm text-[var(--muted)]">Laden…</div>
+              <div className="text-sm text-[var(--muted)]">Loading…</div>
             ) : billingItems.length === 0 ? (
               <div className="text-sm text-[var(--muted)]">Keine gewerteten Incidents (Resolved/Closed) in den letzten 90 Tagen.</div>
             ) : (
               <table className="w-full text-sm">
                 <thead className="text-[var(--muted)]">
-                  <tr><th className="text-left py-2">Incident</th><th>Quelle</th><th>Status</th><th>Tenant</th><th>Events</th><th></th></tr>
+                  <tr><th className="text-left py-2">Incident</th><th>Source</th><th>Status</th><th>Tenant</th><th>Events</th><th></th></tr>
                 </thead>
                 <tbody>
                   {billingItems.map((inc) => (
@@ -755,7 +755,7 @@ export default function AdminPage(){
                       <td className="text-right">
                         <button type="button" onClick={()=>setBillingExpandedId(billingExpandedId === inc.id ? null : inc.id)}
                                 className="px-2 py-1 rounded-lg border border-[var(--border)] text-xs">
-                          {billingExpandedId === inc.id ? 'Event-Log zuklappen' : 'Event-Log anzeigen'}
+                          {billingExpandedId === inc.id ? 'Collapse event log' : 'Show event log'}
                         </button>
                       </td>
                     </tr>
@@ -765,7 +765,7 @@ export default function AdminPage(){
             )}
             {billingItems.length > 0 && billingExpandedId && (
               <div className="mt-4 p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
-                <div className="text-xs font-medium text-[var(--muted)] mb-2">Event-Log: {billingItems.find(i => i.id === billingExpandedId)?.title ?? billingExpandedId}</div>
+                <div className="text-xs font-medium text-[var(--muted)] mb-2">Event log: {billingItems.find(i => i.id === billingExpandedId)?.title ?? billingExpandedId}</div>
                 <ul className="space-y-2 text-xs">
                   {(billingItems.find(i => i.id === billingExpandedId)?.eventLog ?? []).map((e, idx) => (
                     <li key={idx} className="flex flex-wrap gap-2">
@@ -783,19 +783,19 @@ export default function AdminPage(){
 
       {tab==='settings' && (
         <div className="mt-4 rounded-2xl border border-[var(--border)] p-4 max-w-xl">
-          <div className="font-semibold mb-2">App-Parameter &amp; Einstellungen</div>
-          <p className="text-xs text-[var(--muted)] mb-4">Steuern Sie Anzeigename, Session-Dauer und Standard-Rolle. (Demo: In-Memory; Produktion später über DB/Env.)</p>
+          <div className="font-semibold mb-2">App parameters &amp; settings</div>
+          <p className="text-xs text-[var(--muted)] mb-4">Control display name, session duration, and default role. (Demo: in-memory; production via DB/env later.)</p>
           {settingsLoading ? (
-            <div className="text-sm text-[var(--muted)]">Laden…</div>
+            <div className="text-sm text-[var(--muted)]">Loading…</div>
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="text-xs text-[var(--muted)]">App-Name (Anzeige)</label>
+                <label className="text-xs text-[var(--muted)]">App name (display)</label>
                 <input value={settings.appName} onChange={e=>setSettings(s=>({...s, appName:e.target.value}))}
                        className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
               </div>
               <div>
-                <label className="text-xs text-[var(--muted)]">Session-Dauer (Minuten)</label>
+                <label className="text-xs text-[var(--muted)]">Session duration (minutes)</label>
                 <input type="number" min={5} max={1440} value={settings.sessionDurationMinutes}
                        onChange={e=>setSettings(s=>({...s, sessionDurationMinutes:Number(e.target.value)||30}))}
                        className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
@@ -826,13 +826,13 @@ export default function AdminPage(){
                 </div>
               </div>
               <div>
-                <label className="text-xs text-[var(--muted)]">Admin-Hinweis (optional, z. B. für Wartung)</label>
+                <label className="text-xs text-[var(--muted)]">Admin notice (optional, e.g. for maintenance)</label>
                 <textarea value={settings.adminNotice} onChange={e=>setSettings(s=>({...s, adminNotice:e.target.value}))}
                           rows={2} className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
               </div>
               <button onClick={saveSettings} disabled={settingsSaving}
                       className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white disabled:opacity-50">
-                {settingsSaving ? 'Speichern…' : 'Einstellungen speichern'}
+                {settingsSaving ? 'Saving…' : 'Save settings'}
               </button>
             </div>
           )}

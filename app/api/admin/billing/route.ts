@@ -21,7 +21,7 @@ function getMonthKey(iso: string): string {
 export async function GET(req: NextRequest) {
   const role = getActorRole(req)
   if (role !== 'admin' && role !== 'superadmin') {
-    return NextResponse.json({ error: 'Nur für Admin/SuperAdmin' }, { status: 403 })
+    return NextResponse.json({ error: 'Admin/SuperAdmin only' }, { status: 403 })
   }
 
   const { items, integrations } = await getMergedIncidents({

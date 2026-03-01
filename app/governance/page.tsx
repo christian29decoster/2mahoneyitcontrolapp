@@ -140,9 +140,9 @@ export default function GovernancePage() {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-[var(--text)]">SOC-Compliance & Handbook</h3>
-            <p className="text-sm text-[var(--muted)]">Fragebogen für neue und Bestandskunden – Compliance- und Handbook-Informationen für das SOC abfragen und daraus Ihr SOC-Handbook erzeugen.</p>
+            <p className="text-sm text-[var(--muted)]">Questionnaire for new and existing customers – collect compliance and handbook information for the SOC and generate your SOC handbook.</p>
           </div>
-          <span className="text-sm text-[var(--primary)] shrink-0">Öffnen →</span>
+          <span className="text-sm text-[var(--primary)] shrink-0">Open →</span>
         </Card>
       </Link>
 

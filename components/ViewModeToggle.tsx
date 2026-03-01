@@ -21,7 +21,7 @@ export default function ViewModeToggle() {
     <div
       className="fixed bottom-6 left-6 z-30 flex rounded-2xl border border-[var(--border)] bg-[var(--surface-elev)] shadow-lg overflow-hidden"
       role="group"
-      aria-label="Anzeige: App oder Desktop"
+      aria-label="Display: App or Desktop"
     >
       <button
         type="button"
@@ -32,7 +32,7 @@ export default function ViewModeToggle() {
             : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]'
         }`}
         aria-pressed={viewMode === 'app'}
-        aria-label="Als App (iPhone) anzeigen"
+        aria-label="Show as app (iPhone)"
       >
         <Smartphone size={16} />
         App
@@ -46,7 +46,7 @@ export default function ViewModeToggle() {
             : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]'
         }`}
         aria-pressed={viewMode === 'desktop'}
-        aria-label="Als Desktop (Browser) anzeigen"
+        aria-label="Show as desktop (browser)"
       >
         <Monitor size={16} />
         Desktop

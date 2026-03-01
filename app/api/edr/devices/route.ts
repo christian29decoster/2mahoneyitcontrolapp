@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       source: 'demo',
       devices: [],
-      error: 'EDR/Sophos nicht konfiguriert (SOPHOS_CLIENT_ID, SOPHOS_CLIENT_SECRET, SOPHOS_TENANT_ID oder Tenant-Konnektor).',
+      error: 'EDR/Sophos not configured (SOPHOS_CLIENT_ID, SOPHOS_CLIENT_SECRET, SOPHOS_TENANT_ID or tenant connector).',
     })
   }
 
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     const devices = await getSophosPartnerEndpointsTotal(token, sophosTenantOrPartnerId)
     return NextResponse.json({ source: 'edr', devices, error: null, tenantId: queryTenantId ?? sessionTenantId ?? undefined })
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'EDR-Anfrage fehlgeschlagen'
+    const message = e instanceof Error ? e.message : 'EDR request failed'
     console.error('Sophos EDR devices error:', e)
     return NextResponse.json(
       { source: 'demo', devices: [], error: message },

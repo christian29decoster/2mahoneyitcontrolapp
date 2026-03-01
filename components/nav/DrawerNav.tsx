@@ -112,7 +112,7 @@ export default function DrawerNav({
             type="button"
             onClick={handleUnpin}
             className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
-            aria-label="Menü loslösen"
+            aria-label="Unpin menu"
           >
             <PinOff size={14} />
             Unpin
@@ -123,7 +123,7 @@ export default function DrawerNav({
               type="button"
               onClick={handlePin}
               className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
-              aria-label="Menü anpinnen"
+              aria-label="Pin menu"
             >
               <Pin size={14} />
               Pin
@@ -147,7 +147,7 @@ export default function DrawerNav({
           <SectionTitle>AI & Growth</SectionTitle>
           <NavLink href="/mahoney-grow" label="AI Growth & Risk Intelligence" icon={LineChart} onClick={handleNavClick} />
 
-          <SectionTitle>Marktplatz (Einkauf)</SectionTitle>
+          <SectionTitle>Marketplace (Purchase)</SectionTitle>
           <NavLink href="/marketplace" label="Marketplace" icon={ShoppingBag} onClick={handleNavClick} />
           <NavLink href="/upselling" label="Enhance / Upgrades" icon={TrendingUp} onClick={handleNavClick} />
 
@@ -160,10 +160,10 @@ export default function DrawerNav({
 
           {showAdminLink && (
             <>
-              <SectionTitle>App-Verwaltung</SectionTitle>
+              <SectionTitle>App Management</SectionTitle>
               <Link href="/admin" onClick={handleNavClick} className={linkClass}>
                 <Wrench size={18} />
-                <span className="text-sm">Admin (User, Partner, Einstellungen)</span>
+                <span className="text-sm">Admin (User, Partner, Settings)</span>
               </Link>
             </>
           )}
@@ -171,7 +171,7 @@ export default function DrawerNav({
 
       <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-3">
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] mb-1.5">Darstellung</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] mb-1.5">Display</div>
           <ThemeToggle />
         </div>
         <div className="flex rounded-xl border border-[var(--border)] overflow-hidden">
@@ -179,7 +179,7 @@ export default function DrawerNav({
             type="button"
             onClick={() => { h.impact('light'); viewModeSet('app'); if (!isPinnedSidebar) onOpenChange(false) }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium ${viewMode === 'app' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:bg-[var(--surface-2)]'}`}
-            aria-label="Als App anzeigen"
+            aria-label="Show as app"
           >
             <Smartphone size={14} />
             App
@@ -188,7 +188,7 @@ export default function DrawerNav({
             type="button"
             onClick={() => { h.impact('light'); viewModeSet('desktop'); if (!isPinnedSidebar) onOpenChange(false) }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium ${viewMode === 'desktop' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:bg-[var(--surface-2)]'}`}
-            aria-label="Als Desktop anzeigen"
+            aria-label="Show as desktop"
           >
             <Monitor size={14} />
             Desktop

@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const existing = body?.username ? findUser(body.username) : undefined;
   if (existing && isSuperAdminUser(existing) && !canModifyTarget(actorRole, true)) {
-    return NextResponse.json({ error: 'SuperAdmin darf nur von SuperAdmin bearbeitet werden.' }, { status: 403 });
+    return NextResponse.json({ error: 'SuperAdmin can only be edited by SuperAdmin.' }, { status: 403 });
   }
   const saved = upsertUser(body);
   return NextResponse.json({ item: saved });
@@ -47,7 +47,7 @@ export async function PATCH(req: NextRequest) {
   if (body?.op === 'toggle' && body?.id !== undefined) {
     const target = findUserById(body.id);
     if (target && isSuperAdminUser(target) && !canModifyTarget(actorRole, true)) {
-      return NextResponse.json({ error: 'SuperAdmin darf nicht deaktiviert werden.' }, { status: 403 });
+      return NextResponse.json({ error: 'SuperAdmin cannot be deactivated.' }, { status: 403 });
     }
     const updated = toggleActive(body.id, !!body.active);
     return NextResponse.json({ item: updated });
@@ -63,7 +63,7 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
   const target = findUserById(id);
   if (target && isSuperAdminUser(target) && !canModifyTarget(actorRole, true)) {
-    return NextResponse.json({ error: 'SuperAdmin darf nicht gelöscht werden.' }, { status: 403 });
+    return NextResponse.json({ error: 'SuperAdmin cannot be deleted.' }, { status: 403 });
   }
   removeUser(id);
   return NextResponse.json({ ok: true });
