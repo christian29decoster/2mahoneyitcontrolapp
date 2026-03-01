@@ -169,6 +169,11 @@ export default function IncidentsPage() {
           ) : (integrations.autotask.configured || integrations.rmm.configured || integrations.sophos.configured) ? (
             <p className="text-[var(--muted)]">
               Live-Verbindungen aktiv, derzeit keine Incidents von Autotask, RMM oder Sophos. Nur lokale/Demo-Einträge werden angezeigt.
+              {integrations.sophos.configured && integrations.sophos.count === 0 && (
+                <span className="block mt-1 text-amber-400/90">
+                  Sophos/EDR ist verbunden; in den letzten 30 Tagen wurden keine Alerts geliefert. Prüfen Sie SOPHOS_TENANT_ID (UUID) oder Partner-ID sowie Berechtigungen in Sophos Central (Alerts-API).
+                </span>
+              )}
             </p>
           ) : (
             <p className="text-[var(--muted)]">

@@ -22,7 +22,7 @@ function TabButton({active, children, onClick}:{active:boolean; children:React.R
 }
 
 export default function AdminPage(){
-  const [tab, setTab] = useState<'users'|'audit'|'partners'|'tenants'|'settings'>('users');
+  const [tab, setTab] = useState<'users'|'audit'|'partners'|'tenants'|'billing'|'settings'>('users');
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [audit, setAudit] = useState<AuditItem[]>([]);
@@ -51,6 +51,13 @@ export default function AdminPage(){
   const [settings, setSettings] = useState<SettingsForm>({ appName: '', sessionDurationMinutes: 30, defaultRoleForNewUsers: 'demo', adminNotice: '', logoDataUrl: '' });
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
+
+  type BillingItem = { id: string; title: string; status: string; source?: string; loggedAtISO: string; tenantId?: string; eventLog?: Array<{ atISO: string; message: string; source?: string }> };
+  type CostRefs = { marketplaceLink: string; mdu: { name: string; description?: string; tiers: { label: string; perThousandUsd: number }[] }; socTiers: { id: string; name: string; price: string }[] };
+  const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
+  const [billingCostRefs, setBillingCostRefs] = useState<CostRefs | null>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [billingExpandedId, setBillingExpandedId] = useState<string | null>(null);
 
   async function loadAll(){
     setLoading(true);
@@ -131,6 +138,23 @@ export default function AdminPage(){
     e.target.value = '';
   }
   useEffect(() => { if (tab === 'settings') loadSettings(); }, [tab]);
+
+  async function loadBilling() {
+    setBillingLoading(true);
+    try {
+      const r = await fetch('/api/admin/billing');
+      if (!r.ok) { setBillingItems([]); setBillingCostRefs(null); return; }
+      const j = await r.json();
+      setBillingItems(j.items ?? []);
+      setBillingCostRefs(j.costRefs ?? null);
+    } catch {
+      setBillingItems([]);
+      setBillingCostRefs(null);
+    } finally {
+      setBillingLoading(false);
+    }
+  }
+  useEffect(() => { if (tab === 'billing') loadBilling(); }, [tab]);
 
   async function saveSettings() {
       setSettingsSaving(true);
@@ -321,6 +345,7 @@ export default function AdminPage(){
           <TabButton active={tab==='audit'} onClick={()=>setTab('audit')}>Login Activity</TabButton>
           <TabButton active={tab==='partners'} onClick={()=>setTab('partners')}>Partner</TabButton>
           <TabButton active={tab==='tenants'} onClick={()=>setTab('tenants')}>Tenants</TabButton>
+          <TabButton active={tab==='billing'} onClick={()=>setTab('billing')}>Abrechnungsbereich</TabButton>
           <TabButton active={tab==='settings'} onClick={()=>setTab('settings')}>Einstellungen</TabButton>
         </div>
       </div>
@@ -613,6 +638,88 @@ export default function AdminPage(){
                   ))}
                 </tbody>
               </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {tab==='billing' && (
+        <div className="mt-4 space-y-4">
+          <div className="rounded-2xl border border-[var(--border)] p-4">
+            <div className="font-semibold mb-2">Kostenreferenzen (Marketplace)</div>
+            <p className="text-xs text-[var(--muted)] mb-3">
+              Die Abrechnung basiert auf gewerteten Incidents (Resolved/Closed) und den Event-Daten aus RMM, EDR/Sophos und Autotask. Die konkreten Kosten und Tarife finden Sie im Marketplace.
+            </p>
+            {billingCostRefs && (
+              <>
+                <div className="mb-3">
+                  <span className="text-sm font-medium text-[var(--text)]">{billingCostRefs.mdu.name}</span>
+                  {billingCostRefs.mdu.description && <p className="text-xs text-[var(--muted)]">{billingCostRefs.mdu.description}</p>}
+                  <ul className="text-xs text-[var(--muted)] mt-1 list-disc list-inside">
+                    {billingCostRefs.mdu.tiers.map((t, i) => (
+                      <li key={i}>{t.label}{t.perThousandUsd > 0 ? ` · $${t.perThousandUsd}/1k Events` : ' inklusive'}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mb-3">
+                  <span className="text-sm font-medium text-[var(--text)]">SOC-Tarife</span>
+                  <ul className="text-xs text-[var(--muted)] mt-1 space-y-0.5">
+                    {billingCostRefs.socTiers.map((s) => (
+                      <li key={s.id}>{s.name}: {s.price}</li>
+                    ))}
+                  </ul>
+                </div>
+                <a href={billingCostRefs.marketplaceLink} className="text-sm text-[var(--primary)] hover:underline">Zum Marketplace →</a>
+              </>
+            )}
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
+            <div className="font-semibold mb-2">Gewertete Incidents (Resolved/Closed) – letzte 90 Tage</div>
+            <p className="text-xs text-[var(--muted)] mb-3">Alle gezogenen Events und Daten pro Incident sind unten einsehbar (Event-Log aufklappen). Grundlage für die Abrechnung.</p>
+            {billingLoading ? (
+              <div className="text-sm text-[var(--muted)]">Laden…</div>
+            ) : billingItems.length === 0 ? (
+              <div className="text-sm text-[var(--muted)]">Keine gewerteten Incidents (Resolved/Closed) in den letzten 90 Tagen.</div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="text-[var(--muted)]">
+                  <tr><th className="text-left py-2">Incident</th><th>Quelle</th><th>Status</th><th>Tenant</th><th>Events</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {billingItems.map((inc) => (
+                    <tr key={inc.id} className="border-t border-[var(--border)]">
+                      <td className="py-2">
+                        <div className="font-medium text-[var(--text)]">{inc.title}</div>
+                        <div className="text-xs text-[var(--muted)]">{inc.id} · {new Date(inc.loggedAtISO).toLocaleString()}</div>
+                      </td>
+                      <td className="text-center">{inc.source === 'rmm' ? 'RMM' : inc.source === 'edr' ? 'EDR' : inc.id?.startsWith('autotask-') ? 'Autotask' : inc.source ?? '—'}</td>
+                      <td className="text-center">{inc.status}</td>
+                      <td className="text-center">{inc.tenantId ?? '—'}</td>
+                      <td className="text-center">{(inc.eventLog?.length ?? 0)}</td>
+                      <td className="text-right">
+                        <button type="button" onClick={()=>setBillingExpandedId(billingExpandedId === inc.id ? null : inc.id)}
+                                className="px-2 py-1 rounded-lg border border-[var(--border)] text-xs">
+                          {billingExpandedId === inc.id ? 'Event-Log zuklappen' : 'Event-Log anzeigen'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {billingItems.length > 0 && billingExpandedId && (
+              <div className="mt-4 p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                <div className="text-xs font-medium text-[var(--muted)] mb-2">Event-Log: {billingItems.find(i => i.id === billingExpandedId)?.title ?? billingExpandedId}</div>
+                <ul className="space-y-2 text-xs">
+                  {(billingItems.find(i => i.id === billingExpandedId)?.eventLog ?? []).map((e, idx) => (
+                    <li key={idx} className="flex flex-wrap gap-2">
+                      <span className="text-[var(--muted)]">{new Date(e.atISO).toLocaleString()}</span>
+                      <span className="text-[var(--text)]">{e.message}</span>
+                      {e.source && <span className="px-1.5 py-0.5 rounded bg-[var(--surface)]">{e.source}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
         </div>
