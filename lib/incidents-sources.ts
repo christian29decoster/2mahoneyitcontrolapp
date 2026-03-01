@@ -128,19 +128,23 @@ export async function fetchIncidentsFromRmm(tenantConfig: RmmIncidentsConfig = n
 /** Optional: Sophos Tenant- oder Partner-ID aus Tenant-Konnektor. */
 export type SophosIncidentsConfig = { tenantOrPartnerId: string } | null
 
-/** Incidents aus Sophos (Alerts). Nutzt optional tenantConfig.tenantOrPartnerId, sonst Env SOPHOS_TENANT_ID. */
+/** Incidents aus Sophos (Alerts). Nutzt optional tenantConfig.tenantOrPartnerId, sonst Env SOPHOS_TENANT_ID oder SOPHOS_PARTNER_ID.
+ * Wenn SOPHOS_USE_PARTNER_API=true oder SOPHOS_PARTNER_ID gesetzt ist, wird die Partner-API genutzt (alle Tenants → Alerts). */
 export async function fetchIncidentsFromSophos(tenantConfig: SophosIncidentsConfig = null): Promise<IncidentRecord[]> {
   const clientId = process.env.SOPHOS_CLIENT_ID
   const clientSecret = process.env.SOPHOS_CLIENT_SECRET
-  const tenantId = tenantConfig?.tenantOrPartnerId ?? process.env.SOPHOS_TENANT_ID
-  if (!clientId || !clientSecret || !tenantId) return []
+  const usePartnerApi = process.env.SOPHOS_USE_PARTNER_API === 'true' || !!process.env.SOPHOS_PARTNER_ID
+  const partnerId = tenantConfig?.tenantOrPartnerId ?? process.env.SOPHOS_PARTNER_ID ?? process.env.SOPHOS_TENANT_ID
+  const tenantId = tenantConfig?.tenantOrPartnerId ?? (!usePartnerApi ? process.env.SOPHOS_TENANT_ID : undefined)
+  const idToUse = usePartnerApi ? partnerId : tenantId
+  if (!clientId || !clientSecret || !idToUse) return []
 
   try {
     const token = await getSophosAccessToken(clientId, clientSecret)
-    const isPartner = tenantId.length > 0 && !tenantId.includes('-')
+    const isPartner = usePartnerApi || (idToUse.length > 0 && !idToUse.includes('-'))
     const incidents: IncidentRecord[] = []
     if (isPartner) {
-      const { alerts } = await getSophosPartnerAlertsList(token, tenantId, 150)
+      const { alerts } = await getSophosPartnerAlertsList(token, idToUse, 150)
       alerts.forEach((a, i) => {
         const tenantIdA = (a as { _tenantId?: string })._tenantId
         const tenantNameA = (a as { _tenantName?: string })._tenantName
@@ -150,7 +154,7 @@ export async function fetchIncidentsFromSophos(tenantConfig: SophosIncidentsConf
         incidents.push(mapSophosAlertToIncident(clean, i, tenantIdA, tenantNameA))
       })
     } else {
-      const result = await getSophosAlertsForTenant(token, tenantId, undefined, { maxAlerts: 150 })
+      const result = await getSophosAlertsForTenant(token, idToUse, undefined, { maxAlerts: 150 })
       result.alerts.forEach((a, i) => {
         incidents.push(mapSophosAlertToIncident(a, i, result.tenantId, result.tenantName))
       })
