@@ -53,11 +53,14 @@ export default function AdminPage(){
   const [settingsSaving, setSettingsSaving] = useState(false);
 
   type BillingItem = { id: string; title: string; status: string; source?: string; loggedAtISO: string; tenantId?: string; eventLog?: Array<{ atISO: string; message: string; source?: string }> };
-  type CostRefs = { marketplaceLink: string; mdu: { name: string; description?: string; tiers: { label: string; perThousandUsd: number }[] }; socTiers: { id: string; name: string; price: string }[] };
+  type CostRefs = { marketplaceLink: string; schwellwertEvents?: number; mdu: { name: string; description?: string; tiers: { label: string; perThousandUsd: number }[] }; socTiers: { id: string; name: string; price: string }[] };
+  type MonthlyTotal = { month: string; label: string; incidentsCount: number; eventsCount: number; thresholdExceeded: boolean; thresholdEvents: number; mduCostUsd: number; mduSummary: string };
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
+  const [billingMonthlyTotals, setBillingMonthlyTotals] = useState<MonthlyTotal[]>([]);
   const [billingCostRefs, setBillingCostRefs] = useState<CostRefs | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
   const [billingExpandedId, setBillingExpandedId] = useState<string | null>(null);
+  const [billingCopyDone, setBillingCopyDone] = useState(false);
 
   async function loadAll(){
     setLoading(true);
@@ -146,9 +149,11 @@ export default function AdminPage(){
       if (!r.ok) { setBillingItems([]); setBillingCostRefs(null); return; }
       const j = await r.json();
       setBillingItems(j.items ?? []);
+      setBillingMonthlyTotals(j.monthlyTotals ?? []);
       setBillingCostRefs(j.costRefs ?? null);
     } catch {
       setBillingItems([]);
+      setBillingMonthlyTotals([]);
       setBillingCostRefs(null);
     } finally {
       setBillingLoading(false);
@@ -670,6 +675,57 @@ export default function AdminPage(){
                   </ul>
                 </div>
                 <a href={billingCostRefs.marketplaceLink} className="text-sm text-[var(--primary)] hover:underline">Zum Marketplace →</a>
+              </>
+            )}
+          </div>
+          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
+            <div className="font-semibold mb-2">Monatliche Kumulation (für Rechnung)</div>
+            <p className="text-xs text-[var(--muted)] mb-3">Pro Monat: Anzahl Meldungen (Incidents), Events-Summe, Schwellwertprüfung (1M Events inklusive) und MDU-Kosten. Am Monatsende für die Rechnung nutzbar.</p>
+            {billingLoading ? (
+              <div className="text-sm text-[var(--muted)]">Laden…</div>
+            ) : billingMonthlyTotals.length === 0 ? (
+              <div className="text-sm text-[var(--muted)]">Keine Daten für monatliche Kumulation (keine gewerteten Incidents in den letzten 90 Tagen).</div>
+            ) : (
+              <>
+                <table className="w-full text-sm mb-3">
+                  <thead className="text-[var(--muted)]">
+                    <tr><th className="text-left py-2">Monat</th><th className="text-right">Meldungen</th><th className="text-right">Events</th><th className="text-center">Schwellwert (1M)</th><th className="text-right">MDU (USD)</th></tr>
+                  </thead>
+                  <tbody>
+                    {billingMonthlyTotals.map((row) => (
+                      <tr key={row.month} className="border-t border-[var(--border)]">
+                        <td className="py-2 font-medium text-[var(--text)]">{row.label}</td>
+                        <td className="text-right">{row.incidentsCount}</td>
+                        <td className="text-right">{row.eventsCount.toLocaleString()}</td>
+                        <td className="text-center">
+                          {row.thresholdExceeded ? (
+                            <span className="px-2 py-1 rounded-lg text-xs bg-amber-600/20 text-amber-300">überschritten</span>
+                          ) : (
+                            <span className="px-2 py-1 rounded-lg text-xs bg-emerald-600/20 text-emerald-300">unter 1M</span>
+                          )}
+                        </td>
+                        <td className="text-right">{row.mduCostUsd > 0 ? `$${row.mduCostUsd.toFixed(2)}` : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const lines = ['Abrechnungsdaten (Monatliche Kumulation)', '—'];
+                      billingMonthlyTotals.forEach((row) => {
+                        lines.push(`${row.label}: ${row.incidentsCount} Meldungen, ${row.eventsCount.toLocaleString()} Events, Schwellwert ${row.thresholdExceeded ? 'überschritten' : 'unter 1M'}, MDU: ${row.mduCostUsd > 0 ? `$${row.mduCostUsd.toFixed(2)}` : '0'}`);
+                      });
+                      const text = lines.join('\n');
+                      navigator.clipboard.writeText(text).then(() => { setBillingCopyDone(true); setTimeout(() => setBillingCopyDone(false), 2000); }).catch(() => alert('Kopieren fehlgeschlagen'));
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-sm bg-[var(--surface-2)] hover:bg-[var(--surface)]"
+                  >
+                    {billingCopyDone ? 'Kopiert!' : 'Für Rechnung kopieren'}
+                  </button>
+                  <span className="text-xs text-[var(--muted)]">Kumulierte Monatswerte als Text (in Rechnung oder E-Mail einfügen).</span>
+                </div>
               </>
             )}
           </div>
