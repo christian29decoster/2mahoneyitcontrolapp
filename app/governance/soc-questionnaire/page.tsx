@@ -187,7 +187,7 @@ export default function SocQuestionnairePage() {
     setIsAdmin(['admin', 'superadmin'].includes(getRole()))
   }, [])
 
-  // Admin: Locations aus Datto RMM laden (für Dropdown Kunde/Location)
+  // Admin: Companies aus Datto RMM laden (RMM-Feld "Location" = Company; für Dropdown)
   useEffect(() => {
     if (!isAdmin) return
     setLocationsLoading(true)
@@ -200,7 +200,7 @@ export default function SocQuestionnairePage() {
       .catch(() => setLocationsLoading(false))
   }, [isAdmin])
 
-  // Admin: Bei Location-Auswahl Geräte für diesen Kunden laden
+  // Admin: Bei Company-Auswahl Geräte für diese Company laden
   useEffect(() => {
     if (!isAdmin || !selectedLocation) {
       setDevicesForLocation([])
@@ -256,11 +256,11 @@ export default function SocQuestionnairePage() {
         </button>
       </div>
 
-      {/* Admin: Dropdown Kunde/Location (Datto RMM) – Filter für Geräte im Formular */}
+      {/* Admin: Dropdown Company (Datto RMM liefert "Location" = Kunde/Company) – Filter für Geräte im Formular */}
       {isAdmin && (
         <Card className="p-4 mb-6">
           <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)] mb-2">
-            Kunde / Location (nur Admin) – Einschränkung auf Geräte aus Devices & Staff (Datto RMM)
+            Company (nur Admin) – Einschränkung auf Geräte aus Devices & Staff (Datto RMM: Location = Company)
           </label>
           <select
             value={selectedLocation ?? ''}
@@ -268,7 +268,7 @@ export default function SocQuestionnairePage() {
             disabled={locationsLoading}
             className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm text-[var(--text)]"
           >
-            <option value="">— Alle Locations / Keine Filterung —</option>
+            <option value="">— Alle Companies / Keine Filterung —</option>
             {locations.map((loc) => (
               <option key={loc} value={loc}>{loc}</option>
             ))}
@@ -277,12 +277,12 @@ export default function SocQuestionnairePage() {
             <div className="mt-4">
               <h4 className="text-sm font-medium text-[var(--text)] mb-2 flex items-center gap-2">
                 <Monitor size={16} />
-                Geräte für diesen Kunden ({selectedLocation}) – Basis für SOC-Bewertung
+                Geräte für diese Company ({selectedLocation}) – Basis für SOC-Bewertung
               </h4>
               {devicesLoading ? (
                 <p className="text-sm text-[var(--muted)]">Lade Geräte…</p>
               ) : devicesForLocation.length === 0 ? (
-                <p className="text-sm text-[var(--muted)]">Keine Geräte für diese Location in Datto RMM gefunden.</p>
+                <p className="text-sm text-[var(--muted)]">Keine Geräte für diese Company in Datto RMM gefunden.</p>
               ) : (
                 <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
                   <table className="w-full text-sm">
@@ -313,7 +313,7 @@ export default function SocQuestionnairePage() {
                     </p>
                   )}
                   <p className="text-xs text-[var(--muted)] px-3 py-2 bg-[var(--surface-2)]">
-                    Gesamt: {devicesForLocation.length} Gerät(e) für die SOC-Compliance-Bewertung dieser Location.
+                    Gesamt: {devicesForLocation.length} Gerät(e) für die SOC-Compliance-Bewertung dieser Company.
                   </p>
                 </div>
               )}

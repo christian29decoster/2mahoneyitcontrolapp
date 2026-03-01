@@ -20,8 +20,8 @@ function getDeviceLocation(device: { location?: string | { name?: string }; rmmD
 /**
  * GET /api/rmm/devices
  * Returns devices from Datto RMM. Optional ?tenantId= – dann RMM-Konnektor des Tenants (sonst Env).
- * ?locationsOnly=1: returns { locations: string[] } (unique Location/Site-Namen für Admin-Dropdown).
- * ?location=Name: filtert Geräte auf diese Location (Kunde, z. B. "S&Z Elektronik GmbH").
+ * ?locationsOnly=1: returns { locations: string[] } (unique Company names; RMM liefert diese als "Location"/Site).
+ * ?location=Name: filtert Geräte auf diese Company (Kunde, z. B. "S&Z Elektronik GmbH"; RMM-Feld = Location).
  * ?debug=1: returns raw first-page API response for pagination troubleshooting.
  */
 export async function GET(request: NextRequest) {

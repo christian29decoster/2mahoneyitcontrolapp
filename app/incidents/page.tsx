@@ -171,7 +171,7 @@ export default function IncidentsPage() {
               Live-Verbindungen aktiv, derzeit keine Incidents von Autotask, RMM oder Sophos. Nur lokale/Demo-Einträge werden angezeigt.
               {integrations.sophos.configured && integrations.sophos.count === 0 && (
                 <span className="block mt-1 text-amber-400/90">
-                  Sophos/EDR ist verbunden; in den letzten 30 Tagen wurden keine Alerts geliefert. Bei <strong>Partner-Accounts</strong> (Partner-ID aus dem Sophos-Profil): <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_USE_PARTNER_API=true</code> setzen und <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_TENANT_ID</code> = Partner-ID. Sonst: Tenant-UUID und Berechtigungen in Sophos Central prüfen.
+                  Sophos/EDR ist verbunden; in den letzten 30 Tagen wurden keine Alerts geliefert. Bei <strong>Partner-Accounts</strong> (Partner-ID aus dem Sophos-Profil): <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_USE_PARTNER_API=true</code> setzen und <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_TENANT_ID</code> = Partner-ID. EU-Region: optional <code className="text-xs bg-[var(--surface-2)] px-1 rounded">SOPHOS_API_BASE=https://api-eu01.central.sophos.com</code>. Admin-Diagnose: <a href="/api/admin/sophos-status" target="_blank" rel="noopener noreferrer" className="underline">/api/admin/sophos-status</a> (zeigt Tenants &amp; Alerts).
                 </span>
               )}
             </p>

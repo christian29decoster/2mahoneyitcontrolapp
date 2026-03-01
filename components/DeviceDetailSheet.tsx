@@ -544,7 +544,7 @@ export function DeviceDetailSheet({
               </div>
             )}
             <div>
-              <p className="text-[var(--muted)]">Location</p>
+              <p className="text-[var(--muted)]">Company</p>
               <p className="text-[var(--text)]">
                 {typeof device.location === 'string' ? device.location : device.location?.name ?? '–'}
               </p>
@@ -605,9 +605,9 @@ export function DeviceDetailSheet({
         </div>
         )}
 
-        {/* Location Map */}
+        {/* Standort (Karte) – geografisch; Company-Wert siehe oben */}
         <div>
-          <h4 className="font-medium text-[var(--text)] mb-3">Location</h4>
+          <h4 className="font-medium text-[var(--text)] mb-3">Standort (Karte)</h4>
           {locationCoords ? (
             <MiniMap lat={locationCoords.lat} lng={locationCoords.lng} name={locationCoords.name} />
           ) : (

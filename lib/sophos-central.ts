@@ -6,7 +6,7 @@
  */
 
 const SOPHOS_TOKEN_URL = 'https://id.sophos.com/api/v2/oauth2/token'
-const SOPHOS_API_BASE = 'https://api.central.sophos.com'
+const SOPHOS_API_BASE = process.env.SOPHOS_API_BASE || 'https://api.central.sophos.com'
 const SOPHOS_PARTNER_TENANTS_PATH = '/partner/v1/tenants'
 const SOPHOS_ALERTS_PATH = '/common/v1/alerts'
 const SOPHOS_SIEM_EVENTS_PATH = '/siem/v1/events'
@@ -182,7 +182,7 @@ export async function getSophosAlertsCountForTenant(
       throw new Error(`Sophos alerts: ${res.status} ${text.slice(0, 200)}`)
     }
     const data = await res.json()
-    const items = data.items ?? data.alerts ?? []
+    const items = data.items ?? data.alerts ?? data.data ?? []
     count += Array.isArray(items) ? items.length : 0
     const pages = data.pages as { total?: number; current?: number } | undefined
     const total = pages?.total ?? 0
@@ -225,15 +225,16 @@ export async function getSophosAlertsForTenant(
       throw new Error(`Sophos alerts: ${res.status} ${text.slice(0, 200)}`)
     }
     const data = await res.json()
-    const items = (data.items ?? data.alerts ?? []) as Record<string, unknown>[]
-    for (const a of items) {
+    const items = (data.items ?? data.alerts ?? data.data ?? []) as Record<string, unknown>[]
+    const list = Array.isArray(items) ? items : []
+    for (const a of list) {
       if (all.length >= maxAlerts) break
       if (a && typeof a === 'object') all.push(a)
     }
     const pages = data.pages as { total?: number; current?: number } | undefined
     const total = pages?.total ?? 0
     if (total > 0 && page >= total) break
-    if (!items.length || items.length < SOPHOS_ALERTS_PAGE_SIZE) break
+    if (!list.length || list.length < SOPHOS_ALERTS_PAGE_SIZE) break
     page += 1
     await new Promise((r) => setTimeout(r, 50))
   }

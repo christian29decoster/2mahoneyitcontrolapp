@@ -44,11 +44,11 @@
 | Modul | Kurzbeschreibung | Zielgruppe / Nutzen |
 |-------|------------------|----------------------|
 | **Dashboard** | KPIs, Alerts, Service-Cockpit, Nutzung, Karten- und Chart-Ansichten | Einheitlicher Einstieg; Technik und Geschäft auf einen Blick |
-| **Devices & Staff** | Geräte- und Standortübersicht aus **Datto RMM** und **Sophos EDR**, filterbar nach Tenant/Location | MSP/SOC: Welche Geräte welchem Kunden zugeordnet sind; einheitliche „Location“ = Kunde (z. B. S&Z Elektronik GmbH) |
+| **Devices & Staff** | Geräte- und Standortübersicht aus **Datto RMM** und **Sophos EDR**, filterbar nach Tenant/Company | MSP/SOC: Welche Geräte welchem Kunden zugeordnet sind; in der App **Company** (Datto RMM liefert das als „Location“) |
 | **Company** | Mandanten-/Unternehmensdaten, Standorte, Zertifikate, Cloud-Security | Governance und Compliance-Kontext pro Organisation |
 | **Cloud Security** | Integration Cloud-/SaaS-Sicherheit (z. B. AWS, Kontext für Incidents) | Erweiterung des Risikobildes um Cloud-Assets |
 | **Governance Center** | Compliance-Score, Risiko-Index, Audit-Readiness, Control-Mapping, Heatmaps (ISO 27001, NIST CSF, BSI, NIS2, SOC 2) | Führung und Audit: Wo stehen wir? Wo sind Lücken? |
-| **SOC-Compliance & Handbook** | **Fragebogen** (wirtschaftspsychologisch aufbereitet) für neugewonnene und Bestandskunden; Abbildung von ISO 27001, NIS2, GDPR, SOC 2; **Handbook-Generierung** aus den Antworten; für **Admins**: **Dropdown „Location“** (Datto RMM) – Auswahl des Kunden, Anzeige nur der Geräte dieser Location für Bewertung | SOC-Anbieter und MSPs: standardisiertes Onboarding, dokumentierte Compliance, gerätebasierte Bewertung pro Kunde |
+| **SOC-Compliance & Handbook** | **Fragebogen** (wirtschaftspsychologisch aufbereitet) für neugewonnene und Bestandskunden; Abbildung von ISO 27001, NIS2, GDPR, SOC 2; **Handbook-Generierung** aus den Antworten; für **Admins**: **Dropdown „Company“** (Daten aus Datto RMM, Feld „Location“ = Kunde) – Auswahl des Kunden, Anzeige nur der Geräte dieser Company für Bewertung | SOC-Anbieter und MSPs: standardisiertes Onboarding, dokumentierte Compliance, gerätebasierte Bewertung pro Kunde |
 | **Incidents** | **Vereinheitlichte** Incidents aus **Autotask**, **Datto RMM** (offen + gelöst) und **Sophos**; Filter „letzte 30 Tage“; **Event-Logs** pro Incident (Grundlage Vergoldung); Quellen-Badge (RMM, EDR, Autotask) | Ein einheitlicher Incidents-Bestand für alle Quellen; klare Zuordnung und Abrechenbarkeit |
 | **Financials** | Nutzungsbasierte Kosten (z. B. Events, Geräte), Verträge, Plan-Stufen (Mahoney One — Essential/Prime/Elite) | Transparenz über Kosten und Erlöse pro Mandant/Nutzung |
 | **Contracts** | Verträge, Laufzeiten, zugeordnete Pläne | Operative und rechtliche Steuerung |
@@ -60,7 +60,7 @@
 
 ### 3.3 Technische Integrationen („Live-Daten“)
 
-- **Datto RMM:** Geräte, Standorte (Location = Kunde), offene und gelöste Alerts; Anbindung global (Env) oder pro Tenant (Konnektor).
+- **Datto RMM:** Geräte, Company (RMM-Feld „Location“ = Kunde), offene und gelöste Alerts; Anbindung global (Env) oder pro Tenant (Konnektor).
 - **Sophos Central:** EDR-Geräte, Alerts, optional SIEM-Events; pro Tenant oder Partner.
 - **Autotask PSA:** Tickets als Incidents, Companies-Import, Mandanten-Zuordnung.
 
@@ -69,7 +69,7 @@ Die Plattform **merged** diese Quellen (z. B. Incidents aus allen drei) und h�
 ### 3.4 Besondere Features für Forbes-Story
 
 - **Ein Incidents-Feed aus allem:** Nicht nur Ticketing, sondern auch RMM-Alerts und Sophos-Alerts in einer Liste, mit Filter „letzte 30 Tage“, Quelle (RMM/EDR/Autotask) und Event-Log für Abrechnung.
-- **SOC-Compliance & Handbook:** Strukturierter Fragebogen (u. a. aus SOC Customer Onboarding Questionnaire), daraus automatisch **Handbook** für SOC und Governance; für Admins **kundenbezogene Geräteauswahl** über „Location“ (Datto) – nur Geräte des gewählten Kunden werden im Formular berücksichtigt und bewertet.
+- **SOC-Compliance & Handbook:** Strukturierter Fragebogen (u. a. aus SOC Customer Onboarding Questionnaire), daraus automatisch **Handbook** für SOC und Governance; für Admins **kundenbezogene Geräteauswahl** über „Company“ (Datto RMM: Location = Kunde) – nur Geräte der gewählten Company werden im Formular berücksichtigt und bewertet.
 - **Governance aus einer Hand:** Compliance-Score, Risiko-Index, Audit-Readiness und Control-Mapping (ISO 27001, NIST, NIS2, SOC 2) in einem Governance Center.
 - **Mahoney Grow:** Brückenschlag von SOC/SIEM/RMM-Daten zu **Business Intelligence** – risikoadjustiertes Wachstum, Kosten-Risiko-Optimierung, Executive-Empfehlungen.
 - **Multitenant von Anfang an:** Partner und Mandanten mit eigenen Konnektoren (RMM, Sophos); Daten und Sichtbarkeit strikt getrennt, aber in einer Oberfläche.
@@ -92,8 +92,8 @@ Die Plattform **merged** diese Quellen (z. B. Incidents aus allen drei) und h�
 
 - **„Control Surface“ statt Tool-Sammlung:** Eine Oberfläche für Risiko, Operations und Wachstum – nicht nur ein weiteres Dashboard, sondern bewusst als **Steuerungsebene** konzipiert.
 - **Vergoldung durch Event-Logs:** Incidents werden mit Rohdaten (Event-Log) aus RMM/EDR angereichert; Grundlage für faire und nachvollziehbare Abrechnung („Vergoldung“).
-- **Compliance und Handbook aus dem gleichen Fragebogen:** SOC-Onboarding und Governance-Dokumentation entstehen aus einem durchgängigen, wirtschaftspsychologisch aufbereiteten Prozess – inklusive kundenbezogener Gerätebewertung (Location-Filter).
-- **Mandantenfähigkeit in der DNA:** Konnektoren pro Tenant, Location als Kundenfilter, Rollen (Partner, Tenant-User, Admin) – von vornherein für Multi-Kunden-Betrieb gebaut.
+- **Compliance und Handbook aus dem gleichen Fragebogen:** SOC-Onboarding und Governance-Dokumentation entstehen aus einem durchgängigen, wirtschaftspsychologisch aufbereiteten Prozess – inklusive kundenbezogener Gerätebewertung (Company-Filter, Daten aus RMM „Location“).
+- **Mandantenfähigkeit in der DNA:** Konnektoren pro Tenant, Company (RMM: Location) als Kundenfilter, Rollen (Partner, Tenant-User, Admin) – von vornherein für Multi-Kunden-Betrieb gebaut.
 - **AI & Growth:** Mahoney Grow positioniert die Plattform als **Korrelationsebene** zwischen SOC-Betrieb und Geschäftssteuerung – ein klares Alleinstellungsmerkmal gegenüber rein technischen SOC-Tools.
 
 ---
@@ -125,7 +125,7 @@ Die Plattform **merged** diese Quellen (z. B. Incidents aus allen drei) und h�
 
 ### 8.2 Zu Compliance und SOC
 
-- „Unser **SOC-Compliance- und Handbook-Modul** führt Kunden durch einen strukturierten Fragebogen – angelehnt an ISO 27001, NIS2, GDPR und SOC 2. Am Ende entsteht ein **Handbook** für SOC und Governance. Für Admins können wir die Bewertung auf **einen konkreten Kunden** begrenzen: Wir nutzen die ‚Location‘ aus dem RMM – also den Kunden wie S&Z Elektronik GmbH – und zeigen nur dessen Geräte. So ist die Bewertung klar kundenbezogen.“
+- „Unser **SOC-Compliance- und Handbook-Modul** führt Kunden durch einen strukturierten Fragebogen – angelehnt an ISO 27001, NIS2, GDPR und SOC 2. Am Ende entsteht ein **Handbook** für SOC und Governance. Für Admins können wir die Bewertung auf **einen konkreten Kunden** begrenzen: In der App wählen sie die **Company** (Datto RMM liefert das als ‚Location‘, z. B. S&Z Elektronik GmbH) und sehen nur deren Geräte. So ist die Bewertung klar kundenbezogen.“
 
 ### 8.3 Zu Incidents und Vergoldung
 
@@ -137,7 +137,7 @@ Die Plattform **merged** diese Quellen (z. B. Incidents aus allen drei) und h�
 
 ### 8.5 Zur Zielgruppe
 
-- „Wir adressieren **MSPs und SOC-Anbieter**, die viele Kunden verwalten und gleichzeitig Compliance, Incident-Management und Wachstum im Blick behalten wollen. Multitenancy und kundenbezogene Sichten – z. B. über die Location – sind bei uns von Anfang an mitgedacht.“
+- „Wir adressieren **MSPs und SOC-Anbieter**, die viele Kunden verwalten und gleichzeitig Compliance, Incident-Management und Wachstum im Blick behalten wollen. Multitenancy und kundenbezogene Sichten – z. B. über Company (RMM: Location) – sind bei uns von Anfang an mitgedacht.“
 
 ---
 

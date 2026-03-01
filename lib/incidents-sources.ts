@@ -77,16 +77,17 @@ function mapSophosAlertToIncident(
   tenantId?: string,
   tenantName?: string
 ): IncidentRecord {
-  const aid = alert.id ?? alert.alertId ?? `sophos-${index}`
+  const rawId = alert.id ?? alert.alertId ?? (alert as { uuid?: string }).uuid
+  const aid = rawId != null ? String(rawId) : `sophos-${index}`
   const id = `sophos-${aid}`
-  const description = (alert.description ?? alert.message ?? alert.name ?? 'Sophos Alert') as string
-  const created = toISO(alert.created_at ?? alert.createdAt ?? alert.when ?? alert.timestamp)
+  const description = (alert.description ?? alert.message ?? alert.name ?? (alert as { caption?: string }).caption ?? 'Sophos Alert') as string
+  const created = toISO(alert.created_at ?? alert.createdAt ?? alert.when ?? alert.timestamp ?? (alert as { eventTime?: string }).eventTime)
   const eventLog: IncidentEventLogEntry[] = [
     { atISO: created, message: description, source: 'sophos', raw: alert },
   ]
   return {
     id,
-    title: (alert.name ?? alert.description ?? description) as string,
+    title: (alert.name ?? alert.description ?? (alert as { caption?: string }).caption ?? description) as string,
     description,
     category: 'Security' as IncidentCategory,
     priority: sophosSeverityToPriority(alert.severity ?? alert.riskLevel),

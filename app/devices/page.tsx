@@ -362,7 +362,7 @@ export default function DevicesPage() {
         {dataMode === 'rmm' && displayList.length > 0 && (
           <div className="p-4 rounded-[16px] bg-[var(--primary)]/10 border border-[var(--primary)]/20">
             <p className="text-sm text-[var(--text)]">
-              <strong>Geräte aus Datto RMM.</strong> Klicken Sie auf ein Gerät für Seriennummer, IP, Domain, Standort und weitere Details.
+              <strong>Geräte aus Datto RMM.</strong> Klicken Sie auf ein Gerät für Seriennummer, IP, Domain, Company und weitere Details.
             </p>
           </div>
         )}
@@ -539,10 +539,10 @@ export default function DevicesPage() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-[var(--text)] mb-2">Location</label>
+            <label className="block text-sm font-medium text-[var(--text)] mb-2">Company</label>
             <input
               type="text"
-              placeholder="Office location"
+              placeholder="Company (z. B. aus RMM Location)"
               className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-[16px] text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
             />
           </div>
