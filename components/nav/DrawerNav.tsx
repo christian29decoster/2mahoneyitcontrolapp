@@ -26,6 +26,7 @@ import {
   MessageSquare,
   AlertTriangle,
   ClipboardList,
+  Radio,
 } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useViewModeStore } from '@/lib/viewMode.store'
@@ -143,6 +144,7 @@ export default function DrawerNav({
           <NavLink href="/contracts" label="Contracts" icon={FileText} onClick={handleNavClick} />
           <NavLink href="/projects" label="Projects" icon={FolderOpen} onClick={handleNavClick} />
           <NavLink href="/incidents" label="Incidents" icon={AlertTriangle} onClick={handleNavClick} />
+          <NavLink href="/mission-control" label="Mission Briefing" icon={Radio} onClick={handleNavClick} />
 
           <SectionTitle>AI & Growth</SectionTitle>
           <NavLink href="/mahoney-grow" label="AI Growth & Risk Intelligence" icon={LineChart} onClick={handleNavClick} />
