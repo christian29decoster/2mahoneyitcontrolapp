@@ -18,7 +18,7 @@ function getUserId(req: NextRequest): string | null {
 export async function GET(req: NextRequest) {
   const sessionTenantId = getActorTenantId(req)
   const tenantId = req.nextUrl.searchParams.get('tenantId') ?? sessionTenantId
-  const limit = Math.min(50, parseInt(req.nextUrl.searchParams.get('limit') ?? '20', 10) || 20
+  const limit = Math.min(50, parseInt(req.nextUrl.searchParams.get('limit') ?? '20', 10) || 20)
   if (!tenantId) return NextResponse.json({ error: 'tenant_id_required' }, { status: 400 })
   const role = getActorRole(req)
   if (role === 'tenant_user' && tenantId !== sessionTenantId) {

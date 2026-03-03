@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getActorRole, getActorTenantId, getActorUserId } from '@/lib/auth/session-from-cookie'
+import { getActorRole, getActorTenantId } from '@/lib/auth/session-from-cookie'
 import { listBriefings, createBriefing, addParticipant } from '@/lib/mission-briefing/store'
 import { generateAutoSummary } from '@/lib/mission-briefing/aggregation'
 

@@ -96,7 +96,7 @@ export function computeGlobalScores(raw: RawMetrics): {
 
 export function buildBriefingAutoSummary(input: AggregationInput): BriefingAutoSummary {
   const perCustomer = computePerCustomerRisks(input)
-  const global = computeGlobalScores(input)
+  const global = computeGlobalScores(input.raw)
   const avgRisk = perCustomer.length
     ? perCustomer.reduce((s, c) => s + c.riskIndex, 0) / perCustomer.length
     : global.customerRiskIndex
