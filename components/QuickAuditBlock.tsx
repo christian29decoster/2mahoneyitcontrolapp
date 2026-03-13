@@ -9,6 +9,8 @@ import { Badge } from './Badge'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useAuditStore } from '@/lib/store'
 import { useActivityStore } from '@/lib/activity.store'
+import MetricDeltaTooltip from '@/components/ui/MetricDeltaTooltip'
+import { QUICK_AUDIT_TOOLTIPS } from '@/lib/dashboard-metric-tooltips'
 
 interface AuditResult {
   summary: {
@@ -169,18 +171,24 @@ export function QuickAuditBlock() {
         >
           {/* Security Findings */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px]">
-              <div className="text-2xl font-bold text-[var(--danger)]">{result.summary.unprotected}</div>
-              <div className="text-xs text-[var(--muted)]">Unprotected</div>
-            </div>
-            <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px]">
-              <div className="text-2xl font-bold text-[var(--warning)]">{result.summary.stale}</div>
-              <div className="text-xs text-[var(--muted)]">Stale</div>
-            </div>
-            <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px]">
-              <div className="text-2xl font-bold text-[var(--muted)]">{result.summary.quarantined}</div>
-              <div className="text-xs text-[var(--muted)]">Quarantined</div>
-            </div>
+            <MetricDeltaTooltip content={QUICK_AUDIT_TOOLTIPS.unprotected} className="w-full">
+              <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px] cursor-help w-full">
+                <div className="text-2xl font-bold text-[var(--danger)]">{result.summary.unprotected}</div>
+                <div className="text-xs text-[var(--muted)]">Unprotected</div>
+              </div>
+            </MetricDeltaTooltip>
+            <MetricDeltaTooltip content={QUICK_AUDIT_TOOLTIPS.stale} className="w-full">
+              <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px] cursor-help w-full">
+                <div className="text-2xl font-bold text-[var(--warning)]">{result.summary.stale}</div>
+                <div className="text-xs text-[var(--muted)]">Stale</div>
+              </div>
+            </MetricDeltaTooltip>
+            <MetricDeltaTooltip content={QUICK_AUDIT_TOOLTIPS.quarantined} className="w-full">
+              <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px] cursor-help w-full">
+                <div className="text-2xl font-bold text-[var(--muted)]">{result.summary.quarantined}</div>
+                <div className="text-xs text-[var(--muted)]">Quarantined</div>
+              </div>
+            </MetricDeltaTooltip>
           </div>
 
           {/* EDR Status */}
@@ -250,18 +258,24 @@ export function QuickAuditBlock() {
       {/* Default State */}
       {!result && !isRunning && (
         <div className="grid grid-cols-3 gap-3">
-          <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px]">
-            <div className="text-2xl font-bold text-[var(--danger)]">2</div>
-            <div className="text-xs text-[var(--muted)]">Unprotected</div>
-          </div>
-          <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px]">
-            <div className="text-2xl font-bold text-[var(--warning)]">1</div>
-            <div className="text-xs text-[var(--muted)]">Stale</div>
-          </div>
-          <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px]">
-            <div className="text-2xl font-bold text-[var(--muted)]">0</div>
-            <div className="text-xs text-[var(--muted)]">Quarantined</div>
-          </div>
+          <MetricDeltaTooltip content={QUICK_AUDIT_TOOLTIPS.unprotected} className="w-full">
+            <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px] cursor-help w-full">
+              <div className="text-2xl font-bold text-[var(--danger)]">2</div>
+              <div className="text-xs text-[var(--muted)]">Unprotected</div>
+            </div>
+          </MetricDeltaTooltip>
+          <MetricDeltaTooltip content={QUICK_AUDIT_TOOLTIPS.stale} className="w-full">
+            <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px] cursor-help w-full">
+              <div className="text-2xl font-bold text-[var(--warning)]">1</div>
+              <div className="text-xs text-[var(--muted)]">Stale</div>
+            </div>
+          </MetricDeltaTooltip>
+          <MetricDeltaTooltip content={QUICK_AUDIT_TOOLTIPS.quarantined} className="w-full">
+            <div className="text-center p-3 bg-[var(--surface)]/50 rounded-[16px] cursor-help w-full">
+              <div className="text-2xl font-bold text-[var(--muted)]">0</div>
+              <div className="text-xs text-[var(--muted)]">Quarantined</div>
+            </div>
+          </MetricDeltaTooltip>
         </div>
       )}
     </Card>

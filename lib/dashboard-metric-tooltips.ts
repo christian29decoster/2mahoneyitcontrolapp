@@ -33,3 +33,29 @@ export const KEY_METRIC_TOOLTIPS: Record<string, MetricDeltaTooltipContent> = {
     dataBasis: 'Governance inputs: control coverage, patch/compliance state, audit findings; score normalized to 0–100%.',
   },
 }
+
+/** Tooltip for AI Growth & Risk – Security-to-Growth Score. */
+export const GROW_SCORE_TOOLTIP: MetricDeltaTooltipContent = {
+  source: 'Mahoney Grow / AI Growth & Risk',
+  meaning: 'Combined score balancing security posture and growth readiness (e.g. EDR coverage, compliance, risk indicators).',
+  dataBasis: 'Demo baseline and optional RMM/EDR/SIEM inputs; see Mahoney Grow page for full breakdown.',
+}
+
+/** Tooltips for Quick Security Audit metrics (Unprotected, Stale, Quarantined). */
+export const QUICK_AUDIT_TOOLTIPS: Record<string, MetricDeltaTooltipContent> = {
+  unprotected: {
+    source: 'Quick Security Audit scan',
+    meaning: 'Devices without active EDR/XDR protection or with protection disabled.',
+    dataBasis: 'Scan of managed devices; EDR agent status from RMM/EDR connectors.',
+  },
+  stale: {
+    source: 'Quick Security Audit scan',
+    meaning: 'Devices with outdated security definitions or agents that have not reported recently.',
+    dataBasis: 'Definition age and last-seen timestamps from EDR/RMM; thresholds configurable.',
+  },
+  quarantined: {
+    source: 'Quick Security Audit scan',
+    meaning: 'Devices currently in quarantine (isolated from network due to detected threat or policy).',
+    dataBasis: 'EDR/RMM quarantine state; count of devices in isolation.',
+  },
+}

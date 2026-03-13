@@ -32,7 +32,8 @@ import { AlertsChart, MttrChart } from '@/components/dashboard/DesktopDashboardC
 import KpiTile from '@/components/dashboard/KpiTile'
 import { computeMduCost } from '@/lib/mdu-pricing'
 import { Database, DollarSign } from 'lucide-react'
-import { KEY_METRIC_TOOLTIPS } from '@/lib/dashboard-metric-tooltips'
+import { KEY_METRIC_TOOLTIPS, GROW_SCORE_TOOLTIP } from '@/lib/dashboard-metric-tooltips'
+import MetricDeltaTooltip from '@/components/ui/MetricDeltaTooltip'
 
 export type UsageData = {
   source: 'rmm' | 'demo'
@@ -307,7 +308,12 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <h3 className="text-base font-semibold text-[var(--text)]">AI Growth & Risk</h3>
-                      <p className="text-sm text-[var(--muted)] mt-1">Security-to-Growth Score: <Badge variant="accent" className="ml-1">{growAiScore(GROW_DEMO_BASELINE).score}/100</Badge></p>
+                      <p className="text-sm text-[var(--muted)] mt-1">
+                        Security-to-Growth Score:{' '}
+                        <MetricDeltaTooltip content={GROW_SCORE_TOOLTIP}>
+                          <Badge variant="accent" className="ml-1 cursor-help">{growAiScore(GROW_DEMO_BASELINE).score}/100</Badge>
+                        </MetricDeltaTooltip>
+                      </p>
                     </div>
                     <HapticButton label="Open" variant="surface" onClick={() => window.location.assign('/mahoney-grow')} />
                   </div>
