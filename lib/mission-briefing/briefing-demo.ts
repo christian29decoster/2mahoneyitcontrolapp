@@ -1,6 +1,6 @@
 /**
  * Mission Briefing – demo briefing content and AI coordinator (aviation-oriented).
- * Shows added value (Mehrwert), integrates Grow findings (Business / Technical).
+ * Shows added value, integrates Grow findings (Business / Technical).
  */
 
 export type BriefingSection = {
@@ -86,6 +86,32 @@ export const AI_COORDINATOR_DEMO: AICoordinatorRecommendation[] = [
   },
 ]
 
-/** Short AI “coordination summary” for the banner. */
+/** Short AI "coordination summary" for the banner. */
 export const AI_COORDINATOR_SUMMARY =
   'AI Mission Coordinator (demo): Uses briefing data and Mahoney Grow findings to suggest prioritized actions. Aims at coordinated planning for your team, resources, and in-house IT—one shared picture.'
+
+/** Demo dashboard summary when no tenant or API data is available (so Mission Briefing always shows content). */
+export const DEMO_MISSION_SUMMARY = {
+  threatLandscapeScore: 28,
+  infrastructureHealthScore: 35,
+  operationalLoadScore: 42,
+  complianceExposureScore: 22,
+  customerRiskIndex: 32,
+  perCustomer: [
+    { customerId: 'O-25-001', customerName: 'Acme Engineering Inc.', riskIndex: 38, level: 'yellow' as const },
+    { customerId: 'tenant-2', customerName: 'Contoso Ltd.', riskIndex: 29, level: 'green' as const },
+    { customerId: 'tenant-3', customerName: 'Fabrikam Solutions', riskIndex: 45, level: 'yellow' as const },
+  ],
+  rawMetrics: {
+    highSeveritySiemAlerts24h: 2,
+    activeSophosIncidents: 0,
+    devicesOfflineOver12h: 3,
+    devicesTotal: 127,
+    patchCompliancePercent: 82,
+    openP1Tickets: 0,
+    openP2Tickets: 4,
+    slaBreachesPending: 0,
+    resourceUtilizationPercent: 68,
+  },
+  generatedAtISO: new Date().toISOString(),
+}

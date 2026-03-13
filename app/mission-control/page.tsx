@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import { scoreToLevel, type RiskLevel, type PerCustomerRisk } from '@/lib/mission-briefing/types'
-import { BRIEFING_DEMO_SITREP, AI_COORDINATOR_DEMO, AI_COORDINATOR_SUMMARY } from '@/lib/mission-briefing/briefing-demo'
+import { BRIEFING_DEMO_SITREP, AI_COORDINATOR_DEMO, AI_COORDINATOR_SUMMARY, DEMO_MISSION_SUMMARY } from '@/lib/mission-briefing/briefing-demo'
 import { GROW_INSIGHTS, growAiScore, GROW_DEMO_BASELINE } from '@/lib/mahoney-grow-demo'
 
 type DashboardSummary = {
@@ -111,7 +111,10 @@ export default function MissionControlPage() {
       const res = await fetch('/api/mission-briefing/briefings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tenantId: data?.tenantId ?? undefined, timezone: tz }),
+        body: JSON.stringify({
+          tenantId: data?.tenantId ?? (isDemoData ? 'O-25-001' : undefined),
+          timezone: tz,
+        }),
       })
       if (res.ok) {
         const j = await res.json()
@@ -132,21 +135,8 @@ export default function MissionControlPage() {
     )
   }
 
-  if (!data?.summary) {
-    return (
-      <div className="mx-auto max-w-[900px] px-4 py-6">
-        <h1 className="text-xl font-bold text-[var(--text)] flex items-center gap-2">
-          <Radio className="w-6 h-6 text-[var(--primary)]" />
-          Mission Briefing
-        </h1>
-        <Card className="mt-4 p-6 text-center text-[var(--muted)]">
-          No dashboard data. Ensure you are assigned to a tenant and integrations (RMM, Autotask, etc.) are configured.
-        </Card>
-      </div>
-    )
-  }
-
-  const s = data.summary
+  const s = data?.summary ?? DEMO_MISSION_SUMMARY
+  const isDemoData = !data?.summary
   const threatLevel = scoreToLevel(s.threatLandscapeScore)
   const infraLevel = scoreToLevel(s.infrastructureHealthScore)
   const loadLevel = scoreToLevel(s.operationalLoadScore)
@@ -156,6 +146,11 @@ export default function MissionControlPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-4 space-y-6">
+      {isDemoData && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-200">
+          Demo data — assign a tenant and configure integrations (RMM, Autotask, etc.) for live dashboard data.
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-xl font-bold text-[var(--text)] flex items-center gap-2">
           <Radio className="w-6 h-6 text-[var(--primary)]" />
@@ -172,7 +167,7 @@ export default function MissionControlPage() {
         </button>
       </div>
 
-      {/* Briefing (Situation Report) – Mehrwert, aviation-oriented */}
+      {/* Briefing (Situation Report) – added value, aviation-oriented */}
       <Card className="p-4 border-[var(--border)]">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3 flex items-center gap-2">
           <FileText size={14} />
