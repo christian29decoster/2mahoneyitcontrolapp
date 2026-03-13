@@ -19,6 +19,9 @@ import {
 } from '@/lib/financials'
 import { DollarSign, TrendingUp, TrendingDown, HelpCircle, Info, Database } from 'lucide-react'
 import { computeMduCost } from '@/lib/mdu-pricing'
+import MetricDeltaTooltip from '@/components/ui/MetricDeltaTooltip'
+import type { MetricDeltaTooltipContent } from '@/components/ui/MetricDeltaTooltip'
+import { FINANCIAL_KPI_TOOLTIPS } from '@/lib/dashboard-metric-tooltips'
 
 type UsageData = {
   source: 'rmm' | 'demo'
@@ -41,41 +44,57 @@ function KpiCard({
   value,
   trend,
   tooltip,
+  tooltipContent,
 }: {
   label: string
   value: string
   trend?: number
   tooltip?: string
+  tooltipContent?: MetricDeltaTooltipContent
 }) {
   const [showTip, setShowTip] = useState(false)
-  return (
-    <Card className="p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-xs font-medium text-[var(--muted)] flex items-center gap-1">
-            {label}
-            {tooltip && (
-              <button
-                type="button"
-                onMouseEnter={() => setShowTip(true)}
-                onMouseLeave={() => setShowTip(false)}
-                className="text-[var(--muted)]"
-                aria-label="Explain"
-              >
-                <HelpCircle size={12} />
-              </button>
-            )}
-          </p>
-          <p className="text-xl font-semibold text-[var(--text)] mt-1">{value}</p>
-          {trend != null && (
-            <span className={`text-[10px] flex items-center gap-0.5 mt-1 ${trend >= 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
-              {trend >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-              {trend >= 0 ? '+' : ''}{trend}% 30d
+  const body = (
+    <div className="flex items-start justify-between gap-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-[var(--muted)] flex items-center gap-1">
+          {label}
+          {tooltipContent && (
+            <span className="inline-flex cursor-help" aria-hidden>
+              <HelpCircle size={12} />
             </span>
           )}
-        </div>
+          {!tooltipContent && tooltip && (
+            <button
+              type="button"
+              onMouseEnter={() => setShowTip(true)}
+              onMouseLeave={() => setShowTip(false)}
+              className="text-[var(--muted)]"
+              aria-label="Explain"
+            >
+              <HelpCircle size={12} />
+            </button>
+          )}
+        </p>
+        <p className="text-xl font-semibold text-[var(--text)] mt-1">{value}</p>
+        {trend != null && (
+          <span className={`text-[10px] flex items-center gap-0.5 mt-1 ${trend >= 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
+            {trend >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+            {trend >= 0 ? '+' : ''}{trend}% 30d
+          </span>
+        )}
       </div>
-      {tooltip && showTip && (
+    </div>
+  )
+  return (
+    <Card className="p-4">
+      {tooltipContent ? (
+        <MetricDeltaTooltip content={tooltipContent} className="w-full block">
+          {body}
+        </MetricDeltaTooltip>
+      ) : (
+        body
+      )}
+      {!tooltipContent && tooltip && showTip && (
         <p className="text-[10px] text-[var(--muted)] mt-2 border-t border-[var(--border)] pt-2">{tooltip}</p>
       )}
     </Card>
@@ -114,40 +133,40 @@ export default function FinancialsPage() {
           label="Security Spend per User"
           value={formatCurrency(financialKpis.securitySpendPerUserUsd)}
           trend={financialKpis.trend30d.spendPerUser}
-          tooltip="Monthly security-related cost per user (licenses, tools, labor share)."
+          tooltipContent={FINANCIAL_KPI_TOOLTIPS.securitySpendPerUser}
         />
         <KpiCard
           label="Cost per Protected Device"
           value={formatCurrency(financialKpis.costPerProtectedDeviceUsd)}
           trend={financialKpis.trend30d.costPerDevice}
-          tooltip="Total security spend divided by number of protected endpoints."
+          tooltipContent={FINANCIAL_KPI_TOOLTIPS.costPerProtectedDevice}
         />
         <KpiCard
           label="Cost per Incident"
           value={formatCurrency(financialKpis.costPerIncidentUsd)}
           trend={financialKpis.trend30d.costPerIncident}
-          tooltip="Average cost (downtime + labor) per resolved incident."
+          tooltipContent={FINANCIAL_KPI_TOOLTIPS.costPerIncident}
         />
         <KpiCard
           label="MTTR vs Financial Impact"
           value={`${financialKpis.mttrHours}h × ${formatCurrency(financialKpis.financialImpactPerMttrHourUsd)}/h`}
-          tooltip="Mean time to resolve × estimated cost per hour of downtime."
+          tooltipContent={FINANCIAL_KPI_TOOLTIPS.mttrFinancialImpact}
         />
         <KpiCard
           label="Automation Savings Estimate"
           value={formatCurrency(financialKpis.automationSavingsEstimateUsd)}
-          tooltip="Estimated monthly savings from current automation (e.g. playbooks, EDR)."
+          tooltipContent={FINANCIAL_KPI_TOOLTIPS.automationSavings}
         />
         <KpiCard
           label="Risk Exposure Value"
           value={formatCurrency(financialKpis.riskExposureValueUsd)}
-          tooltip="Estimated value at risk from open gaps and unresolved findings."
+          tooltipContent={FINANCIAL_KPI_TOOLTIPS.riskExposureValue}
         />
         {mduBreakdown != null && (
           <KpiCard
             label="Data (MDU) Monthly"
             value={formatCurrency(mduBreakdown.costUsd)}
-            tooltip="Layer 3 Data Processing: events from RMM/devices. 0–1M events included, then tiered per 1,000 events."
+            tooltipContent={FINANCIAL_KPI_TOOLTIPS.mduMonthly}
           />
         )}
       </div>
