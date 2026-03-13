@@ -196,7 +196,6 @@ export default function MarketplacePage() {
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Add to cart"
-                    size="sm"
                     onClick={() =>
                       addToCart({
                         id: 'platform-starter',
@@ -216,7 +215,6 @@ export default function MarketplacePage() {
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Add to cart"
-                    size="sm"
                     onClick={() =>
                       addToCart({
                         id: 'platform-professional',
@@ -236,7 +234,6 @@ export default function MarketplacePage() {
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Request quote"
-                    size="sm"
                     variant="surface"
                     onClick={() =>
                       addToCart({
@@ -280,7 +277,6 @@ export default function MarketplacePage() {
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Add to cart"
-                    size="sm"
                     onClick={() =>
                       addToCart({
                         id: 'soc-core',
@@ -299,7 +295,6 @@ export default function MarketplacePage() {
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Add to cart"
-                    size="sm"
                     onClick={() =>
                       addToCart({
                         id: 'soc-advanced',
@@ -316,7 +311,6 @@ export default function MarketplacePage() {
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Request quote"
-                    size="sm"
                     variant="surface"
                     onClick={() =>
                       addToCart({
@@ -403,7 +397,6 @@ export default function MarketplacePage() {
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Add to cart"
-                    size="sm"
                     onClick={() =>
                       addToCart({
                         id: 'mitai-standard',
@@ -424,7 +417,6 @@ export default function MarketplacePage() {
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Add to cart"
-                    size="sm"
                     onClick={() =>
                       addToCart({
                         id: 'mitai-pro',
@@ -445,7 +437,6 @@ export default function MarketplacePage() {
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Add to cart"
-                    size="sm"
                     onClick={() =>
                       addToCart({
                         id: 'mitai-premium',
