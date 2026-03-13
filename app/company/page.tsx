@@ -144,21 +144,38 @@ export default function CompanyPage() {
     )
   }
 
+  const isPartner = role === 'partner'
+
   return (
     <>
       <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+        {/* Scope: Customer sees read-only org name; Partner/Mahoney see selector */}
+        {!canSeeMultipleCompanies && (tenantIdFromSession || tenants.length > 0) && (
+          <Card className="p-4">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-[var(--muted)] shrink-0" />
+              <span className="text-sm text-[var(--text)]">
+                <span className="font-medium text-[var(--muted)]">Organization: </span>
+                {tenants[0]?.name ?? 'Your organization'}
+              </span>
+            </div>
+          </Card>
+        )}
         {canSeeMultipleCompanies && (
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <Search className="w-5 h-5 text-[var(--muted)]" />
               <input
                 type="search"
-                placeholder="Search companies..."
+                placeholder={isPartner ? 'Search customers...' : 'Search organizations...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 bg-transparent border-none outline-none text-[var(--text)] placeholder-[var(--muted)]"
               />
             </div>
+            <p className="text-xs text-[var(--muted)] mb-2">
+              {isPartner ? 'Select a customer' : 'Select an organization'}
+            </p>
             <div className="flex flex-wrap gap-2">
               {filteredTenants.map((t) => (
                 <button
@@ -181,7 +198,7 @@ export default function CompanyPage() {
                 </button>
               ))}
             </div>
-            {tenantsLoading && <p className="text-sm text-[var(--muted)] mt-2">Loading companies…</p>}
+            {tenantsLoading && <p className="text-sm text-[var(--muted)] mt-2">Loading…</p>}
           </Card>
         )}
 

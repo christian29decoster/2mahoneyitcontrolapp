@@ -59,6 +59,8 @@ export default function DevicesPage() {
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const [role, setRole] = useState<string>('demo')
   const [tenants, setTenants] = useState<TenantItem[]>([])
+  /** For tenant_user: display name of the single org they belong to */
+  const [currentTenantName, setCurrentTenantName] = useState<string | null>(null)
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null
     try { return localStorage.getItem(DEVICES_TENANT_STORAGE_KEY) } catch { return null }
@@ -147,6 +149,14 @@ export default function DevicesPage() {
       .then((data: { items?: TenantItem[] }) => setTenants(Array.isArray(data.items) ? data.items : []))
       .catch(() => setTenants([]))
   }, [canSeeMultipleCompanies])
+  /** Tenant-user: load single tenant name for read-only "Organization: [name]" */
+  useEffect(() => {
+    if (canSeeMultipleCompanies || !sessionTenantId) return
+    fetch(`/api/tenants/${sessionTenantId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { item?: { name?: string } } | null) => setCurrentTenantName(data?.item?.name ?? null))
+      .catch(() => setCurrentTenantName(null))
+  }, [canSeeMultipleCompanies, sessionTenantId])
 
   useEffect(() => {
     loadRmmDevices()
@@ -257,25 +267,36 @@ export default function DevicesPage() {
   return (
     <>
       <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
-        {/* Company (Tenant) filter for SuperAdmin/Admin/Partner */}
-        {canSeeMultipleCompanies && tenants.length > 0 && (
+        {/* Scope: Mahoney = all orgs, Partner = their customers, Customer = own org only */}
+        {(canSeeMultipleCompanies && tenants.length > 0) || (!canSeeMultipleCompanies && sessionTenantId) ? (
           <Card className="p-3">
             <div className="flex items-center gap-2 flex-wrap">
               <Building2 className="w-4 h-4 text-[var(--muted)] shrink-0" />
-              <span className="text-sm font-medium text-[var(--muted)]">Company:</span>
-              <select
-                value={selectedTenantId ?? ''}
-                onChange={(e) => { h.impact('light'); setSelectedTenantAndPersist(e.target.value || null) }}
-                className="rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
-              >
-                <option value="">All (default env)</option>
-                {tenants.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name} ({t.id})</option>
-                ))}
-              </select>
+              {canSeeMultipleCompanies ? (
+                <>
+                  <span className="text-sm font-medium text-[var(--muted)]">
+                    {role === 'partner' ? 'Customer:' : 'Organization:'}
+                  </span>
+                  <select
+                    value={selectedTenantId ?? ''}
+                    onChange={(e) => { h.impact('light'); setSelectedTenantAndPersist(e.target.value || null) }}
+                    className="rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+                  >
+                    {role !== 'partner' && <option value="">All (default env)</option>}
+                    {tenants.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name} ({t.id})</option>
+                    ))}
+                  </select>
+                </>
+              ) : (
+                <span className="text-sm text-[var(--text)]">
+                  <span className="font-medium text-[var(--muted)]">Organization: </span>
+                  {currentTenantName ?? 'Your organization'}
+                </span>
+              )}
             </div>
           </Card>
-        )}
+        ) : null}
 
         {/* Header: Titel + Umschalter Demo / RMM / EDR + Remap */}
         <div className="flex items-center justify-between flex-wrap gap-2">
