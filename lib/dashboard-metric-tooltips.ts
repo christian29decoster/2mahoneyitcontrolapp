@@ -98,3 +98,27 @@ export const FINANCIAL_KPI_TOOLTIPS: Record<string, MetricDeltaTooltipContent> =
     dataBasis: 'Event volume from RMM/SIEM; Mahoney price list (Layer 3 Data Processing).',
   },
 }
+
+/** AI Growth & Risk Intelligence page – provenance for opportunities and Predictive Risk Engine. */
+export const GROW_PAGE_TOOLTIPS: Record<string, MetricDeltaTooltipContent> = {
+  opportunitiesFromLogData: {
+    source: 'SIEM, RMM, telephony and mailbox logs',
+    meaning: 'Log data is used as objective evidence; with you and process owners we interpret it. AI then calculates automation potential and savings.',
+    dataBasis: 'Calls, emails, usage and security events from your connected systems; analysis runs when you request it.',
+  },
+  predictiveRiskEngine: {
+    source: 'Incident history, device and patch data, user behavior',
+    meaning: 'Probability that a significant risk event (e.g. breach, outage, compliance finding) occurs in the next 30 or 90 days.',
+    dataBasis: 'Historical incident patterns, device vulnerability age, patch latency and user behavior anomalies; model output is indicative for planning.',
+  },
+  predictiveRisk30: {
+    source: 'Predictive Risk Engine model',
+    meaning: 'Estimated risk probability for the next 30 days. Used to prioritize preventive actions and resource allocation.',
+    dataBasis: 'Historical incident patterns, device vulnerability age, patch latency and user behavior anomalies aggregated and scored.',
+  },
+  predictiveRisk90: {
+    source: 'Predictive Risk Engine model',
+    meaning: 'Estimated risk probability for the next 90 days. Longer horizon supports strategic planning and investment decisions.',
+    dataBasis: 'Same inputs as 30-day forecast with extended time window and trend; typically higher as more time allows more failure modes.',
+  },
+}

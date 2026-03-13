@@ -21,6 +21,8 @@ import { useHaptics } from '@/hooks/useHaptics'
 import { ToastManager, type ToastType } from '@/components/Toasts'
 import { HapticButton } from '@/components/HapticButton'
 import { useActivityStore } from '@/lib/activity.store'
+import MetricDeltaTooltip from '@/components/ui/MetricDeltaTooltip'
+import { GROW_PAGE_TOOLTIPS } from '@/lib/dashboard-metric-tooltips'
 
 function formatMetricValue(metric: string, value: number) {
   if (metric.endsWith('USD')) {
@@ -110,27 +112,37 @@ export default function MahoneyGrowPage() {
           When you want it, we run the analysis for your company.
         </p>
         <div className="inline-flex flex-wrap gap-2 mt-1 text-[11px]">
-          <span className="px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)]">
-            Log data (objective) → with you → AI potential → savings
-          </span>
+          <MetricDeltaTooltip content={GROW_PAGE_TOOLTIPS.opportunitiesFromLogData}>
+            <span className="px-2 py-1 rounded-full bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)] cursor-help">
+              Log data (objective) → with you → AI potential → savings
+            </span>
+          </MetricDeltaTooltip>
         </div>
       </motion.div>
 
       {/* Predictive Risk Engine */}
       <motion.div variants={stagger}>
         <Card className="p-4 border-[var(--primary)]/20">
-          <h2 className="text-sm font-semibold text-[var(--text)] mb-2">Predictive Risk Engine</h2>
-          <p className="text-xs text-[var(--muted)] mb-4">
-            Uses historical incident patterns, device vulnerability age, patch latency and user behavior anomalies.
-          </p>
+          <MetricDeltaTooltip content={GROW_PAGE_TOOLTIPS.predictiveRiskEngine}>
+            <div className="cursor-help">
+              <h2 className="text-sm font-semibold text-[var(--text)] mb-2">Predictive Risk Engine</h2>
+              <p className="text-xs text-[var(--muted)] mb-4">
+                Uses historical incident patterns, device vulnerability age, patch latency and user behavior anomalies.
+              </p>
+            </div>
+          </MetricDeltaTooltip>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <div className="text-[10px] uppercase text-[var(--muted)]">Risk probability (next 30 days)</div>
-              <div className="text-2xl font-bold text-[var(--text)]">{PREDICTIVE_RISK.riskScore30}%</div>
+              <MetricDeltaTooltip content={GROW_PAGE_TOOLTIPS.predictiveRisk30}>
+                <div className="text-2xl font-bold text-[var(--text)] cursor-help">{PREDICTIVE_RISK.riskScore30}%</div>
+              </MetricDeltaTooltip>
             </div>
             <div>
               <div className="text-[10px] uppercase text-[var(--muted)]">Risk probability (next 90 days)</div>
-              <div className="text-2xl font-bold text-[var(--text)]">{PREDICTIVE_RISK.riskScore90}%</div>
+              <MetricDeltaTooltip content={GROW_PAGE_TOOLTIPS.predictiveRisk90}>
+                <div className="text-2xl font-bold text-[var(--text)] cursor-help">{PREDICTIVE_RISK.riskScore90}%</div>
+              </MetricDeltaTooltip>
             </div>
           </div>
           {PREDICTIVE_RISK.highRiskTrendDetected && (
