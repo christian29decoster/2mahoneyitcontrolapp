@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { Info } from 'lucide-react'
 import { stagger } from '@/lib/ui/motion'
 import { Card } from '@/components/Card'
 import { HapticButton } from '@/components/HapticButton'
@@ -32,7 +33,13 @@ export default function MarketplacePage() {
 
       {/* Mahoney One – Service Packages */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-[var(--text)]">Mahoney One – Managed Service</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
+          Mahoney One – Managed Service
+          <Info
+            className="w-4 h-4 text-[var(--muted)]"
+            title="Full-service managed offering combining platform, operations, and security for Mahoney customers."
+          />
+        </h2>
         <p className="text-sm text-[var(--muted)]">
           Full-service operations for customers with or without their own IT. Mahoney One combines platform, operations,
           and security.
@@ -40,7 +47,13 @@ export default function MarketplacePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="space-y-2">
-            <h3 className="font-semibold text-[var(--text)]">Mahoney One USA</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-[var(--text)]">Mahoney One USA</h3>
+              <Info
+                className="w-3 h-3 text-[var(--muted)]"
+                title="US service packaging of Mahoney One including Mahoney Control platform and managed security operations."
+              />
+            </div>
             <p className="text-xs text-[var(--muted)]">Device-based pricing (USD per device per month).</p>
             <table className="w-full text-xs text-left mt-2">
               <thead>
@@ -104,7 +117,13 @@ export default function MarketplacePage() {
           </Card>
 
           <Card className="space-y-2">
-            <h3 className="font-semibold text-[var(--text)]">Mahoney One – Customer IT on site</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-[var(--text)]">Mahoney One – Customer IT on site</h3>
+              <Info
+                className="w-3 h-3 text-[var(--muted)]"
+                title="Mahoney One service for customers operating their own on-site IT, with device-based pricing."
+              />
+            </div>
             <p className="text-xs text-[var(--muted)]">Device-based pricing (USD per device per month).</p>
             <table className="w-full text-xs text-left mt-2">
               <thead>
@@ -171,7 +190,13 @@ export default function MarketplacePage() {
 
       {/* Platform – Mahoney Control App */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-[var(--text)]">Mahoney Control Platform</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
+          Mahoney Control Platform
+          <Info
+            className="w-4 h-4 text-[var(--muted)]"
+            title="Multi-tenant governance platform including dashboard, devices & staff, incidents, governance views, billing and optional Mahoney Grow."
+          />
+        </h2>
         <p className="text-sm text-[var(--muted)]">
           Multi-tenant governance platform for devices, incidents, risk and financials. Pricing as per MIT-AI price
           list.
@@ -255,7 +280,13 @@ export default function MarketplacePage() {
 
       {/* SOC – Security Operations */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-[var(--text)]">SOC (Security Operations)</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
+          SOC (Security Operations)
+          <Info
+            className="w-4 h-4 text-[var(--muted)]"
+            title="SOC tiers from Core Monitoring up to Enterprise Threat Operations, aligned with the SOC section of the price list."
+          />
+        </h2>
         <p className="text-sm text-[var(--muted)]">
           Security Operations Center as a Service. Pricing per MIT-AI price list (USD).
         </p>
@@ -333,7 +364,13 @@ export default function MarketplacePage() {
 
       {/* Platform & Data (MDU) */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-[var(--text)]">Platform &amp; Data (MDU) – Events</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
+          Platform &amp; Data (MDU) – Events
+          <Info
+            className="w-4 h-4 text-[var(--muted)]"
+            title="Volume-based billing for events per month (from RMM, EDR, SIEM); 0–1M events are included with the platform."
+          />
+        </h2>
         <p className="text-sm text-[var(--muted)]">
           Event-based billing per month (RMM, EDR, SIEM). RMM/EDR alert counts alone do not increase MDU cost.
         </p>
@@ -373,7 +410,13 @@ export default function MarketplacePage() {
 
       {/* MIT-AI – AI analytics & Co-Pilot */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-[var(--text)]">MIT-AI – AI Analytics &amp; Co-Pilot</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
+          MIT-AI – AI Analytics &amp; Co-Pilot
+          <Info
+            className="w-4 h-4 text-[var(--muted)]"
+            title="AI-powered analytics and Co-Pilot usage, billed by input/output tokens across Standard, Pro and Premium plans."
+          />
+        </h2>
         <p className="text-sm text-[var(--muted)]">
           AI-supported analytics and Co-Pilot, billed by tokens used (input / output).
         </p>
