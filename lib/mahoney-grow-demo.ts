@@ -310,6 +310,49 @@ export const PREDICTIVE_RISK = {
   ],
 }
 
+/** Historical risk data for Predictive Risk Engine – demo. { date: YYYY-MM-DD, riskScore: 0–100 }. */
+export type PredictiveRiskHistoryEntry = { date: string; riskScore: number }
+
+/** Last 30 days (demo values). */
+export const PREDICTIVE_RISK_HISTORY_DAILY: PredictiveRiskHistoryEntry[] = (() => {
+  const out: PredictiveRiskHistoryEntry[] = []
+  const base = new Date()
+  const values = [19, 20, 18, 21, 22, 20, 23, 21, 22, 24, 23, 25, 22, 24, 26, 23, 25, 24, 26, 22, 24, 23, 25, 24, 23, 24, 25, 24, 24, 24]
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(base)
+    d.setDate(d.getDate() - i)
+    out.push({ date: d.toISOString().slice(0, 10), riskScore: values[29 - i] ?? 24 })
+  }
+  return out
+})()
+
+/** Last 12 months (demo). */
+export const PREDICTIVE_RISK_HISTORY_MONTHLY: PredictiveRiskHistoryEntry[] = (() => {
+  const out: PredictiveRiskHistoryEntry[] = []
+  const base = new Date()
+  const values = [16, 17, 18, 19, 20, 20, 21, 22, 21, 23, 22, 24]
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(base.getFullYear(), base.getMonth() - i, 1)
+    out.push({
+      date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`,
+      riskScore: values[11 - i] ?? 22,
+    })
+  }
+  return out
+})()
+
+/** Last 5 years (demo). */
+export const PREDICTIVE_RISK_HISTORY_YEARLY: PredictiveRiskHistoryEntry[] = (() => {
+  const y = new Date().getFullYear()
+  return [
+    { date: `${y - 4}-01-01`, riskScore: 14 },
+    { date: `${y - 3}-01-01`, riskScore: 17 },
+    { date: `${y - 2}-01-01`, riskScore: 19 },
+    { date: `${y - 1}-01-01`, riskScore: 22 },
+    { date: `${y}-01-01`, riskScore: 24 },
+  ]
+})()
+
 /** Manual workflow detection with time waste, difficulty, ROI. */
 export const MANUAL_WORKFLOWS_ENHANCED = [
   { id: 'pw-reset', name: 'Password-Reset Tickets', estimatedTimeWasteHours: 12, automationDifficultyScore: 3, automationROIEstimateUsd: 8400 },

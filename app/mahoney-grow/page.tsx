@@ -13,8 +13,12 @@ import {
   growAiScore,
   PREDICTIVE_RISK,
   MANUAL_WORKFLOWS_ENHANCED,
+  PREDICTIVE_RISK_HISTORY_DAILY,
+  PREDICTIVE_RISK_HISTORY_MONTHLY,
+  PREDICTIVE_RISK_HISTORY_YEARLY,
   type GrowInsight,
   type GrowInsightId,
+  type PredictiveRiskHistoryEntry,
 } from '@/lib/mahoney-grow-demo'
 import { Sheet } from '@/components/Sheets'
 import { useHaptics } from '@/hooks/useHaptics'
@@ -45,6 +49,9 @@ export default function MahoneyGrowPage() {
   const [businessSheetOpen, setBusinessSheetOpen] = useState(false)
   const [aiAnalysisRequested, setAiAnalysisRequested] = useState(false)
   const [boardReportOpen, setBoardReportOpen] = useState(false)
+  const [riskHistoryFilter, setRiskHistoryFilter] = useState<'day' | 'month' | 'year' | 'custom'>('month')
+  const [riskHistoryCustomFrom, setRiskHistoryCustomFrom] = useState('')
+  const [riskHistoryCustomTo, setRiskHistoryCustomTo] = useState('')
   const [toasts, setToasts] = useState<
     Array<{ id: string; type: ToastType; title: string; message?: string }>
   >([])
@@ -71,6 +78,23 @@ export default function MahoneyGrowPage() {
     () => GROW_INSIGHTS.filter(i => i.category === 'Business'),
     []
   )
+
+  const riskHistoryData = useMemo((): PredictiveRiskHistoryEntry[] => {
+    if (riskHistoryFilter === 'day') return PREDICTIVE_RISK_HISTORY_DAILY
+    if (riskHistoryFilter === 'month') return PREDICTIVE_RISK_HISTORY_MONTHLY
+    if (riskHistoryFilter === 'year') return PREDICTIVE_RISK_HISTORY_YEARLY
+    if (riskHistoryFilter === 'custom') {
+      const from = riskHistoryCustomFrom || PREDICTIVE_RISK_HISTORY_MONTHLY[0]?.date
+      const to = riskHistoryCustomTo || PREDICTIVE_RISK_HISTORY_MONTHLY[PREDICTIVE_RISK_HISTORY_MONTHLY.length - 1]?.date
+      if (from && to) {
+        const all = [...PREDICTIVE_RISK_HISTORY_DAILY, ...PREDICTIVE_RISK_HISTORY_MONTHLY]
+        const filtered = all.filter((e) => e.date >= from && e.date <= to).sort((a, b) => a.date.localeCompare(b.date))
+        if (filtered.length > 0) return filtered
+      }
+      return PREDICTIVE_RISK_HISTORY_MONTHLY
+    }
+    return PREDICTIVE_RISK_HISTORY_MONTHLY
+  }, [riskHistoryFilter, riskHistoryCustomFrom, riskHistoryCustomTo])
 
   const openInsight = (ins: GrowInsight) => {
     h.impact('light')
@@ -161,7 +185,72 @@ export default function MahoneyGrowPage() {
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-[var(--muted)] mt-2">Forecast (risk probability %)</p>
+          <p className="text-[10px] text-[var(--muted)] mt-2 mb-4">Forecast (risk probability %)</p>
+
+          {/* Historical data with filter */}
+          <div className="border-t border-[var(--border)] pt-4">
+            <h3 className="text-xs font-semibold text-[var(--text)] uppercase tracking-wide mb-3">Historical risk</h3>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="text-[10px] text-[var(--muted)] uppercase">Filter:</span>
+              <select
+                value={riskHistoryFilter}
+                onChange={(e) => {
+                  const v = e.target.value as 'day' | 'month' | 'year' | 'custom'
+                  setRiskHistoryFilter(v)
+                  if (v === 'custom' && !riskHistoryCustomFrom) {
+                    const end = new Date()
+                    const start = new Date()
+                    start.setMonth(start.getMonth() - 6)
+                    setRiskHistoryCustomFrom(start.toISOString().slice(0, 10))
+                    setRiskHistoryCustomTo(end.toISOString().slice(0, 10))
+                  }
+                }}
+                className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1.5 text-xs text-[var(--text)]"
+              >
+                <option value="day">By day (last 30)</option>
+                <option value="month">By month (last 12)</option>
+                <option value="year">By year (last 5)</option>
+                <option value="custom">Custom range</option>
+              </select>
+              {riskHistoryFilter === 'custom' && (
+                <>
+                  <input
+                    type="date"
+                    value={riskHistoryCustomFrom}
+                    onChange={(e) => setRiskHistoryCustomFrom(e.target.value)}
+                    className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1.5 text-xs text-[var(--text)]"
+                  />
+                  <span className="text-[var(--muted)]">to</span>
+                  <input
+                    type="date"
+                    value={riskHistoryCustomTo}
+                    onChange={(e) => setRiskHistoryCustomTo(e.target.value)}
+                    className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1.5 text-xs text-[var(--text)]"
+                  />
+                </>
+              )}
+            </div>
+            <div className="flex items-end gap-0.5 h-24">
+              {riskHistoryData.map((d) => (
+                <div
+                  key={d.date}
+                  className="flex-1 min-w-0 flex flex-col items-center group"
+                  title={`${d.date}: ${d.riskScore}%`}
+                >
+                  <div
+                    className="w-full rounded-t bg-[var(--primary)]/30 group-hover:bg-[var(--primary)]/50 transition-colors"
+                    style={{ height: `${Math.max(4, (d.riskScore / 40) * 100)}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-[var(--muted)] mt-1">
+              {riskHistoryFilter === 'day' && 'Daily risk score (last 30 days)'}
+              {riskHistoryFilter === 'month' && 'Monthly risk score (last 12 months)'}
+              {riskHistoryFilter === 'year' && 'Yearly risk score (last 5 years)'}
+              {riskHistoryFilter === 'custom' && (riskHistoryCustomFrom && riskHistoryCustomTo ? `Custom: ${riskHistoryCustomFrom} to ${riskHistoryCustomTo}` : 'Select from and to date')}
+            </p>
+          </div>
         </Card>
       </motion.div>
 
