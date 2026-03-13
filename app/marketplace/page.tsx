@@ -1,102 +1,189 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { stagger } from '@/lib/ui/motion'
+import { Card } from '@/components/Card'
+import { HapticButton } from '@/components/HapticButton'
+
+type CartItem = {
+  id: string
+  name: string
+  description?: string
+}
 
 export default function MarketplacePage() {
+  const [cart, setCart] = useState<CartItem[]>([])
+
+  const addToCart = (item: CartItem) => {
+    setCart((prev) => [...prev, item])
+  }
+
+  const clearCart = () => setCart([])
+
   return (
     <motion.div className="space-y-8" variants={stagger} initial="initial" animate="animate">
       <div className="text-center space-y-3">
-        <h1 className="text-2xl font-bold text-[var(--text)]">Marktplatz</h1>
+        <h1 className="text-2xl font-bold text-[var(--text)]">Marketplace</h1>
         <p className="text-[var(--muted)]">
-          Übersicht der Mahoney Services. Preise können je nach Region und Angebot variieren.
+          Overview of Mahoney services. Pricing may vary by region and commercial agreement.
         </p>
       </div>
 
-      {/* Mahoney One – Service-Pakete */}
+      {/* Mahoney One – Service Packages */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-[var(--text)]">Mahoney One – Service</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)]">Mahoney One – Managed Service</h2>
         <p className="text-sm text-[var(--muted)]">
-          Vollservice für Kunden mit oder ohne eigene IT. Mahoney One bündelt Plattform, Betrieb und Security.
+          Full-service operations for customers with or without their own IT. Mahoney One combines platform, operations,
+          and security.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]/60 p-4 space-y-2">
+          <Card className="space-y-2">
             <h3 className="font-semibold text-[var(--text)]">Mahoney One USA</h3>
-            <p className="text-xs text-[var(--muted)]">Gerätebasierte Preise (USD pro Device / Monat).</p>
+            <p className="text-xs text-[var(--muted)]">Device-based pricing (USD per device per month).</p>
             <table className="w-full text-xs text-left mt-2">
               <thead>
                 <tr className="text-[var(--muted)] border-b border-[var(--border)]">
-                  <th className="py-1 pr-2">Stufe</th>
-                  <th className="py-1">Preis</th>
+                  <th className="py-1 pr-2">Tier</th>
+                  <th className="py-1">Price</th>
                 </tr>
               </thead>
               <tbody className="text-[var(--text)]">
                 <tr className="border-b border-[var(--border)]">
                   <td className="py-1 pr-2 font-medium">Essential</td>
-                  <td className="py-1">$99 pro Device</td>
+                  <td className="py-1">$99 per device</td>
                 </tr>
                 <tr className="border-b border-[var(--border)]">
                   <td className="py-1 pr-2 font-medium">Prime</td>
-                  <td className="py-1">$175 pro Device</td>
+                  <td className="py-1">$175 per device</td>
                 </tr>
                 <tr>
                   <td className="py-1 pr-2 font-medium">Elite</td>
-                  <td className="py-1">$199 pro Device</td>
+                  <td className="py-1">$199 per device</td>
                 </tr>
               </tbody>
             </table>
             <p className="text-xs text-[var(--muted)] mt-2">
-              Upsell: von Essential &rarr; Prime &rarr; Elite je nach Sicherheits- und Governance-Anforderungen.
+              Upsell: Essential → Prime → Elite depending on regulatory, risk and 24x7 requirements.
             </p>
-          </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <HapticButton
+                label="Add Essential"
+                onClick={() =>
+                  addToCart({
+                    id: 'mahoney-one-usa-essential',
+                    name: 'Mahoney One USA – Essential',
+                    description: '$99 per device / month',
+                  })
+                }
+              />
+              <HapticButton
+                label="Add Prime"
+                variant="surface"
+                onClick={() =>
+                  addToCart({
+                    id: 'mahoney-one-usa-prime',
+                    name: 'Mahoney One USA – Prime',
+                    description: '$175 per device / month',
+                  })
+                }
+              />
+              <HapticButton
+                label="Add Elite"
+                variant="surface"
+                onClick={() =>
+                  addToCart({
+                    id: 'mahoney-one-usa-elite',
+                    name: 'Mahoney One USA – Elite',
+                    description: '$199 per device / month',
+                  })
+                }
+              />
+            </div>
+          </Card>
 
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]/60 p-4 space-y-2">
-            <h3 className="font-semibold text-[var(--text)]">Mahoney One – mit eigener IT beim Kunden</h3>
-            <p className="text-xs text-[var(--muted)]">Gerätebasierte Preise (USD pro Device / Monat).</p>
+          <Card className="space-y-2">
+            <h3 className="font-semibold text-[var(--text)]">Mahoney One – Customer IT on site</h3>
+            <p className="text-xs text-[var(--muted)]">Device-based pricing (USD per device per month).</p>
             <table className="w-full text-xs text-left mt-2">
               <thead>
                 <tr className="text-[var(--muted)] border-b border-[var(--border)]">
-                  <th className="py-1 pr-2">Stufe</th>
-                  <th className="py-1">Preis</th>
+                  <th className="py-1 pr-2">Tier</th>
+                  <th className="py-1">Price</th>
                 </tr>
               </thead>
               <tbody className="text-[var(--text)]">
                 <tr className="border-b border-[var(--border)]">
                   <td className="py-1 pr-2 font-medium">Essential</td>
-                  <td className="py-1">$35 pro Device</td>
+                  <td className="py-1">$35 per device</td>
                 </tr>
                 <tr className="border-b border-[var(--border)]">
                   <td className="py-1 pr-2 font-medium">Standard (Extra Standard)</td>
-                  <td className="py-1">$65 pro Device</td>
+                  <td className="py-1">$65 per device</td>
                 </tr>
                 <tr>
                   <td className="py-1 pr-2 font-medium">Elite</td>
-                  <td className="py-1">$95 pro Device</td>
+                  <td className="py-1">$95 per device</td>
                 </tr>
               </tbody>
             </table>
             <p className="text-xs text-[var(--muted)] mt-2">
-              Upsell: Von Essential &rarr; Standard bei wachsender Kritikalität, von Standard &rarr; Elite bei
-              KRITIS / NIS-2 / 24x7-Anforderungen.
+              Upsell: Essential → Standard when criticality increases; Standard → Elite for KRITIS / NIS-2 / 24x7.
             </p>
-          </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <HapticButton
+                label="Add Essential"
+                onClick={() =>
+                  addToCart({
+                    id: 'mahoney-one-onsite-essential',
+                    name: 'Mahoney One Onsite – Essential',
+                    description: '$35 per device / month',
+                  })
+                }
+              />
+              <HapticButton
+                label="Add Standard"
+                variant="surface"
+                onClick={() =>
+                  addToCart({
+                    id: 'mahoney-one-onsite-standard',
+                    name: 'Mahoney One Onsite – Standard',
+                    description: '$65 per device / month',
+                  })
+                }
+              />
+              <HapticButton
+                label="Add Elite"
+                variant="surface"
+                onClick={() =>
+                  addToCart({
+                    id: 'mahoney-one-onsite-elite',
+                    name: 'Mahoney One Onsite – Elite',
+                    description: '$95 per device / month',
+                  })
+                }
+              />
+            </div>
+          </Card>
         </div>
       </section>
 
-      {/* Plattform – Mahoney Control App */}
+      {/* Platform – Mahoney Control App */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-[var(--text)]">Mahoney Control Plattform</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)]">Mahoney Control Platform</h2>
         <p className="text-sm text-[var(--muted)]">
-          Mehrmandanten-Plattform für Governance, Incidents, Devices und Risk. Preise laut Preisliste MIT-AI.
+          Multi-tenant governance platform for devices, incidents, risk and financials. Pricing as per MIT-AI price
+          list.
         </p>
-        <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)]/60 p-4">
+        <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
-                <th className="py-2 pr-4 text-left">Stufe</th>
-                <th className="py-2 pr-4 text-left">Monatspreis (brutto)</th>
-                <th className="py-2 text-left">Enthalten</th>
+                <th className="py-2 pr-4 text-left">Tier</th>
+                <th className="py-2 pr-4 text-left">Monthly price (gross)</th>
+                <th className="py-2 text-left">Included</th>
+                <th className="py-2 text-left">Action</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
@@ -104,28 +191,68 @@ export default function MarketplacePage() {
                 <td className="py-2 pr-4 font-medium">Starter</td>
                 <td className="py-2 pr-4">299–499 €</td>
                 <td className="py-2 text-sm">
-                  Bis 25 User/Geräte, 1M Events inklusive, Standard-Support.
+                  Up to 25 users/devices, 1M events included, standard support.
+                </td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Add to cart"
+                    size="sm"
+                    onClick={() =>
+                      addToCart({
+                        id: 'platform-starter',
+                        name: 'Mahoney Control Platform – Starter',
+                        description: '299–499 € / month',
+                      })
+                    }
+                  />
                 </td>
               </tr>
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Professional</td>
-                <td className="py-2 pr-4">799–1.499 €</td>
+                <td className="py-2 pr-4">799–1,499 €</td>
                 <td className="py-2 text-sm">
-                  Höhere Limits, Prioritäts-Support, erweiterte Reports.
+                  Higher limits, priority support, advanced reports.
+                </td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Add to cart"
+                    size="sm"
+                    onClick={() =>
+                      addToCart({
+                        id: 'platform-professional',
+                        name: 'Mahoney Control Platform – Professional',
+                        description: '799–1,499 € / month',
+                      })
+                    }
+                  />
                 </td>
               </tr>
               <tr>
                 <td className="py-2 pr-4 font-medium">Enterprise</td>
-                <td className="py-2 pr-4">Individuell (ab 2.500 €)</td>
+                <td className="py-2 pr-4">Custom (from 2,500 €)</td>
                 <td className="py-2 text-sm">
-                  Volle Nutzung, SLA, Dedicated Support.
+                  Full usage, SLA, dedicated support.
+                </td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Request quote"
+                    size="sm"
+                    variant="surface"
+                    onClick={() =>
+                      addToCart({
+                        id: 'platform-enterprise',
+                        name: 'Mahoney Control Platform – Enterprise',
+                        description: 'Custom pricing – from 2,500 € / month',
+                      })
+                    }
+                  />
                 </td>
               </tr>
             </tbody>
           </table>
-        </div>
+        </Card>
         <p className="text-xs text-[var(--muted)]">
-          Cross-Selling: Plattform + Mahoney One (Service) + SOC + MIT-AI für durchgängige Governance und Betrieb.
+          Cross-sell: combine Platform + Mahoney One + SOC + MIT-AI for full-stack governance and operations.
         </p>
       </section>
 
@@ -133,39 +260,80 @@ export default function MarketplacePage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--text)]">SOC (Security Operations)</h2>
         <p className="text-sm text-[var(--muted)]">
-          Security Operations Center als Service. Preise laut Preisliste MIT-AI (USD).
+          Security Operations Center as a Service. Pricing per MIT-AI price list (USD).
         </p>
-        <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)]/60 p-4">
+        <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
-                <th className="py-2 pr-4 text-left">Stufe</th>
-                <th className="py-2 text-left">Preis</th>
+                <th className="py-2 pr-4 text-left">Tier</th>
+                <th className="py-2 text-left">Price</th>
+                <th className="py-2 text-left">Action</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Core Monitoring</td>
                 <td className="py-2 text-sm">
-                  85 USD pro User / Monat (Mindestabnahme 3.000 USD / Monat)
+                  85 USD per user / month (minimum 3,000 USD / month)
+                </td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Add to cart"
+                    size="sm"
+                    onClick={() =>
+                      addToCart({
+                        id: 'soc-core',
+                        name: 'SOC – Core Monitoring',
+                        description: '85 USD / user / month (min. 3,000 USD)',
+                      })
+                    }
+                  />
                 </td>
               </tr>
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Advanced SOC</td>
                 <td className="py-2 text-sm">
-                  135 USD pro User / Monat (Mindestabnahme 7.500 USD / Monat)
+                  135 USD per user / month (minimum 7,500 USD / month)
+                </td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Add to cart"
+                    size="sm"
+                    onClick={() =>
+                      addToCart({
+                        id: 'soc-advanced',
+                        name: 'SOC – Advanced',
+                        description: '135 USD / user / month (min. 7,500 USD)',
+                      })
+                    }
+                  />
                 </td>
               </tr>
               <tr>
                 <td className="py-2 pr-4 font-medium">Enterprise Threat Operations</td>
-                <td className="py-2 text-sm">ab 45.000 USD / Monat</td>
+                <td className="py-2 text-sm">from 45,000 USD / month</td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Request quote"
+                    size="sm"
+                    variant="surface"
+                    onClick={() =>
+                      addToCart({
+                        id: 'soc-enterprise',
+                        name: 'SOC – Enterprise Threat Operations',
+                        description: 'from 45,000 USD / month',
+                      })
+                    }
+                  />
+                </td>
               </tr>
             </tbody>
           </table>
-        </div>
+        </Card>
         <p className="text-xs text-[var(--muted)]">
-          Upsell: von Core &rarr; Advanced bei wachsender Compliance-/Incident-Dichte; Enterprise als Anker für
-          regulierte / KRITIS-Kunden.
+          Upsell: Core → Advanced as incident/compliance volume increases; Enterprise as anchor offer for regulated /
+          KRITIS-like customers.
         </p>
       </section>
 
@@ -173,109 +341,191 @@ export default function MarketplacePage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--text)]">Platform &amp; Data (MDU) – Events</h2>
         <p className="text-sm text-[var(--muted)]">
-          Event-basierte Abrechnung pro Monat (RMM, EDR, SIEM). RMM-/EDR-Alert-Zahlen allein erhöhen die Kosten nicht.
+          Event-based billing per month (RMM, EDR, SIEM). RMM/EDR alert counts alone do not increase MDU cost.
         </p>
-        <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)]/60 p-4">
+        <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
-                <th className="py-2 pr-4 text-left">Volumen (Events / Monat)</th>
-                <th className="py-2 text-left">Preis</th>
+                <th className="py-2 pr-4 text-left">Volume (events / month)</th>
+                <th className="py-2 text-left">Price</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
               <tr className="border-b border-[var(--border)]">
-                <td className="py-2 pr-4">0 – 1 Mio.</td>
-                <td className="py-2">Inklusive (in Plattform)</td>
+                <td className="py-2 pr-4">0 – 1M</td>
+                <td className="py-2">Included (with platform)</td>
               </tr>
               <tr className="border-b border-[var(--border)]">
-                <td className="py-2 pr-4">1 Mio. – 50 Mio.</td>
-                <td className="py-2">0,10 USD pro 1.000 Events</td>
+                <td className="py-2 pr-4">1M – 50M</td>
+                <td className="py-2">0.10 USD per 1,000 events</td>
               </tr>
               <tr className="border-b border-[var(--border)]">
-                <td className="py-2 pr-4">50 Mio. – 200 Mio.</td>
-                <td className="py-2">0,08 USD pro 1.000 Events</td>
+                <td className="py-2 pr-4">50M – 200M</td>
+                <td className="py-2">0.08 USD per 1,000 events</td>
               </tr>
               <tr>
-                <td className="py-2 pr-4">&gt; 200 Mio.</td>
-                <td className="py-2">0,05 USD pro 1.000 Events</td>
+                <td className="py-2 pr-4">&gt; 200M</td>
+                <td className="py-2">0.05 USD per 1,000 events</td>
               </tr>
             </tbody>
           </table>
-        </div>
+        </Card>
         <p className="text-xs text-[var(--muted)]">
-          Cross-Selling: MDU als Pflicht-Baustein für hochvolumige Mahoney One / SOC-Kunden; Einstieg über
-          0–1M inklusive.
+          Cross-sell: MDU as required building block for high-volume Mahoney One and SOC customers; entry via 0–1M
+          included.
         </p>
       </section>
 
-      {/* MIT-AI – KI-Auswertungen & Co-Pilot */}
+      {/* MIT-AI – AI analytics & Co-Pilot */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-[var(--text)]">MIT-AI – KI-Auswertungen &amp; Co-Pilot</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)]">MIT-AI – AI Analytics &amp; Co-Pilot</h2>
         <p className="text-sm text-[var(--muted)]">
-          KI-gestützte Auswertungen und Co-Pilot-Funktionen, abgerechnet nach genutzten Tokens (Input / Output).
+          AI-supported analytics and Co-Pilot, billed by tokens used (input / output).
         </p>
-        <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)]/60 p-4">
+        <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
-                <th className="py-2 pr-4 text-left">Tarif</th>
-                <th className="py-2 pr-4 text-left">Input (pro 1 Mio. Tokens)</th>
-                <th className="py-2 pr-4 text-left">Output (pro 1 Mio. Tokens)</th>
-                <th className="py-2 text-left">Einsatz</th>
+                <th className="py-2 pr-4 text-left">Plan</th>
+                <th className="py-2 pr-4 text-left">Input (per 1M tokens)</th>
+                <th className="py-2 pr-4 text-left">Output (per 1M tokens)</th>
+                <th className="py-2 text-left">Use case</th>
+                <th className="py-2 text-left">Action</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Standard</td>
-                <td className="py-2 pr-4">1,50 USD</td>
-                <td className="py-2 pr-4">7,50 USD</td>
-                <td className="py-2 text-sm">Kurze Anfragen, Standard-Auswertungen.</td>
+                <td className="py-2 pr-4">1.50 USD</td>
+                <td className="py-2 pr-4">7.50 USD</td>
+                <td className="py-2 text-sm">Short queries, standard evaluations.</td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Add to cart"
+                    size="sm"
+                    onClick={() =>
+                      addToCart({
+                        id: 'mitai-standard',
+                        name: 'MIT-AI – Standard',
+                        description: '1.50 USD input / 7.50 USD output per 1M tokens',
+                      })
+                    }
+                  />
+                </td>
               </tr>
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Pro</td>
-                <td className="py-2 pr-4">4,50 USD</td>
-                <td className="py-2 pr-4">22,50 USD</td>
+                <td className="py-2 pr-4">4.50 USD</td>
+                <td className="py-2 pr-4">22.50 USD</td>
                 <td className="py-2 text-sm">
-                  Co-Pilot, Analysen, Empfehlungen (Standard).
+                  Co-Pilot, analysis, recommendations (standard use).
+                </td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Add to cart"
+                    size="sm"
+                    onClick={() =>
+                      addToCart({
+                        id: 'mitai-pro',
+                        name: 'MIT-AI – Pro',
+                        description: '4.50 USD input / 22.50 USD output per 1M tokens',
+                      })
+                    }
+                  />
                 </td>
               </tr>
               <tr>
                 <td className="py-2 pr-4 font-medium">Premium</td>
-                <td className="py-2 pr-4">7,50 USD</td>
-                <td className="py-2 pr-4">37,50 USD</td>
+                <td className="py-2 pr-4">7.50 USD</td>
+                <td className="py-2 pr-4">37.50 USD</td>
                 <td className="py-2 text-sm">
-                  Komplexe Auswertungen, umfangreiche Kontexte.
+                  Complex analytics, large context windows.
+                </td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Add to cart"
+                    size="sm"
+                    onClick={() =>
+                      addToCart({
+                        id: 'mitai-premium',
+                        name: 'MIT-AI – Premium',
+                        description: '7.50 USD input / 37.50 USD output per 1M tokens',
+                      })
+                    }
+                  />
                 </td>
               </tr>
             </tbody>
           </table>
-        </div>
+        </Card>
         <p className="text-xs text-[var(--muted)]">
-          Upsell: MIT-AI Pro/Premium als Add-on zu Mahoney One + SOC für Governance-Reports, Risikoanalysen und
-          Executive Dashboards.
+          Upsell: MIT-AI Pro/Premium as add-on to Mahoney One + SOC for governance reports, risk analysis, and
+          executive dashboards.
         </p>
       </section>
 
-      {/* Strategische Bundles / Cross-Selling-Einstiege */}
+      {/* Recommended bundles / cross-sell paths */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-[var(--text)]">Empfohlene Bundles (Upsell / Cross-Sell)</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)]">Recommended bundles (upsell / cross-sell)</h2>
         <ul className="space-y-2 text-sm text-[var(--text)]">
           <li>
-            <span className="font-semibold">SMB / Einstiegsbundle:</span>{' '}
+            <span className="font-semibold">SMB / entry bundle:</span>{' '}
             Mahoney Control <span className="text-[var(--muted)]">(Starter)</span> + Mahoney One Essential +
             SOC Core Monitoring.
           </li>
           <li>
-            <span className="font-semibold">Mid-Market:</span>{' '}
+            <span className="font-semibold">Mid-market:</span>{' '}
             Mahoney Control Professional + Mahoney One Standard + SOC Advanced + MIT-AI Standard/Pro.
           </li>
           <li>
-            <span className="font-semibold">Enterprise / Regulierte Kunden:</span>{' '}
+            <span className="font-semibold">Enterprise / regulated:</span>{' '}
             Mahoney Control Enterprise + Mahoney One Elite + SOC Enterprise Threat Operations +
-            MIT-AI Pro/Premium + MDU Volumenstaffel.
+            MIT-AI Pro/Premium + MDU volume tiers.
           </li>
         </ul>
+      </section>
+
+      {/* Simple cart & checkout */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-[var(--text)]">Cart &amp; checkout</h2>
+        <Card className="p-4 space-y-3">
+          {cart.length === 0 ? (
+            <p className="text-sm text-[var(--muted)]">
+              No items in cart yet. Use &quot;Add to cart&quot; on the services above.
+            </p>
+          ) : (
+            <>
+              <ul className="space-y-2 text-sm text-[var(--text)]">
+                {cart.map((item, idx) => (
+                  <li key={`${item.id}-${idx}`} className="flex flex-col">
+                    <span className="font-medium">{item.name}</span>
+                    {item.description && (
+                      <span className="text-xs text-[var(--muted)]">{item.description}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-[var(--muted)]">
+                This cart is for order requests. Final commercial terms will be confirmed by Mahoney.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <HapticButton
+                  label="Submit order request"
+                  onClick={() => {
+                    // In a real system, this would call an API or open a workflow.
+                    clearCart()
+                  }}
+                />
+                <HapticButton
+                  label="Clear cart"
+                  variant="surface"
+                  onClick={clearCart}
+                />
+              </div>
+            </>
+          )}
+        </Card>
       </section>
     </motion.div>
   )
