@@ -15,6 +15,9 @@ export type FrameworkId = (typeof GOVERNANCE_FRAMEWORKS)[number]['id']
 
 export type ControlStatus = 'compliant' | 'partially_compliant' | 'non_compliant'
 
+/** How the control is assessed: process software via API, or uploaded framework docs fed to AI. */
+export type AssessmentSource = 'process_api' | 'uploaded_framework_ai'
+
 export interface GovernanceControl {
   id: string
   frameworkId: FrameworkId
@@ -28,6 +31,10 @@ export interface GovernanceControl {
   description: string
   evidenceSources: string[]
   remediationRecommendations: string[]
+  /** What is assessed (short). */
+  whatIsAssessed?: string
+  /** Where evidence comes from: API or uploaded frameworks + AI. */
+  assessmentSource?: AssessmentSource
 }
 
 /** Inputs for compliance score (from raw ops data). */
@@ -113,20 +120,23 @@ export function getControlsForFramework(frameworkId: FrameworkId): GovernanceCon
       const cid = `${frameworkId.slice(0, 4).toUpperCase()}-${domain.slice(0, 2).toUpperCase()}-${di * 3 + i}`
       const statuses: ControlStatus[] = ['compliant', 'partially_compliant', 'non_compliant']
       const status = statuses[(di + i) % 3]
-      controls.push({
-        id: `${frameworkId}-${cid}`,
-        frameworkId,
-        controlId: cid,
-        name: `Control ${cid}`,
-        domain,
-        status,
-        coveragePct: status === 'compliant' ? 95 + (i % 5) : status === 'partially_compliant' ? 50 + i * 10 : 20 + i * 5,
-        linkedAssets: 5 + (di + i) * 2,
-        openGaps: status === 'non_compliant' ? 2 : status === 'partially_compliant' ? 1 : 0,
-        description: `Requirements and implementation guidance for ${cid} within ${domain}.`,
-        evidenceSources: ['SIEM logs', 'RMM inventory', 'Identity provider'],
-        remediationRecommendations: status !== 'compliant' ? ['Update policy documentation', 'Run compliance scan'] : [],
-      })
+      const useApi = (di + i) % 2 === 0
+        controls.push({
+          id: `${frameworkId}-${cid}`,
+          frameworkId,
+          controlId: cid,
+          name: `Control ${cid}`,
+          domain,
+          status,
+          coveragePct: status === 'compliant' ? 95 + (i % 5) : status === 'partially_compliant' ? 50 + i * 10 : 20 + i * 5,
+          linkedAssets: 5 + (di + i) * 2,
+          openGaps: status === 'non_compliant' ? 2 : status === 'partially_compliant' ? 1 : 0,
+          description: `Requirements and implementation guidance for ${cid} within ${domain}.`,
+          evidenceSources: useApi ? ['RMM/EDR API', 'SIEM logs', 'Identity provider'] : ['Uploaded framework document', 'AI assessment'],
+          remediationRecommendations: status !== 'compliant' ? ['Update policy documentation', 'Run compliance scan'] : [],
+          whatIsAssessed: `Control ${cid}: implementation and evidence for ${domain}.`,
+          assessmentSource: useApi ? 'process_api' : 'uploaded_framework_ai',
+        })
     })
   })
   return controls

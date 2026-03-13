@@ -21,7 +21,9 @@ import {
   type GovernanceControl,
 } from '@/lib/governance'
 import Link from 'next/link'
-import { Scale, TrendingUp, TrendingDown, Download, HelpCircle, ClipboardList } from 'lucide-react'
+import { Scale, TrendingUp, TrendingDown, Download, ClipboardList } from 'lucide-react'
+import MetricDeltaTooltip from '@/components/ui/MetricDeltaTooltip'
+import { GOVERNANCE_OVERVIEW_TOOLTIPS } from '@/lib/dashboard-metric-tooltips'
 
 const TAB_OVERVIEW = 'overview'
 const TAB_CONTROLS = 'controls'
@@ -65,28 +67,6 @@ function CircularScore({ value, label, trend }: { value: number; label: string; 
   )
 }
 
-function ExplainTooltip({ text }: { text: string }) {
-  const [show, setShow] = useState(false)
-  return (
-    <span className="relative inline-flex">
-      <button
-        type="button"
-        onMouseEnter={() => setShow(true)}
-        onMouseLeave={() => setShow(false)}
-        className="text-[var(--muted)] hover:text-[var(--text)] p-0.5 rounded"
-        aria-label="Explain this metric"
-      >
-        <HelpCircle size={14} />
-      </button>
-      {show && (
-        <span className="absolute left-6 top-0 z-10 w-48 p-2 text-[10px] rounded-lg bg-[var(--surface-elev)] border border-[var(--border)] text-[var(--text)] shadow-lg">
-          {text}
-        </span>
-      )}
-    </span>
-  )
-}
-
 export default function GovernancePage() {
   const [framework, setFramework] = useState<FrameworkId>('iso27001')
   const [tab, setTab] = useState<string>(TAB_OVERVIEW)
@@ -112,6 +92,9 @@ export default function GovernancePage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)]">Governance Center</h1>
           <p className="text-sm text-[var(--muted)]">Compliance, risk and audit readiness</p>
+          <p className="text-xs text-[var(--muted)] mt-1 max-w-xl">
+            One place to see where you stand: compliance score and risk index from your operations data, control mapping to your chosen framework, and a heatmap of gaps. Evidence comes from <strong className="text-[var(--text)]">process software via API</strong> (RMM, EDR, SIEM, IdP) and from <strong className="text-[var(--text)]">uploaded framework documents</strong> that we feed into AI for assessment.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-[var(--muted)]">Period:</span>
@@ -146,20 +129,23 @@ export default function GovernancePage() {
         </Card>
       </Link>
 
-      {/* Framework selector */}
-      <Card className="p-4">
+      {/* Framework Center – why it matters */}
+      <Card className="p-4 border-[var(--primary)]/20">
         <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--muted)] mb-2">
           Framework
         </label>
         <select
           value={framework}
           onChange={(e) => { h.impact('light'); setFramework(e.target.value as FrameworkId) }}
-          className="w-full max-w-xs rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text)]"
+          className="w-full max-w-xs rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text)] mb-3"
         >
           {GOVERNANCE_FRAMEWORKS.map((f) => (
             <option key={f.id} value={f.id}>{f.name}</option>
           ))}
         </select>
+        <p className="text-xs text-[var(--muted)] max-w-xl">
+          Controls and heatmap are aligned to the selected framework. Evidence is either from <strong className="text-[var(--text)]">process software via API</strong> (live devices, patch, EDR, SIEM) or from <strong className="text-[var(--text)]">uploaded framework documents</strong> that we feed into AI to assess control coverage and gaps. Overview, Control Mapping, and Heatmap below show what is assessed and the source—hover for details.
+        </p>
       </Card>
 
       {/* Tabs */}
@@ -182,39 +168,41 @@ export default function GovernancePage() {
         <motion.div className="space-y-6" variants={stagger}>
           <Card className="p-6">
             <div className="flex flex-wrap items-start gap-8">
-              <CircularScore value={complianceScore} label="Compliance Score" trend={trendDelta} />
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
+              <MetricDeltaTooltip content={GOVERNANCE_OVERVIEW_TOOLTIPS.complianceScore}>
+                <span className="inline-flex flex-col items-start cursor-help">
+                  <CircularScore value={complianceScore} label="Compliance Score" trend={trendDelta} />
+                </span>
+              </MetricDeltaTooltip>
+              <MetricDeltaTooltip content={GOVERNANCE_OVERVIEW_TOOLTIPS.riskIndex}>
+                <div className="flex flex-col gap-2 cursor-help">
                   <span className="text-sm font-medium text-[var(--text)]">Risk Index</span>
-                  <ExplainTooltip text="Aggregated from coverage gaps, critical findings and open incidents." />
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-[var(--text)]">{risk.value}</span>
+                    <Badge variant={risk.level === 'high' ? 'destructive' : risk.level === 'medium' ? 'secondary' : 'accent'}>
+                      {risk.level.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <span className="text-[10px] text-[var(--muted)]">
+                    {period === '30d' ? governanceTrend.riskDelta : governanceTrend.riskDelta * 2} (30d)
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-[var(--text)]">{risk.value}</span>
-                  <Badge variant={risk.level === 'high' ? 'destructive' : risk.level === 'medium' ? 'secondary' : 'accent'}>
-                    {risk.level.toUpperCase()}
+              </MetricDeltaTooltip>
+              <MetricDeltaTooltip content={GOVERNANCE_OVERVIEW_TOOLTIPS.auditReadiness}>
+                <div className="flex flex-col gap-2 cursor-help">
+                  <span className="text-sm font-medium text-[var(--text)]">Audit Readiness</span>
+                  <Badge
+                    variant={
+                      auditReadiness === 'ready' ? 'accent' : auditReadiness === 'at_risk' ? 'secondary' : 'destructive'
+                    }
+                  >
+                    {auditReadiness === 'ready' ? 'Ready' : auditReadiness === 'at_risk' ? 'At Risk' : 'Not Ready'}
                   </Badge>
                 </div>
-                <span className="text-[10px] text-[var(--muted)]">
-                  {period === '30d' ? governanceTrend.riskDelta : governanceTrend.riskDelta * 2} (30d)
-                </span>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-[var(--text)]">Audit Readiness</span>
-                  <ExplainTooltip text="Ready = score ≥80 and low risk. At Risk = score ≥60. Not Ready otherwise." />
-                </div>
-                <Badge
-                  variant={
-                    auditReadiness === 'ready' ? 'accent' : auditReadiness === 'at_risk' ? 'secondary' : 'destructive'
-                  }
-                >
-                  {auditReadiness === 'ready' ? 'Ready' : auditReadiness === 'at_risk' ? 'At Risk' : 'Not Ready'}
-                </Badge>
-              </div>
+              </MetricDeltaTooltip>
             </div>
           </Card>
           <p className="text-xs text-[var(--muted)]">
-            Score is derived from protected devices, patch compliance, backup coverage, MFA, EDR deployment, and penalties for open critical findings and high-severity incidents.
+            Hover over each metric for &quot;What is assessed&quot; and &quot;Source&quot; (process software via API or uploaded frameworks assessed by AI).
           </p>
         </motion.div>
       )}
@@ -229,25 +217,37 @@ export default function GovernancePage() {
                   <th className="pb-2 pr-4 font-medium">Status</th>
                   <th className="pb-2 pr-4 font-medium">Coverage</th>
                   <th className="pb-2 pr-4 font-medium">Linked Assets</th>
-                  <th className="pb-2 font-medium">Open Gaps</th>
+                  <th className="pb-2 pr-4 font-medium">Open Gaps</th>
+                  <th className="pb-2 font-medium">Source</th>
                 </tr>
               </thead>
               <tbody>
-                {controls.map((c) => (
-                  <tr
-                    key={c.id}
-                    onClick={() => { h.impact('light'); setSelectedControl(c) }}
-                    className="border-b border-[var(--border)] last:border-0 cursor-pointer hover:bg-[var(--surface-2)]/50"
-                  >
-                    <td className="py-3 pr-4 font-medium text-[var(--text)]">{c.controlId}</td>
-                    <td className="py-3 pr-4">
-                      <Badge variant={statusVariant(c.status)}>{statusLabel(c.status)}</Badge>
-                    </td>
-                    <td className="py-3 pr-4 text-[var(--muted)]">{c.coveragePct}%</td>
-                    <td className="py-3 pr-4 text-[var(--muted)]">{c.linkedAssets}</td>
-                    <td className="py-3 text-[var(--muted)]">{c.openGaps}</td>
-                  </tr>
-                ))}
+                {controls.map((c) => {
+                  const sourceLabel = c.assessmentSource === 'process_api' ? 'Process (API)' : c.assessmentSource === 'uploaded_framework_ai' ? 'Uploaded (AI)' : '—'
+                  const whatAssessed = c.whatIsAssessed ?? c.description
+                  const sourceDetail = c.assessmentSource === 'process_api'
+                    ? 'Evidence from process software via API (RMM, EDR, SIEM, IdP).'
+                    : c.assessmentSource === 'uploaded_framework_ai'
+                      ? 'Evidence from uploaded framework documents assessed by AI.'
+                      : '—'
+                  return (
+                    <tr
+                      key={c.id}
+                      onClick={() => { h.impact('light'); setSelectedControl(c) }}
+                      title={`What is assessed: ${whatAssessed} Source: ${sourceDetail}`}
+                      className="border-b border-[var(--border)] last:border-0 cursor-pointer hover:bg-[var(--surface-2)]/50"
+                    >
+                      <td className="py-3 pr-4 font-medium text-[var(--text)]">{c.controlId}</td>
+                      <td className="py-3 pr-4">
+                        <Badge variant={statusVariant(c.status)}>{statusLabel(c.status)}</Badge>
+                      </td>
+                      <td className="py-3 pr-4 text-[var(--muted)]">{c.coveragePct}%</td>
+                      <td className="py-3 pr-4 text-[var(--muted)]">{c.linkedAssets}</td>
+                      <td className="py-3 pr-4 text-[var(--muted)]">{c.openGaps}</td>
+                      <td className="py-3 text-[var(--muted)] text-xs">{sourceLabel}</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </Card>
@@ -256,6 +256,22 @@ export default function GovernancePage() {
             {selectedControl && (
               <div className="space-y-4">
                 <p className="text-sm text-[var(--muted)]">{selectedControl.description}</p>
+                {selectedControl.whatIsAssessed && (
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase text-[var(--muted)] mb-1">What is assessed</h4>
+                    <p className="text-sm text-[var(--text)]">{selectedControl.whatIsAssessed}</p>
+                  </div>
+                )}
+                <div>
+                  <h4 className="text-xs font-semibold uppercase text-[var(--muted)] mb-1">Source</h4>
+                  <p className="text-sm text-[var(--text)]">
+                    {selectedControl.assessmentSource === 'process_api'
+                      ? 'Process software via API (RMM, EDR, SIEM, identity provider).'
+                      : selectedControl.assessmentSource === 'uploaded_framework_ai'
+                        ? 'Uploaded framework documents assessed by AI.'
+                        : '—'}
+                  </p>
+                </div>
                 <div>
                   <h4 className="text-xs font-semibold uppercase text-[var(--muted)] mb-1">Evidence sources</h4>
                   <ul className="text-sm text-[var(--text)] list-disc pl-4">
@@ -332,8 +348,13 @@ export default function GovernancePage() {
                   {(['low', 'medium', 'high'] as const).map((sev) => {
                     const cell = heatmap.find((c) => c.domain === domain && c.severity === sev)
                     const bg = cell?.status === 'critical' ? 'bg-red-500/30' : cell?.status === 'attention' ? 'bg-amber-500/30' : 'bg-emerald-500/30'
+                    const heatmapHover = `What is assessed: Number of controls in domain "${domain}" at ${sev} severity. Source: Control status from process software via API and from uploaded frameworks assessed by AI.`
                     return (
-                      <div key={sev} className={`py-2 rounded-lg text-center text-sm font-medium ${bg} text-[var(--text)]`}>
+                      <div
+                        key={sev}
+                        title={heatmapHover}
+                        className={`py-2 rounded-lg text-center text-sm font-medium cursor-help ${bg} text-[var(--text)]`}
+                      >
                         {cell?.count ?? 0}
                       </div>
                     )

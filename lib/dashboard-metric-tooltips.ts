@@ -122,3 +122,22 @@ export const GROW_PAGE_TOOLTIPS: Record<string, MetricDeltaTooltipContent> = {
     dataBasis: 'Same inputs as 30-day forecast with extended time window and trend; typically higher as more time allows more failure modes.',
   },
 }
+
+/** Governance Center – Overview metrics: what is assessed and source. */
+export const GOVERNANCE_OVERVIEW_TOOLTIPS: Record<string, MetricDeltaTooltipContent> = {
+  complianceScore: {
+    source: 'RMM, EDR, backup, identity provider, and incident data',
+    meaning: 'Weighted score from protected devices, patch compliance, backup coverage, MFA, EDR deployment; minus penalties for open critical findings and high-severity incidents.',
+    dataBasis: 'Process software via API (devices, patch, EDR) and optional uploaded framework documents assessed by AI.',
+  },
+  riskIndex: {
+    source: 'Coverage gaps, critical findings, open incidents',
+    meaning: 'Aggregated risk from device coverage, patch and MFA gaps, plus open critical findings and high-severity incidents.',
+    dataBasis: 'Same as compliance: APIs (RMM, EDR, IdP) and AI-assessed uploaded frameworks.',
+  },
+  auditReadiness: {
+    source: 'Compliance score and risk level',
+    meaning: 'Ready = score ≥80% and low risk. At Risk = score ≥60%. Not Ready otherwise. Helps prioritize audit prep.',
+    dataBasis: 'Derived from Compliance Score and Risk Index; evidence from process software APIs and uploaded frameworks fed to AI.',
+  },
+}
