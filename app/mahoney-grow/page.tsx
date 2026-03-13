@@ -230,29 +230,30 @@ export default function MahoneyGrowPage() {
                 </>
               )}
             </div>
-            {/* Chart: Y-axis scale 0–50% */}
+            {/* Chart: Y-axis scale 0–50%, bars with pixel height so they always render */}
             <div className="flex gap-2">
-              <div className="flex flex-col justify-between text-[10px] text-[var(--muted)] py-0.5">
+              <div className="flex flex-col justify-between text-[10px] text-[var(--muted)] py-0.5 shrink-0">
                 <span>50%</span>
                 <span>25%</span>
                 <span>0%</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div
-                  className="relative flex items-end gap-px h-40 rounded-lg overflow-hidden bg-[var(--surface-2)]/50 border border-[var(--border)] p-2"
-                  style={{ minHeight: '10rem' }}
+                  className="relative flex items-end gap-0.5 rounded-lg bg-[var(--surface-2)]/50 border border-[var(--border)] p-3"
+                  style={{ height: '160px' }}
                 >
                   {riskHistoryData.map((d) => {
-                    const pct = Math.min(100, (d.riskScore / 50) * 100)
+                    const maxScale = 50
+                    const barHeightPx = Math.max(8, Math.min(160, (d.riskScore / maxScale) * 160))
                     return (
                       <div
                         key={d.date}
-                        className="flex-1 min-w-[4px] max-w-[12px] flex flex-col items-center justify-end group"
+                        className="flex-1 min-w-[6px] flex flex-col justify-end items-center group"
                         title={`${d.date}: ${d.riskScore}%`}
                       >
                         <div
-                          className="w-full rounded-t bg-[var(--primary)] transition-all group-hover:bg-[var(--primary)]/80"
-                          style={{ height: `${Math.max(6, pct)}%` }}
+                          className="w-full max-w-[14px] rounded-t bg-[var(--primary)] transition-all group-hover:bg-[var(--primary)]/90"
+                          style={{ height: `${barHeightPx}px` }}
                         />
                       </div>
                     )
