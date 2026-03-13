@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Sparkles } from 'lucide-react'
+import { aiExplainAwsIncidentShort } from '@/lib/ai-cloud'
 import Card from '@/components/ui/Card'
 import {
   INCIDENT_STATUSES,
@@ -116,6 +117,18 @@ export default function IncidentDetailPage() {
           <Card className="p-4">
             <div className="text-sm text-[var(--muted)] mb-2">Description</div>
             <p className="text-[var(--text)] whitespace-pre-wrap">{item.description}</p>
+          </Card>
+
+          <Card className="p-4 border-[var(--primary)]/20 bg-[var(--primary)]/5">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-[var(--primary)] shrink-0" />
+              <span className="font-semibold text-[var(--text)]">AI summary (SOC Handbook aligned)</span>
+            </div>
+            <p className="text-sm text-[var(--text)] whitespace-pre-wrap">
+              {item.id === 'inc-aws-2025-08-16-01'
+                ? aiExplainAwsIncidentShort()
+                : 'AI-assisted triage and response – aligned with SOC Handbook. Summary and next steps can be generated on demand for this incident.'}
+            </p>
           </Card>
 
           <Card className="p-4">

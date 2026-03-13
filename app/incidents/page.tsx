@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, Plus, Filter, TrendingUp, RefreshCw } from 'lucide-react'
+import { AlertTriangle, Plus, Filter, TrendingUp, RefreshCw, Sparkles } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import {
   INCIDENT_STATUSES,
@@ -114,14 +114,19 @@ export default function IncidentsPage() {
   return (
     <div className="mx-auto w-full max-w-[960px] px-4 py-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="w-6 h-6 text-[var(--primary)]" />
-          <h1 className="text-2xl font-bold text-[var(--text)]">Incidents</h1>
-          {lastUpdatedText && (
-            <span className="text-xs text-[var(--muted)] font-normal" title="Last data refresh">
-              Updated {lastUpdatedText}
-            </span>
-          )}
+        <div>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-6 h-6 text-[var(--primary)]" />
+            <h1 className="text-2xl font-bold text-[var(--text)]">Incidents</h1>
+            {lastUpdatedText && (
+              <span className="text-xs text-[var(--muted)] font-normal" title="Last data refresh">
+                Updated {lastUpdatedText}
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-[var(--muted)] mt-1">
+            AI-first triage and prioritization – aligned with SOC Handbook.
+          </p>
         </div>
         <div className="flex gap-2">
           <button
@@ -151,6 +156,18 @@ export default function IncidentsPage() {
           </Link>
         </div>
       </div>
+
+      <Card className="mt-4 p-3 flex items-center gap-3 border-[var(--primary)]/20 bg-[var(--primary)]/5">
+        <div className="p-2 rounded-xl bg-[var(--primary)]/20 shrink-0">
+          <Sparkles className="w-5 h-5 text-[var(--primary)]" />
+        </div>
+        <div className="min-w-0">
+          <div className="font-medium text-[var(--text)]">AI-first incident handling</div>
+          <p className="text-xs text-[var(--muted)] mt-0.5">
+            Prioritization and categorization are AI-assisted and aligned with our SOC Handbook. Focus on P1 and Security incidents first; AI supports triage and response workflows.
+          </p>
+        </div>
+      </Card>
 
       {slaReport != null && (
         <Link href="/incidents/sla">
@@ -288,6 +305,7 @@ export default function IncidentsPage() {
 
       <p className="text-sm text-[var(--muted)] mt-2">
         Display: <strong className="text-[var(--text)]">last 30 days</strong>. ITIL-Lifecycle: New → Assigned → In Progress → Resolved → Closed. Filter by status, category, or priority.
+        <span className="ml-2 text-[var(--primary)]">AI-first handling per SOC Handbook.</span>
         {(dataSource === 'autotask' || dataSource === 'mixed') && (
           <span className="ml-2 text-[var(--primary)]">Including tickets from Autotask PSA.</span>
         )}
