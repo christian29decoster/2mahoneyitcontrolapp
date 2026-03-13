@@ -67,7 +67,7 @@ export default function MarketplacePage() {
                   <td className="py-1">$35 pro Device</td>
                 </tr>
                 <tr className="border-b border-[var(--border)]">
-                  <td className="py-1 pr-2 font-medium">Standard (\"Extra Standard\")</td>
+                  <td className="py-1 pr-2 font-medium">Standard (Extra Standard)</td>
                   <td className="py-1">$65 pro Device</td>
                 </tr>
                 <tr>
