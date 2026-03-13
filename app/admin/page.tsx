@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Card from '@/components/ui/Card';
-import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus } from 'lucide-react';
+import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox } from 'lucide-react';
 
 type User = {
   id:string; username:string; role:string;
@@ -459,7 +459,13 @@ export default function AdminPage(){
               <Users size={20} className="text-[var(--primary)]" />
               <h2 className="font-semibold text-[var(--text)]">Users</h2>
             </div>
-            {loading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : (
+            {loading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : users.length === 0 ? (
+              <div className="py-8 flex flex-col items-center justify-center text-center text-[var(--muted)]">
+                <Inbox size={32} className="mb-2 opacity-50" />
+                <p className="text-sm">No users yet.</p>
+                <p className="text-xs mt-1">Create one with the form on the left.</p>
+              </div>
+            ) : (
               <div className="rounded-xl border border-[var(--border)] overflow-hidden">
                 <table className="w-full text-sm">
                   <thead className="bg-[var(--surface-2)]">
@@ -515,7 +521,12 @@ export default function AdminPage(){
             <h2 className="font-semibold text-[var(--text)]">Login Activity</h2>
           </div>
           <p className="text-xs text-[var(--muted)] mb-4">Recent sign-ins with masked IP, timezone, and device info.</p>
-          {loading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : (
+          {loading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : audit.length === 0 ? (
+            <div className="py-8 flex flex-col items-center justify-center text-center text-[var(--muted)]">
+              <Activity size={32} className="mb-2 opacity-50" />
+              <p className="text-sm">No login activity recorded yet.</p>
+            </div>
+          ) : (
             <div className="rounded-xl border border-[var(--border)] overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-[var(--surface-2)]">
@@ -589,7 +600,13 @@ export default function AdminPage(){
               <Building2 size={20} className="text-[var(--primary)]" />
               <h2 className="font-semibold text-[var(--text)]">Partners</h2>
             </div>
-            {partnersLoading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : (
+            {partnersLoading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : partners.length === 0 ? (
+              <div className="py-8 flex flex-col items-center justify-center text-center text-[var(--muted)]">
+                <Building2 size={32} className="mb-2 opacity-50" />
+                <p className="text-sm">No partners yet.</p>
+                <p className="text-xs mt-1">Add one with the form on the left.</p>
+              </div>
+            ) : (
               <div className="rounded-xl border border-[var(--border)] overflow-hidden">
                 <table className="w-full text-sm">
                   <thead className="bg-[var(--surface-2)]">
@@ -653,49 +670,47 @@ export default function AdminPage(){
                 <input type="checkbox" checked={tenantForm.active} onChange={e=>setTenantForm(s=>({...s, active:e.target.checked}))} className="rounded border-[var(--border)]"/>
                 <span className="text-sm text-[var(--text)]">Active</span>
               </label>
-              <div className="text-xs font-medium text-[var(--muted)] pt-2 border-t border-[var(--border)]">Connectors (RMM / Sophos / Autotask)</div>
-              <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-3">
-                <div>
-                  <span className="text-xs text-[var(--muted)]">RMM (Datto)</span>
+              <div className="text-xs font-medium text-[var(--muted)] pt-3 mt-3 border-t border-[var(--border)]">Connectors</div>
+              <div className="space-y-4">
+                <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
+                  <div className="text-xs font-medium text-[var(--text)]">RMM (Datto)</div>
                   <input value={tenantForm.connectors?.rmm?.apiUrl ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, apiUrl: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="API-URL"/>
+                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="API URL"/>
                   <input value={tenantForm.connectors?.rmm?.tenantId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, tenantId: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Tenant-ID"/>
+                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Tenant ID"/>
                   <input value={tenantForm.connectors?.rmm?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, label: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label"/>
+                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Label (optional)"/>
                 </div>
-                <div>
-                  <span className="text-xs text-[var(--muted)]">Sophos</span>
+                <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
+                  <div className="text-xs font-medium text-[var(--text)]">Sophos</div>
                   <input value={tenantForm.connectors?.sophos?.tenantId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, tenantId: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Tenant-ID"/>
+                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Tenant ID"/>
                   <input value={tenantForm.connectors?.sophos?.partnerId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, partnerId: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Partner-ID"/>
+                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Partner ID"/>
                   <input value={tenantForm.connectors?.sophos?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, label: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label"/>
+                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Label (optional)"/>
                 </div>
-                <div>
-                  <span className="text-xs text-[var(--muted)]">Autotask PSA (map company)</span>
-                  <div className="flex gap-2 mt-1">
-                    <button type="button" onClick={loadAutotaskCompanies} disabled={autotaskCompaniesLoading}
-                            className="px-2 py-1 rounded-lg border border-[var(--border)] text-sm bg-[var(--surface-2)] hover:bg-[var(--surface)] disabled:opacity-50">
-                      {autotaskCompaniesLoading ? 'Loading…' : 'Load companies from Autotask'}
-                    </button>
-                  </div>
-                  {autotaskCompaniesError && <p className="text-xs text-amber-400 mt-1">{autotaskCompaniesError}</p>}
+                <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
+                  <div className="text-xs font-medium text-[var(--text)]">Autotask PSA</div>
+                  <button type="button" onClick={loadAutotaskCompanies} disabled={autotaskCompaniesLoading}
+                          className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] bg-[var(--surface)] hover:bg-[var(--surface-2)] disabled:opacity-50 font-medium">
+                    {autotaskCompaniesLoading ? 'Loading…' : 'Load companies from Autotask'}
+                  </button>
+                  {autotaskCompaniesError && <p className="text-xs text-amber-400">{autotaskCompaniesError}</p>}
                   {autotaskCompanies.length > 0 && (
                     <select value={(tenantForm.connectors as Record<string,{ companyId?: string }|undefined>)?.autotask?.companyId ?? ''}
                             onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))}
-                            className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1.5 text-sm bg-[var(--surface-2)]">
-                      <option value="">— No Autotask company —</option>
+                            className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm bg-[var(--surface)] text-[var(--text)]">
+                      <option value="">— No company —</option>
                       {autotaskCompanies.map(c=>(
                         <option key={c.id} value={String(c.id)}>{(c as { companyName?: string; CompanyName?: string }).companyName ?? (c as { CompanyName?: string }).CompanyName ?? `Company ${c.id}`}</option>
                       ))}
                     </select>
                   )}
                   <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.companyId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Or enter company ID manually"/>
+                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Or company ID"/>
                   <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, label: e.target.value } } }))}
-                         className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label (optional)"/>
+                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Label (optional)"/>
                 </div>
               </div>
               <div className="flex gap-2 pt-1">
@@ -726,7 +741,13 @@ export default function AdminPage(){
                 </p>
               )}
             </div>
-            {tenantsLoading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : (
+            {tenantsLoading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : tenants.length === 0 ? (
+              <div className="py-8 flex flex-col items-center justify-center text-center text-[var(--muted)]">
+                <Layers size={32} className="mb-2 opacity-50" />
+                <p className="text-sm">No tenants yet.</p>
+                <p className="text-xs mt-1">Add one with the form or import from Autotask above.</p>
+              </div>
+            ) : (
               <div className="rounded-xl border border-[var(--border)] overflow-hidden">
                 <table className="w-full text-sm">
                   <thead className="bg-[var(--surface-2)]">
@@ -866,8 +887,9 @@ export default function AdminPage(){
                       const text = lines.join('\n');
                       navigator.clipboard.writeText(text).then(() => { setBillingCopyDone(true); setTimeout(() => setBillingCopyDone(false), 2000); }).catch(() => alert('Copy failed'));
                     }}
-                    className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-sm bg-[var(--surface-2)] hover:bg-[var(--surface)]"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--primary)]/40 text-sm font-medium bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20"
                   >
+                    <Copy size={16} className="shrink-0" />
                     {billingCopyDone ? 'Copied!' : 'Copy for invoice'}
                   </button>
                   <span className="text-xs text-[var(--muted)]">Accumulated monthly values as text (paste into invoice or email).</span>
