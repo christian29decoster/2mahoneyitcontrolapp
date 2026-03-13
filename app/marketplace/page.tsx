@@ -189,7 +189,7 @@ export default function MarketplacePage() {
             <tbody className="text-[var(--text)]">
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Starter</td>
-                <td className="py-2 pr-4">299–499 €</td>
+                <td className="py-2 pr-4">499 €</td>
                 <td className="py-2 text-sm">
                   Up to 25 users/devices, 1M events included, standard support.
                 </td>
@@ -200,7 +200,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'platform-starter',
                         name: 'Mahoney Control Platform – Starter',
-                        description: '299–499 € / month',
+                        description: '499 € / month',
                       })
                     }
                   />
@@ -208,7 +208,7 @@ export default function MarketplacePage() {
               </tr>
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Professional</td>
-                <td className="py-2 pr-4">799–1,499 €</td>
+                <td className="py-2 pr-4">1,499 €</td>
                 <td className="py-2 text-sm">
                   Higher limits, priority support, advanced reports.
                 </td>
@@ -219,7 +219,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'platform-professional',
                         name: 'Mahoney Control Platform – Professional',
-                        description: '799–1,499 € / month',
+                        description: '1,499 € / month',
                       })
                     }
                   />
