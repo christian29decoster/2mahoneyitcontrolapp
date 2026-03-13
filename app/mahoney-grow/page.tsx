@@ -230,21 +230,42 @@ export default function MahoneyGrowPage() {
                 </>
               )}
             </div>
-            <div className="flex items-end gap-0.5 h-24">
-              {riskHistoryData.map((d) => (
+            {/* Chart: Y-axis scale 0–50% */}
+            <div className="flex gap-2">
+              <div className="flex flex-col justify-between text-[10px] text-[var(--muted)] py-0.5">
+                <span>50%</span>
+                <span>25%</span>
+                <span>0%</span>
+              </div>
+              <div className="flex-1 min-w-0">
                 <div
-                  key={d.date}
-                  className="flex-1 min-w-0 flex flex-col items-center group"
-                  title={`${d.date}: ${d.riskScore}%`}
+                  className="relative flex items-end gap-px h-40 rounded-lg overflow-hidden bg-[var(--surface-2)]/50 border border-[var(--border)] p-2"
+                  style={{ minHeight: '10rem' }}
                 >
-                  <div
-                    className="w-full rounded-t bg-[var(--primary)]/30 group-hover:bg-[var(--primary)]/50 transition-colors"
-                    style={{ height: `${Math.max(4, (d.riskScore / 40) * 100)}%` }}
-                  />
+                  {riskHistoryData.map((d) => {
+                    const pct = Math.min(100, (d.riskScore / 50) * 100)
+                    return (
+                      <div
+                        key={d.date}
+                        className="flex-1 min-w-[4px] max-w-[12px] flex flex-col items-center justify-end group"
+                        title={`${d.date}: ${d.riskScore}%`}
+                      >
+                        <div
+                          className="w-full rounded-t bg-[var(--primary)] transition-all group-hover:bg-[var(--primary)]/80"
+                          style={{ height: `${Math.max(6, pct)}%` }}
+                        />
+                      </div>
+                    )
+                  })}
                 </div>
-              ))}
+                <div className="flex justify-between mt-1 text-[10px] text-[var(--muted)]">
+                  <span>{riskHistoryData[0]?.date ?? ''}</span>
+                  <span>{riskHistoryData.length > 0 ? riskHistoryData[Math.floor(riskHistoryData.length / 2)]?.date : ''}</span>
+                  <span>{riskHistoryData[riskHistoryData.length - 1]?.date ?? ''}</span>
+                </div>
+              </div>
             </div>
-            <p className="text-[10px] text-[var(--muted)] mt-1">
+            <p className="text-[10px] text-[var(--muted)] mt-2">
               {riskHistoryFilter === 'day' && 'Daily risk score (last 30 days)'}
               {riskHistoryFilter === 'month' && 'Monthly risk score (last 12 months)'}
               {riskHistoryFilter === 'year' && 'Yearly risk score (last 5 years)'}
