@@ -4,6 +4,7 @@ import { getActorRole } from '@/lib/auth/session-from-cookie'
 import { dataMduCategory } from '@/lib/marketplace-pricing'
 import { MDU_TIERS } from '@/lib/mdu-pricing'
 import { computeMduCost } from '@/lib/mdu-pricing'
+import { getClaudePricingReference, getTypicalCopilotRequestCost, CLAUDE_MARGIN_PERCENT, AI_PRODUCT_NAME_CUSTOMER } from '@/lib/claude-pricing'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,8 +73,15 @@ export async function GET(req: NextRequest) {
     socTiers: [
       { id: 'soc-core', name: 'Core Monitoring', price: '$85/user/mo' },
       { id: 'soc-advanced', name: 'Advanced SOC', price: '$135/user/mo' },
-      { id: 'soc-enterprise', name: 'Enterprise Threat Operations', price: 'ab $45.000/mo' },
+      { id: 'soc-enterprise', name: 'Enterprise Threat Operations', price: 'from $45,000/mo' },
     ],
+    claude: {
+      customerName: AI_PRODUCT_NAME_CUSTOMER,
+      marginPercent: CLAUDE_MARGIN_PERCENT,
+      source: 'https://claude.com/pricing#api',
+      reference: getClaudePricingReference(),
+      typicalCopilotRequest: getTypicalCopilotRequestCost(),
+    },
   }
 
   return NextResponse.json({

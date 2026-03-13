@@ -612,6 +612,158 @@ export default function MarketplacePage() {
         </p>
       </section>
 
+      {/* Consulting & Business Analysis */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
+          Consulting &amp; Business Analysis
+          <span
+            className="inline-flex items-center justify-center"
+            title="Consulting and business analysis services for strategy, governance and implementation support."
+          >
+            <Info className="w-4 h-4 text-[var(--muted)]" />
+          </span>
+        </h2>
+        <p className="text-sm text-[var(--muted)]">
+          Day-rate services for senior consultants and business analysts supporting Mahoney Control deployments and
+          governance programs.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="space-y-2">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-[var(--text)]">Consulting</h3>
+              <span
+                className="inline-flex items-center justify-center"
+                title="Senior consulting for security strategy, governance, process design and implementation support."
+              >
+                <Info className="w-3 h-3 text-[var(--muted)]" />
+              </span>
+            </div>
+            <p className="text-sm text-[var(--muted)]">
+              Flat day rate: <span className="text-[var(--text)] font-medium">$1,500 per day</span>.
+            </p>
+            <HapticButton
+              label="Add Consulting day"
+              onClick={() =>
+                addToCart({
+                  id: 'consulting-day',
+                  name: 'Consulting day',
+                  description: '$1,500 per day',
+                })
+              }
+            />
+          </Card>
+
+          <Card className="space-y-2">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-[var(--text)]">Business Analyst</h3>
+              <span
+                className="inline-flex items-center justify-center"
+                title="Business analysis for requirements, process mapping, reporting design and stakeholder workshops."
+              >
+                <Info className="w-3 h-3 text-[var(--muted)]" />
+              </span>
+            </div>
+            <p className="text-sm text-[var(--muted)]">
+              Flat day rate: <span className="text-[var(--text)] font-medium">$2,300 per day</span>.
+            </p>
+            <HapticButton
+              label="Add BA day"
+              variant="surface"
+              onClick={() =>
+                addToCart({
+                  id: 'business-analyst-day',
+                  name: 'Business Analyst day',
+                  description: '$2,300 per day',
+                })
+              }
+            />
+          </Card>
+        </div>
+      </section>
+
+      {/* Helpdesk services */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
+          Helpdesk Services
+          <span
+            className="inline-flex items-center justify-center"
+            title="Helpdesk capacity that can be booked either by hour or as a per-device monthly service."
+          >
+            <Info className="w-4 h-4 text-[var(--muted)]" />
+          </span>
+        </h2>
+        <p className="text-sm text-[var(--muted)]">
+          Additional helpdesk capacity that can be added on top of Mahoney One or the platform, either hourly or as a
+          per-device subscription.
+        </p>
+        <Card className="overflow-x-auto p-4">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[var(--muted)] border-b border-[var(--border)]">
+                <th className="py-2 pr-4 text-left">Model</th>
+                <th className="py-2 pr-4 text-left">Rate</th>
+                <th className="py-2 text-left">Action</th>
+              </tr>
+            </thead>
+            <tbody className="text-[var(--text)]">
+              <tr className="border-b border-[var(--border)]">
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Helpdesk hourly
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="On-demand helpdesk support billed by the hour."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
+                <td className="py-2 pr-4">$150 per hour</td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Add hourly"
+                    onClick={() =>
+                      addToCart({
+                        id: 'helpdesk-hourly',
+                        name: 'Helpdesk – hourly',
+                        description: '$150 per hour',
+                      })
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Helpdesk per device
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="Per-device helpdesk subscription, billed monthly."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
+                <td className="py-2 pr-4">$35 per device / month</td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Add per-device"
+                    variant="surface"
+                    onClick={() =>
+                      addToCart({
+                        id: 'helpdesk-per-device',
+                        name: 'Helpdesk – per device',
+                        description: '$35 per device / month',
+                      })
+                    }
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </Card>
+      </section>
+
       {/* Recommended bundles / cross-sell paths */}
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--text)]">Recommended bundles (upsell / cross-sell)</h2>

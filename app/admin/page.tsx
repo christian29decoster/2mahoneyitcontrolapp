@@ -53,7 +53,18 @@ export default function AdminPage(){
   const [settingsSaving, setSettingsSaving] = useState(false);
 
   type BillingItem = { id: string; title: string; status: string; source?: string; loggedAtISO: string; tenantId?: string; eventLog?: Array<{ atISO: string; message: string; source?: string }> };
-  type CostRefs = { marketplaceLink: string; schwellwertEvents?: number; mdu: { name: string; description?: string; tiers: { label: string; perThousandUsd: number }[] }; socTiers: { id: string; name: string; price: string }[] };
+  type CostRefs = {
+    marketplaceLink: string; schwellwertEvents?: number;
+    mdu: { name: string; description?: string; tiers: { label: string; perThousandUsd: number }[] };
+    socTiers: { id: string; name: string; price: string }[];
+    claude?: {
+      customerName: string;
+      marginPercent: number;
+      source: string;
+      reference: { model: string; inputUsdPerM: number; outputUsdPerM: number; marginPercent: number; customerInputUsdPerM: number; customerOutputUsdPerM: number; source: string }[];
+      typicalCopilotRequest: { apiCostUsd: number; customerPriceUsd: number; marginPercent: number; model: string; summary: string };
+    };
+  };
   type MonthlyTotal = { month: string; label: string; incidentsCount: number; eventsCount: number; thresholdExceeded: boolean; thresholdEvents: number; mduCostUsd: number; mduSummary: string };
   const [billingItems, setBillingItems] = useState<BillingItem[]>([]);
   const [billingMonthlyTotals, setBillingMonthlyTotals] = useState<MonthlyTotal[]>([]);
@@ -662,18 +673,37 @@ export default function AdminPage(){
                   {billingCostRefs.mdu.description && <p className="text-xs text-[var(--muted)]">{billingCostRefs.mdu.description}</p>}
                   <ul className="text-xs text-[var(--muted)] mt-1 list-disc list-inside">
                     {billingCostRefs.mdu.tiers.map((t, i) => (
-                      <li key={i}>{t.label}{t.perThousandUsd > 0 ? ` · $${t.perThousandUsd}/1k Events` : ' inklusive'}</li>
+                      <li key={i}>{t.label}{t.perThousandUsd > 0 ? ` · $${t.perThousandUsd}/1k Events` : ' included'}</li>
                     ))}
                   </ul>
                 </div>
                 <div className="mb-3">
-                  <span className="text-sm font-medium text-[var(--text)]">SOC-Tarife</span>
+                  <span className="text-sm font-medium text-[var(--text)]">SOC tiers</span>
                   <ul className="text-xs text-[var(--muted)] mt-1 space-y-0.5">
                     {billingCostRefs.socTiers.map((s) => (
                       <li key={s.id}>{s.name}: {s.price}</li>
                     ))}
                   </ul>
                 </div>
+                {billingCostRefs.claude && (
+                  <div className="mb-3 p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                    <span className="text-sm font-medium text-[var(--text)]">{billingCostRefs.claude.customerName}</span>
+                    <p className="text-xs text-[var(--muted)] mt-1">Usage-based pricing (per 1M tokens input/output). Margin {billingCostRefs.claude.marginPercent}%.</p>
+                    <table className="text-xs text-[var(--muted)] mt-2 w-full max-w-md">
+                      <thead><tr><th className="text-left py-1">Tier</th><th className="text-right">Input / 1M tokens</th><th className="text-right">Output / 1M tokens</th></tr></thead>
+                      <tbody>
+                        {billingCostRefs.claude.reference.map((r, i) => (
+                          <tr key={r.model} className="border-t border-[var(--border)]">
+                            <td className="py-1 font-medium text-[var(--text)]">{['Standard', 'Pro', 'Premium'][i] ?? r.model}</td>
+                            <td className="text-right text-[var(--text)]">${r.customerInputUsdPerM}</td>
+                            <td className="text-right text-[var(--text)]">${r.customerOutputUsdPerM}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <p className="text-xs text-[var(--muted)] mt-2">Typical request (1 question): ${billingCostRefs.claude.typicalCopilotRequest.customerPriceUsd.toFixed(4)}.</p>
+                  </div>
+                )}
                 <a href={billingCostRefs.marketplaceLink} className="text-sm text-[var(--primary)] hover:underline">To Marketplace →</a>
               </>
             )}

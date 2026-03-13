@@ -15,8 +15,26 @@ import { FolderOpen } from 'lucide-react'
 import { useAuditStore } from '@/lib/store'
 import { useActivityStore } from '@/lib/activity.store'
 import { DeviceDetailSheet } from '@/components/DeviceDetailSheet'
+import { useViewModeStore } from '@/lib/viewMode.store'
 
 type TenantItem = { id: string; name: string }
+
+/** Normalize "last user" from demo user, RMM lastLoggedInUser, or from "user • date" in lastLogin. */
+function getLastUser(device: any): string {
+  if (device?.user) return device.user
+  if (device?.rmmData?.lastLoggedInUser) return device.rmmData.lastLoggedInUser
+  const ll = device?.lastLogin
+  if (typeof ll === 'string' && ll.includes(' • ')) return ll.split(' • ')[0].trim()
+  return '–'
+}
+
+/** Last login date/time for display (full string or date part). */
+function getLastLoginDisplay(device: any): string {
+  const ll = device?.lastLogin
+  if (!ll) return '–'
+  if (typeof ll === 'string' && ll.includes(' • ')) return ll.split(' • ').slice(1).join(' • ').trim() || ll
+  return ll
+}
 
 function getRoleFromCookie(): string {
   if (typeof document === 'undefined') return 'demo'
@@ -61,6 +79,7 @@ export default function DevicesPage() {
   const h = useHaptics()
   const clearAuditCounts = useAuditStore(s => s.clearAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)
+  const viewMode = useViewModeStore((s) => s.viewMode)
 
   const canSeeMultipleCompanies = role === 'superadmin' || role === 'admin' || role === 'partner'
   const sessionTenantId = getTenantIdFromCookie()
@@ -453,14 +472,47 @@ export default function DevicesPage() {
           </div>
         </div>
 
-        {/* Device List */}
-        <div className="space-y-3">
-          {paginatedDevices.map((device) => (
-            <div key={device.uid ?? device.serial ?? device.name} onClick={() => handleDeviceClick(device)}>
-              <DeviceRow device={device} />
-            </div>
-          ))}
-        </div>
+        {/* Device List: table on desktop, cards on app */}
+        {viewMode === 'desktop' ? (
+          <Card className="overflow-x-auto p-0">
+            <table className="w-full text-sm text-left">
+              <thead>
+                <tr className="text-[var(--muted)] border-b border-[var(--border)] bg-[var(--surface-2)]/50">
+                  <th className="py-3 px-4 font-semibold">Device type</th>
+                  <th className="py-3 px-4 font-semibold">Hostname</th>
+                  <th className="py-3 px-4 font-semibold">OS</th>
+                  <th className="py-3 px-4 font-semibold">Last user</th>
+                  <th className="py-3 px-4 font-semibold">Last login</th>
+                  <th className="py-3 px-4 font-semibold">Serial</th>
+                </tr>
+              </thead>
+              <tbody className="text-[var(--text)]">
+                {paginatedDevices.map((device) => (
+                  <tr
+                    key={device.uid ?? device.serial ?? device.name}
+                    onClick={() => handleDeviceClick(device)}
+                    className="border-b border-[var(--border)] hover:bg-[var(--surface-elev)]/50 cursor-pointer transition-colors"
+                  >
+                    <td className="py-3 px-4">{device.type ?? '–'}</td>
+                    <td className="py-3 px-4 font-medium">{device.name ?? '–'}</td>
+                    <td className="py-3 px-4">{device.os ?? '–'}</td>
+                    <td className="py-3 px-4">{getLastUser(device)}</td>
+                    <td className="py-3 px-4">{getLastLoginDisplay(device)}</td>
+                    <td className="py-3 px-4 font-mono text-xs">{device.serial ?? '–'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {paginatedDevices.map((device) => (
+              <div key={device.uid ?? device.serial ?? device.name} onClick={() => handleDeviceClick(device)}>
+                <DeviceRow device={device} />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Seiten-Navigation */}
         {totalPages > 1 && (
