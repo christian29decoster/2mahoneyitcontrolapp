@@ -1,5 +1,7 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import Card from '@/components/ui/Card';
+import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus } from 'lucide-react';
 
 type User = {
   id:string; username:string; role:string;
@@ -12,14 +14,14 @@ type PartnerItem = { id: string; name: string; externalId?: string; active: bool
 type TenantConnectors = { rmm?: { apiUrl?: string; tenantId?: string; label?: string }; sophos?: { tenantId?: string; partnerId?: string; label?: string }; [k: string]: unknown };
 type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string };
 
-function TabButton({active, children, onClick}:{active:boolean; children:React.ReactNode; onClick:()=>void}){
-  return (
-    <button onClick={onClick}
-      className={`px-3 py-1.5 rounded-xl border ${active ? 'border-[rgba(59,130,246,.4)] text-[var(--primary)] bg-[rgba(59,130,246,.08)]' : 'border-[var(--border)] text-[var(--muted)]'}`}>
-      {children}
-    </button>
-  );
-}
+const TABS = [
+  { id: 'users' as const, label: 'Users', icon: Users },
+  { id: 'audit' as const, label: 'Login Activity', icon: Activity },
+  { id: 'partners' as const, label: 'Partners', icon: Building2 },
+  { id: 'tenants' as const, label: 'Tenants', icon: Layers },
+  { id: 'billing' as const, label: 'Billing', icon: CreditCard },
+  { id: 'settings' as const, label: 'Settings', icon: Settings },
+] as const;
 
 export default function AdminPage(){
   const [tab, setTab] = useState<'users'|'audit'|'partners'|'tenants'|'billing'|'settings'>('users');
@@ -121,6 +123,8 @@ export default function AdminPage(){
       setTenantsLoading(false);
     }
   }
+  useEffect(() => { loadPartners(); }, []);
+  useEffect(() => { loadTenants(); }, []);
   useEffect(() => { if (tab === 'partners') loadPartners(); }, [tab]);
   useEffect(() => { if (tab === 'tenants') loadTenants(); }, [tab]);
 
@@ -353,43 +357,79 @@ export default function AdminPage(){
   }, []);
 
   return (
-    <div className="mx-auto w-full max-w-[920px] px-4 py-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <div className="flex gap-2 flex-wrap">
-          <TabButton active={tab==='users'} onClick={()=>setTab('users')}>Users</TabButton>
-          <TabButton active={tab==='audit'} onClick={()=>setTab('audit')}>Login Activity</TabButton>
-          <TabButton active={tab==='partners'} onClick={()=>setTab('partners')}>Partner</TabButton>
-          <TabButton active={tab==='tenants'} onClick={()=>setTab('tenants')}>Tenants</TabButton>
-          <TabButton active={tab==='billing'} onClick={()=>setTab('billing')}>Billing</TabButton>
-          <TabButton active={tab==='settings'} onClick={()=>setTab('settings')}>Settings</TabButton>
-        </div>
+    <div className="mx-auto w-full max-w-6xl px-4 py-6">
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--text)]">Admin Dashboard</h1>
+        <p className="text-sm text-[var(--muted)] mt-1">Manage users, partners, tenants, billing, and app settings.</p>
+        {currentRole === 'superadmin' && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-amber-400/90">
+            <Shield size={14} className="shrink-0" />
+            <span>SuperAdmin: Only you can change passwords and delete other SuperAdmins.</span>
+          </div>
+        )}
+      </header>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <Card className="p-3">
+          <div className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Users</div>
+          <div className="text-xl font-semibold text-[var(--text)] mt-0.5">{users.length}</div>
+          <div className="text-[10px] text-[var(--muted)] mt-0.5">{users.filter(u=>u.active).length} active</div>
+        </Card>
+        <Card className="p-3">
+          <div className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Login activity</div>
+          <div className="text-xl font-semibold text-[var(--text)] mt-0.5">{audit.length}</div>
+          <div className="text-[10px] text-[var(--muted)] mt-0.5">last 30 days</div>
+        </Card>
+        <Card className="p-3">
+          <div className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Partners</div>
+          <div className="text-xl font-semibold text-[var(--text)] mt-0.5">{partners.length}</div>
+          <div className="text-[10px] text-[var(--muted)] mt-0.5">{partners.filter(p=>p.active).length} active</div>
+        </Card>
+        <Card className="p-3">
+          <div className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Tenants</div>
+          <div className="text-xl font-semibold text-[var(--text)] mt-0.5">{tenants.length}</div>
+          <div className="text-[10px] text-[var(--muted)] mt-0.5">{tenants.filter(t=>t.active).length} active</div>
+        </Card>
       </div>
-      {currentRole === 'superadmin' && (
-        <p className="text-xs text-[var(--muted)] mt-1">SuperAdmin: Only you can change passwords and delete other SuperAdmins.</p>
-      )}
+
+      <nav className="flex flex-wrap gap-1 p-1 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] mb-6 w-fit">
+        {TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${tab === id ? 'bg-[var(--primary)] text-white shadow-sm' : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'}`}
+          >
+            <Icon size={16} className="shrink-0" />
+            {label}
+          </button>
+        ))}
+      </nav>
 
       {tab==='users' && (
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Create user */}
-          <div className="rounded-2xl border border-[var(--border)] p-4">
-            <div className="font-semibold mb-2">Create Sales Rep</div>
-            <div className="space-y-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <UserPlus size={20} className="text-[var(--primary)]" />
+              <h2 className="font-semibold text-[var(--text)]">Create user</h2>
+            </div>
+            <p className="text-xs text-[var(--muted)] mb-4">Add a new user (sales rep, partner, tenant user, or admin).</p>
+            <div className="space-y-3">
               <div>
-                <label className="text-xs text-[var(--muted)]">Username</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Username</label>
                 <input value={form.username} onChange={e=>setForm(s=>({...s, username:e.target.value}))}
-                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="e.g. sales.jane"/>
               </div>
               <div>
-                <label className="text-xs text-[var(--muted)]">Password (demo only)</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Password (demo only)</label>
                 <input value={form.password} onChange={e=>setForm(s=>({...s, password:e.target.value}))}
-                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]"/>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-[var(--muted)]">Role</label>
+                  <label className="block text-xs font-medium text-[var(--muted)] mb-1">Role</label>
                   <select value={form.role} onChange={e=>setForm(s=>({...s, role:e.target.value}))}
-                          className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2">
+                          className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]">
                     {isSuperAdmin && <option value="superadmin">superadmin</option>}
                     <option value="admin">admin</option>
                     <option value="partner">partner</option>
@@ -399,174 +439,221 @@ export default function AdminPage(){
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--muted)]">Expires at (optional)</label>
+                  <label className="block text-xs font-medium text-[var(--muted)] mb-1">Expires at (optional)</label>
                   <input type="datetime-local" value={form.expiresAtISO}
                          onChange={e=>setForm(s=>({...s, expiresAtISO:e.target.value}))}
-                         className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+                         className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]"/>
                 </div>
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-end pt-1">
                 <button onClick={addUser}
-                        className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white">
-                  Create
+                        className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90 transition-opacity">
+                  Create user
                 </button>
               </div>
             </div>
-          </div>
+          </Card>
 
-          {/* Users table */}
-          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
-            <div className="font-semibold mb-2">Users</div>
-            {loading ? <div className="text-sm text-[var(--muted)]">Loading…</div> : (
-              <table className="w-full text-sm">
-                <thead className="text-[var(--muted)]">
-                  <tr><th className="text-left py-2">Username</th><th>Role</th><th>Status</th><th>Expires</th><th></th></tr>
-                </thead>
-                <tbody>
-                  {users.map(u=>(
-                    <tr key={u.id} className="border-t border-[var(--border)]">
-                      <td className="py-2">{u.username}</td>
-                      <td className="text-center">{u.role}</td>
-                      <td className="text-center">
-                        <span className={`px-2 py-1 rounded-lg text-xs ${u.active?'bg-emerald-600/20 text-emerald-300':'bg-zinc-600/20 text-zinc-300'}`}>
-                          {u.active?'active':'disabled'}
-                        </span>
-                      </td>
-                      <td className="text-center">{u.expiresAtISO ? new Date(u.expiresAtISO).toLocaleString() : '-'}</td>
-                      <td className="text-right">
-                        <div className="flex justify-end gap-2 items-center">
-                          {u.role === 'superadmin' && <span className="text-xs text-amber-400">protected</span>}
-                          <button onClick={()=>setActive(u.id, !u.active)}
-                                  disabled={u.role === 'superadmin' && !isSuperAdmin}
-                                  className="px-2 py-1 rounded-lg border border-[var(--border)] disabled:opacity-50 disabled:cursor-not-allowed">
-                            {u.active?'Disable':'Enable'}
-                          </button>
-                          {(u.role !== 'admin' && u.role !== 'superadmin') || (u.role === 'superadmin' && isSuperAdmin) ? (
-                            <button onClick={()=>delUser(u.id)}
-                                    className="px-2 py-1 rounded-lg border border-[var(--border)] text-red-300">
-                              Delete
-                            </button>
-                          ) : null}
-                        </div>
-                      </td>
+          <Card className="p-5 overflow-auto">
+            <div className="flex items-center gap-2 mb-4">
+              <Users size={20} className="text-[var(--primary)]" />
+              <h2 className="font-semibold text-[var(--text)]">Users</h2>
+            </div>
+            {loading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : (
+              <div className="rounded-xl border border-[var(--border)] overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-[var(--surface-2)]">
+                    <tr>
+                      <th className="text-left py-3 px-3 font-medium text-[var(--muted)]">Username</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Role</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Status</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Expires</th>
+                      <th className="text-right py-3 px-3 font-medium text-[var(--muted)]">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {users.map(u=>(
+                      <tr key={u.id} className="hover:bg-[var(--surface-2)]/50 transition-colors">
+                        <td className="py-3 px-3 font-medium text-[var(--text)]">{u.username}</td>
+                        <td className="py-3 px-3 text-[var(--text)]">{u.role}</td>
+                        <td className="py-3 px-3">
+                          <span className={`inline-flex px-2 py-1 rounded-lg text-xs font-medium ${u.active?'bg-emerald-500/20 text-emerald-400':'bg-zinc-500/20 text-zinc-400'}`}>
+                            {u.active?'Active':'Disabled'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-[var(--muted)]">{u.expiresAtISO ? new Date(u.expiresAtISO).toLocaleString() : '—'}</td>
+                        <td className="py-3 px-3 text-right">
+                          <div className="flex justify-end gap-2 items-center">
+                            {u.role === 'superadmin' && <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400">Protected</span>}
+                            <button onClick={()=>setActive(u.id, !u.active)}
+                                    disabled={u.role === 'superadmin' && !isSuperAdmin}
+                                    className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] disabled:opacity-50 disabled:cursor-not-allowed text-xs font-medium">
+                              {u.active?'Disable':'Enable'}
+                            </button>
+                            {(u.role !== 'admin' && u.role !== 'superadmin') || (u.role === 'superadmin' && isSuperAdmin) ? (
+                              <button onClick={()=>delUser(u.id)}
+                                      className="px-2.5 py-1 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium">
+                                Delete
+                              </button>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </Card>
         </div>
       )}
 
       {tab==='audit' && (
-        <div className="mt-4 rounded-2xl border border-[var(--border)] p-4 overflow-auto">
-          <div className="font-semibold mb-2">Login Activity</div>
-          {loading ? <div className="text-sm text-[var(--muted)]">Loading…</div> : (
-            <table className="w-full text-sm">
-              <thead className="text-[var(--muted)]">
-                <tr><th className="text-left py-2">Time</th><th>User</th><th>IP (masked)</th><th>Approx Location</th><th>Device</th></tr>
-              </thead>
-              <tbody>
-                {audit.map((a,i)=>(
-                  <tr key={i} className="border-t border-[var(--border)]">
-                    <td className="py-2">{new Date(a.atISO).toLocaleString()}</td>
-                    <td>{a.username}</td>
-                    <td>{a.ipMasked}</td>
-                    <td>{a.tz || '-'}</td>
-                    <td className="truncate max-w-[280px]">{a.ua || '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-
-      {tab==='partners' && (
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-[var(--border)] p-4">
-            <div className="font-semibold mb-2">{editingPartnerId ? 'Edit partner' : 'Add partner'}</div>
-            <div className="space-y-2">
-              {!editingPartnerId && (
-                <div>
-                  <label className="text-xs text-[var(--muted)]">ID (optional)</label>
-                  <input value={partnerForm.id} onChange={e=>setPartnerForm(s=>({...s, id:e.target.value}))}
-                         className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="e.g. partner-1"/>
-                </div>
-              )}
-              <div>
-                <label className="text-xs text-[var(--muted)]">Name</label>
-                <input value={partnerForm.name} onChange={e=>setPartnerForm(s=>({...s, name:e.target.value}))}
-                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
-              </div>
-              <div>
-                <label className="text-xs text-[var(--muted)]">External ID (e.g. Sophos Partner ID)</label>
-                <input value={partnerForm.externalId} onChange={e=>setPartnerForm(s=>({...s, externalId:e.target.value}))}
-                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
-              </div>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={partnerForm.active} onChange={e=>setPartnerForm(s=>({...s, active:e.target.checked}))}/>
-                <span className="text-sm">Active</span>
-              </label>
-              <div className="flex gap-2">
-                <button onClick={savePartner} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white">
-                  {editingPartnerId ? 'Save' : 'Add'}
-                </button>
-                {editingPartnerId && (
-                  <button onClick={()=>{ setEditingPartnerId(null); setPartnerForm({ id: '', name: '', externalId: '', active: true }); }} className="px-4 py-2 rounded-xl border border-[var(--border)]">Cancel</button>
-                )}
-              </div>
-            </div>
+        <Card className="p-5 overflow-auto">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity size={20} className="text-[var(--primary)]" />
+            <h2 className="font-semibold text-[var(--text)]">Login Activity</h2>
           </div>
-          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
-            <div className="font-semibold mb-2">Partner</div>
-            {partnersLoading ? <div className="text-sm text-[var(--muted)]">Loading…</div> : (
+          <p className="text-xs text-[var(--muted)] mb-4">Recent sign-ins with masked IP, timezone, and device info.</p>
+          {loading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : (
+            <div className="rounded-xl border border-[var(--border)] overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="text-[var(--muted)]"><tr><th className="text-left py-2">ID</th><th>Name</th><th>Externe ID</th><th>Status</th><th></th></tr></thead>
-                <tbody>
-                  {partners.map(p=>(
-                    <tr key={p.id} className="border-t border-[var(--border)]">
-                      <td className="py-2">{p.id}</td>
-                      <td>{p.name}</td>
-                      <td>{p.externalId ?? '-'}</td>
-                      <td><span className={`px-2 py-1 rounded-lg text-xs ${p.active?'bg-emerald-600/20 text-emerald-300':'bg-zinc-600/20 text-zinc-300'}`}>{p.active?'active':'inactive'}</span></td>
-                      <td><button onClick={()=>startEditPartner(p)} className="px-2 py-1 rounded-lg border border-[var(--border)]">Edit</button></td>
+                <thead className="bg-[var(--surface-2)]">
+                  <tr>
+                    <th className="text-left py-3 px-3 font-medium text-[var(--muted)]">Time</th>
+                    <th className="py-3 px-3 font-medium text-[var(--muted)]">User</th>
+                    <th className="py-3 px-3 font-medium text-[var(--muted)]">IP (masked)</th>
+                    <th className="py-3 px-3 font-medium text-[var(--muted)]">Location</th>
+                    <th className="py-3 px-3 font-medium text-[var(--muted)]">Device</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {audit.map((a,i)=>(
+                    <tr key={i} className="hover:bg-[var(--surface-2)]/50 transition-colors">
+                      <td className="py-3 px-3 text-[var(--text)]">{new Date(a.atISO).toLocaleString()}</td>
+                      <td className="py-3 px-3 font-medium text-[var(--text)]">{a.username}</td>
+                      <td className="py-3 px-3 text-[var(--muted)]">{a.ipMasked}</td>
+                      <td className="py-3 px-3 text-[var(--muted)]">{a.tz || '—'}</td>
+                      <td className="py-3 px-3 text-[var(--muted)] truncate max-w-[280px]">{a.ua || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {tab==='partners' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Building2 size={20} className="text-[var(--primary)]" />
+              <h2 className="font-semibold text-[var(--text)]">{editingPartnerId ? 'Edit partner' : 'Add partner'}</h2>
+            </div>
+            <p className="text-xs text-[var(--muted)] mb-4">Partners can own multiple tenants. Link external IDs (e.g. Sophos Partner ID) for API mapping.</p>
+            <div className="space-y-3">
+              {!editingPartnerId && (
+                <div>
+                  <label className="block text-xs font-medium text-[var(--muted)] mb-1">ID (optional)</label>
+                  <input value={partnerForm.id} onChange={e=>setPartnerForm(s=>({...s, id:e.target.value}))}
+                         className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="e.g. partner-1"/>
+                </div>
+              )}
+              <div>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Name</label>
+                <input value={partnerForm.name} onChange={e=>setPartnerForm(s=>({...s, name:e.target.value}))}
+                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="Partner name"/>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">External ID (e.g. Sophos Partner ID)</label>
+                <input value={partnerForm.externalId} onChange={e=>setPartnerForm(s=>({...s, externalId:e.target.value}))}
+                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]"/>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={partnerForm.active} onChange={e=>setPartnerForm(s=>({...s, active:e.target.checked}))} className="rounded border-[var(--border)]"/>
+                <span className="text-sm text-[var(--text)]">Active</span>
+              </label>
+              <div className="flex gap-2 pt-1">
+                <button onClick={savePartner} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90">
+                  {editingPartnerId ? 'Save' : 'Add partner'}
+                </button>
+                {editingPartnerId && (
+                  <button onClick={()=>{ setEditingPartnerId(null); setPartnerForm({ id: '', name: '', externalId: '', active: true }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
+                )}
+              </div>
+            </div>
+          </Card>
+          <Card className="p-5 overflow-auto">
+            <div className="flex items-center gap-2 mb-4">
+              <Building2 size={20} className="text-[var(--primary)]" />
+              <h2 className="font-semibold text-[var(--text)]">Partners</h2>
+            </div>
+            {partnersLoading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : (
+              <div className="rounded-xl border border-[var(--border)] overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-[var(--surface-2)]">
+                    <tr>
+                      <th className="text-left py-3 px-3 font-medium text-[var(--muted)]">ID</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Name</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">External ID</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Status</th>
+                      <th className="text-right py-3 px-3 font-medium text-[var(--muted)]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {partners.map(p=>(
+                      <tr key={p.id} className="hover:bg-[var(--surface-2)]/50 transition-colors">
+                        <td className="py-3 px-3 font-medium text-[var(--text)]">{p.id}</td>
+                        <td className="py-3 px-3 text-[var(--text)]">{p.name}</td>
+                        <td className="py-3 px-3 text-[var(--muted)]">{p.externalId ?? '—'}</td>
+                        <td className="py-3 px-3">
+                          <span className={`inline-flex px-2 py-1 rounded-lg text-xs font-medium ${p.active?'bg-emerald-500/20 text-emerald-400':'bg-zinc-500/20 text-zinc-400'}`}>{p.active?'Active':'Inactive'}</span>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <button onClick={()=>startEditPartner(p)} className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] text-xs font-medium">Edit</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </Card>
         </div>
       )}
 
       {tab==='tenants' && (
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
-            <div className="font-semibold mb-2">{editingTenantId ? 'Edit tenant' : 'Add tenant'}</div>
-            <div className="space-y-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="p-5 overflow-auto">
+            <div className="flex items-center gap-2 mb-4">
+              <Layers size={20} className="text-[var(--primary)]" />
+              <h2 className="font-semibold text-[var(--text)]">{editingTenantId ? 'Edit tenant' : 'Add tenant'}</h2>
+            </div>
+            <p className="text-xs text-[var(--muted)] mb-4">Tenants are customers or organizations. Assign partners and configure RMM, Sophos, and Autotask connectors.</p>
+            <div className="space-y-3">
               {!editingTenantId && (
                 <div>
-                  <label className="text-xs text-[var(--muted)]">ID (optional)</label>
+                  <label className="block text-xs font-medium text-[var(--muted)] mb-1">ID (optional)</label>
                   <input value={tenantForm.id} onChange={e=>setTenantForm(s=>({...s, id:e.target.value}))}
-                         className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="e.g. tenant-1"/>
+                         className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="e.g. tenant-1"/>
                 </div>
               )}
               <div>
-                <label className="text-xs text-[var(--muted)]">Name</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Name</label>
                 <input value={tenantForm.name} onChange={e=>setTenantForm(s=>({...s, name:e.target.value}))}
-                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]"/>
               </div>
               <div>
-                <label className="text-xs text-[var(--muted)]">Partner ID</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Partner ID</label>
                 <input value={tenantForm.partnerId} onChange={e=>setTenantForm(s=>({...s, partnerId:e.target.value}))}
-                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2" placeholder="Empty = Mahoney"/>
+                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="Empty = Mahoney"/>
               </div>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={tenantForm.active} onChange={e=>setTenantForm(s=>({...s, active:e.target.checked}))}/>
-                <span className="text-sm">Active</span>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={tenantForm.active} onChange={e=>setTenantForm(s=>({...s, active:e.target.checked}))} className="rounded border-[var(--border)]"/>
+                <span className="text-sm text-[var(--text)]">Active</span>
               </label>
-              <div className="text-xs font-medium text-[var(--muted)] mt-2">Connectors (RMM / Sophos)</div>
+              <div className="text-xs font-medium text-[var(--muted)] pt-2 border-t border-[var(--border)]">Connectors (RMM / Sophos / Autotask)</div>
               <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-3">
                 <div>
                   <span className="text-xs text-[var(--muted)]">RMM (Datto)</span>
@@ -611,24 +698,27 @@ export default function AdminPage(){
                          className="w-full mt-1 rounded-lg border border-[var(--border)] px-2 py-1 text-sm" placeholder="Label (optional)"/>
                 </div>
               </div>
-              <div className="flex gap-2 mt-2">
-                <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white">
-                  {editingTenantId ? 'Save' : 'Add'}
+              <div className="flex gap-2 pt-1">
+                <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90">
+                  {editingTenantId ? 'Save' : 'Add tenant'}
                 </button>
                 {editingTenantId && (
-                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} } }); }} className="px-4 py-2 rounded-xl border border-[var(--border)]">Cancel</button>
+                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} } }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
                 )}
               </div>
             </div>
-          </div>
-          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
-            <div className="font-semibold mb-2">Tenants</div>
+          </Card>
+          <Card className="p-5 overflow-auto">
+            <div className="flex items-center gap-2 mb-4">
+              <Layers size={20} className="text-[var(--primary)]" />
+              <h2 className="font-semibold text-[var(--text)]">Tenants</h2>
+            </div>
             <div className="mb-4 p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
               <div className="text-xs font-medium text-[var(--muted)] mb-2">Import Autotask customers</div>
-              <p className="text-xs text-[var(--muted)] mb-2">Loads active companies from Autotask and creates a new tenant per company (ID: autotask-123). Existing mappings are skipped.</p>
+              <p className="text-xs text-[var(--muted)] mb-2">Creates a new tenant per Autotask company. Existing mappings are skipped.</p>
               <button type="button" onClick={importAutotaskCompanies} disabled={importAutotaskLoading}
-                      className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-sm bg-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/30 disabled:opacity-50">
-                {importAutotaskLoading ? 'Importing…' : 'Import companies from Autotask'}
+                      className="px-3 py-1.5 rounded-lg border border-[var(--primary)]/40 text-sm bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 disabled:opacity-50 font-medium">
+                {importAutotaskLoading ? 'Importing…' : 'Import from Autotask'}
               </button>
               {importAutotaskResult && (
                 <p className="text-xs mt-2 text-[var(--text)]">
@@ -636,34 +726,49 @@ export default function AdminPage(){
                 </p>
               )}
             </div>
-            {tenantsLoading ? <div className="text-sm text-[var(--muted)]">Loading…</div> : (
-              <table className="w-full text-sm">
-                <thead className="text-[var(--muted)]"><tr><th className="text-left py-2">ID</th><th>Name</th><th>Partner</th><th>Status</th><th></th></tr></thead>
-                <tbody>
-                  {tenants.map(t=>(
-                    <tr key={t.id} className="border-t border-[var(--border)]">
-                      <td className="py-2">{t.id}</td>
-                      <td>{t.name}</td>
-                      <td>{t.partnerId ?? '-'}</td>
-                      <td><span className={`px-2 py-1 rounded-lg text-xs ${t.active?'bg-emerald-600/20 text-emerald-300':'bg-zinc-600/20 text-zinc-300'}`}>{t.active?'active':'inactive'}</span></td>
-                      <td>
-                        <button onClick={()=>startEditTenant(t)} className="px-2 py-1 rounded-lg border border-[var(--border)] mr-1">Edit</button>
-                        <button onClick={()=>deleteTenant(t.id)} className="px-2 py-1 rounded-lg border border-[var(--border)] text-red-300">Delete</button>
-                      </td>
+            {tenantsLoading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : (
+              <div className="rounded-xl border border-[var(--border)] overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-[var(--surface-2)]">
+                    <tr>
+                      <th className="text-left py-3 px-3 font-medium text-[var(--muted)]">ID</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Name</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Partner</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Status</th>
+                      <th className="text-right py-3 px-3 font-medium text-[var(--muted)]">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {tenants.map(t=>(
+                      <tr key={t.id} className="hover:bg-[var(--surface-2)]/50 transition-colors">
+                        <td className="py-3 px-3 font-medium text-[var(--text)]">{t.id}</td>
+                        <td className="py-3 px-3 text-[var(--text)]">{t.name}</td>
+                        <td className="py-3 px-3 text-[var(--muted)]">{t.partnerId ?? '—'}</td>
+                        <td className="py-3 px-3">
+                          <span className={`inline-flex px-2 py-1 rounded-lg text-xs font-medium ${t.active?'bg-emerald-500/20 text-emerald-400':'bg-zinc-500/20 text-zinc-400'}`}>{t.active?'Active':'Inactive'}</span>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <button onClick={()=>startEditTenant(t)} className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] text-xs font-medium mr-1">Edit</button>
+                          <button onClick={()=>deleteTenant(t.id)} className="px-2.5 py-1 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium">Delete</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
+          </Card>
         </div>
       )}
 
       {tab==='billing' && (
-        <div className="mt-4 space-y-4">
-          <div className="rounded-2xl border border-[var(--border)] p-4">
-            <div className="font-semibold mb-2">Cost References (Marketplace)</div>
-            <p className="text-xs text-[var(--muted)] mb-3">
+        <div className="space-y-6">
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard size={20} className="text-[var(--primary)]" />
+              <h2 className="font-semibold text-[var(--text)]">Cost references (Marketplace)</h2>
+            </div>
+            <p className="text-xs text-[var(--muted)] mb-4">
               Billing is based on evaluated incidents (Resolved/Closed) and event data from RMM, EDR/Sophos, and Autotask. Specific costs and rates are in the Marketplace.
             </p>
             {billingCostRefs && (
@@ -704,41 +809,52 @@ export default function AdminPage(){
                     <p className="text-xs text-[var(--muted)] mt-2">Typical request (1 question): ${billingCostRefs.claude.typicalCopilotRequest.customerPriceUsd.toFixed(4)}.</p>
                   </div>
                 )}
-                <a href={billingCostRefs.marketplaceLink} className="text-sm text-[var(--primary)] hover:underline">To Marketplace →</a>
+                <a href={billingCostRefs.marketplaceLink} className="text-sm text-[var(--primary)] hover:underline font-medium">To Marketplace →</a>
               </>
             )}
-          </div>
-          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
-            <div className="font-semibold mb-2">Monthly Accumulation (for Invoice)</div>
-            <p className="text-xs text-[var(--muted)] mb-3">Per month: number of alerts (incidents), event total, threshold check (1M events included), and MDU cost. Usable for invoicing at month end.</p>
+          </Card>
+          <Card className="p-5 overflow-auto">
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard size={20} className="text-[var(--primary)]" />
+              <h2 className="font-semibold text-[var(--text)]">Monthly accumulation (for invoice)</h2>
+            </div>
+            <p className="text-xs text-[var(--muted)] mb-4">Per month: number of alerts (incidents), event total, threshold check (1M events included), and MDU cost. Usable for invoicing at month end.</p>
             {billingLoading ? (
               <div className="text-sm text-[var(--muted)]">Loading…</div>
             ) : billingMonthlyTotals.length === 0 ? (
               <div className="text-sm text-[var(--muted)]">No data for monthly accumulation (no evaluated incidents in the last 90 days).</div>
             ) : (
               <>
-                <table className="w-full text-sm mb-3">
-                  <thead className="text-[var(--muted)]">
-                    <tr><th className="text-left py-2">Month</th><th className="text-right">Alerts</th><th className="text-right">Events</th><th className="text-center">Threshold (1M)</th><th className="text-right">MDU (USD)</th></tr>
+                <div className="rounded-xl border border-[var(--border)] overflow-hidden mb-3">
+                <table className="w-full text-sm">
+                  <thead className="bg-[var(--surface-2)]">
+                    <tr>
+                      <th className="text-left py-3 px-3 font-medium text-[var(--muted)]">Month</th>
+                      <th className="text-right py-3 px-3 font-medium text-[var(--muted)]">Alerts</th>
+                      <th className="text-right py-3 px-3 font-medium text-[var(--muted)]">Events</th>
+                      <th className="text-center py-3 px-3 font-medium text-[var(--muted)]">Threshold (1M)</th>
+                      <th className="text-right py-3 px-3 font-medium text-[var(--muted)]">MDU (USD)</th>
+                    </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-[var(--border)]">
                     {billingMonthlyTotals.map((row) => (
-                      <tr key={row.month} className="border-t border-[var(--border)]">
-                        <td className="py-2 font-medium text-[var(--text)]">{row.label}</td>
-                        <td className="text-right">{row.incidentsCount}</td>
-                        <td className="text-right">{row.eventsCount.toLocaleString()}</td>
-                        <td className="text-center">
+                      <tr key={row.month} className="hover:bg-[var(--surface-2)]/50 transition-colors">
+                        <td className="py-3 px-3 font-medium text-[var(--text)]">{row.label}</td>
+                        <td className="py-3 px-3 text-right text-[var(--text)]">{row.incidentsCount}</td>
+                        <td className="py-3 px-3 text-right text-[var(--text)]">{row.eventsCount.toLocaleString()}</td>
+                        <td className="py-3 px-3 text-center">
                           {row.thresholdExceeded ? (
-                            <span className="px-2 py-1 rounded-lg text-xs bg-amber-600/20 text-amber-300">exceeded</span>
+                            <span className="inline-flex px-2 py-1 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-400">Exceeded</span>
                           ) : (
-                            <span className="px-2 py-1 rounded-lg text-xs bg-emerald-600/20 text-emerald-300">under 1M</span>
+                            <span className="inline-flex px-2 py-1 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-400">Under 1M</span>
                           )}
                         </td>
-                        <td className="text-right">{row.mduCostUsd > 0 ? `$${row.mduCostUsd.toFixed(2)}` : '—'}</td>
+                        <td className="py-3 px-3 text-right text-[var(--text)]">{row.mduCostUsd > 0 ? `$${row.mduCostUsd.toFixed(2)}` : '—'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
@@ -758,43 +874,55 @@ export default function AdminPage(){
                 </div>
               </>
             )}
-          </div>
-          <div className="rounded-2xl border border-[var(--border)] p-4 overflow-auto">
-            <div className="font-semibold mb-2">Evaluated Incidents (Resolved/Closed) – last 90 days</div>
-            <p className="text-xs text-[var(--muted)] mb-3">All pulled events and data per incident are viewable below (expand Event log). Basis for billing.</p>
+          </Card>
+          <Card className="p-5 overflow-auto">
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard size={20} className="text-[var(--primary)]" />
+              <h2 className="font-semibold text-[var(--text)]">Evaluated incidents (Resolved/Closed) – last 90 days</h2>
+            </div>
+            <p className="text-xs text-[var(--muted)] mb-4">All pulled events and data per incident are viewable below (expand Event log). Basis for billing.</p>
             {billingLoading ? (
-              <div className="text-sm text-[var(--muted)]">Loading…</div>
+              <div className="text-sm text-[var(--muted)] py-4">Loading…</div>
             ) : billingItems.length === 0 ? (
-              <div className="text-sm text-[var(--muted)]">Keine gewerteten Incidents (Resolved/Closed) in den letzten 90 Tagen.</div>
+              <div className="text-sm text-[var(--muted)] py-4">No evaluated incidents (Resolved/Closed) in the last 90 days.</div>
             ) : (
-              <table className="w-full text-sm">
-                <thead className="text-[var(--muted)]">
-                  <tr><th className="text-left py-2">Incident</th><th>Source</th><th>Status</th><th>Tenant</th><th>Events</th><th></th></tr>
-                </thead>
-                <tbody>
+              <div className="rounded-xl border border-[var(--border)] overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-[var(--surface-2)]">
+                    <tr>
+                      <th className="text-left py-3 px-3 font-medium text-[var(--muted)]">Incident</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Source</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Status</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Tenant</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Events</th>
+                      <th className="text-right py-3 px-3 font-medium text-[var(--muted)]"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
                   {billingItems.map((inc) => (
-                    <tr key={inc.id} className="border-t border-[var(--border)]">
-                      <td className="py-2">
+                    <tr key={inc.id} className="hover:bg-[var(--surface-2)]/50 transition-colors">
+                      <td className="py-3 px-3">
                         <div className="font-medium text-[var(--text)]">{inc.title}</div>
                         <div className="text-xs text-[var(--muted)]">{inc.id} · {new Date(inc.loggedAtISO).toLocaleString()}</div>
                       </td>
-                      <td className="text-center">{inc.source === 'rmm' ? 'RMM' : inc.source === 'edr' ? 'EDR' : inc.id?.startsWith('autotask-') ? 'Autotask' : inc.source ?? '—'}</td>
-                      <td className="text-center">{inc.status}</td>
-                      <td className="text-center">{inc.tenantId ?? '—'}</td>
-                      <td className="text-center">{(inc.eventLog?.length ?? 0)}</td>
-                      <td className="text-right">
+                      <td className="py-3 px-3 text-[var(--text)]">{inc.source === 'rmm' ? 'RMM' : inc.source === 'edr' ? 'EDR' : inc.id?.startsWith('autotask-') ? 'Autotask' : inc.source ?? '—'}</td>
+                      <td className="py-3 px-3 text-[var(--text)]">{inc.status}</td>
+                      <td className="py-3 px-3 text-[var(--muted)]">{inc.tenantId ?? '—'}</td>
+                      <td className="py-3 px-3 text-[var(--text)]">{(inc.eventLog?.length ?? 0)}</td>
+                      <td className="py-3 px-3 text-right">
                         <button type="button" onClick={()=>setBillingExpandedId(billingExpandedId === inc.id ? null : inc.id)}
-                                className="px-2 py-1 rounded-lg border border-[var(--border)] text-xs">
-                          {billingExpandedId === inc.id ? 'Collapse event log' : 'Show event log'}
+                                className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-xs font-medium text-[var(--text)] hover:bg-[var(--surface-2)]">
+                          {billingExpandedId === inc.id ? 'Collapse' : 'Event log'}
                         </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
             {billingItems.length > 0 && billingExpandedId && (
-              <div className="mt-4 p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+              <div className="mt-4 p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
                 <div className="text-xs font-medium text-[var(--muted)] mb-2">Event log: {billingItems.find(i => i.id === billingExpandedId)?.title ?? billingExpandedId}</div>
                 <ul className="space-y-2 text-xs">
                   {(billingItems.find(i => i.id === billingExpandedId)?.eventLog ?? []).map((e, idx) => (
@@ -812,28 +940,31 @@ export default function AdminPage(){
       )}
 
       {tab==='settings' && (
-        <div className="mt-4 rounded-2xl border border-[var(--border)] p-4 max-w-xl">
-          <div className="font-semibold mb-2">App parameters &amp; settings</div>
-          <p className="text-xs text-[var(--muted)] mb-4">Control display name, session duration, and default role. (Demo: in-memory; production via DB/env later.)</p>
+        <Card className="p-5 max-w-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <Settings size={20} className="text-[var(--primary)]" />
+            <h2 className="font-semibold text-[var(--text)]">App settings</h2>
+          </div>
+          <p className="text-xs text-[var(--muted)] mb-5">Display name, session duration, default role for new users, and optional logo and admin notice.</p>
           {settingsLoading ? (
-            <div className="text-sm text-[var(--muted)]">Loading…</div>
+            <div className="text-sm text-[var(--muted)] py-4">Loading…</div>
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="text-xs text-[var(--muted)]">App name (display)</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">App name (display)</label>
                 <input value={settings.appName} onChange={e=>setSettings(s=>({...s, appName:e.target.value}))}
-                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="e.g. Mahoney Control"/>
               </div>
               <div>
-                <label className="text-xs text-[var(--muted)]">Session duration (minutes)</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Session duration (minutes)</label>
                 <input type="number" min={5} max={1440} value={settings.sessionDurationMinutes}
                        onChange={e=>setSettings(s=>({...s, sessionDurationMinutes:Number(e.target.value)||30}))}
-                       className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]"/>
               </div>
               <div>
-                <label className="text-xs text-[var(--muted)]">Standard-Rolle für neue User</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Default role for new users</label>
                 <select value={settings.defaultRoleForNewUsers} onChange={e=>setSettings(s=>({...s, defaultRoleForNewUsers:e.target.value}))}
-                        className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2">
+                        className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]">
                   <option value="demo">demo</option>
                   <option value="sales">sales</option>
                   <option value="admin">admin</option>
@@ -842,31 +973,31 @@ export default function AdminPage(){
                 </select>
               </div>
               <div>
-                <label className="text-xs text-[var(--muted)]">Logo für Anmeldeseite (optional, max. 300 KB)</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Login page logo (optional, max. 300 KB)</label>
                 <div className="mt-1 flex flex-wrap items-center gap-3">
                   <input type="file" accept="image/*" onChange={handleLogoFile}
-                         className="text-sm text-[var(--muted)] file:mr-2 file:rounded-lg file:border file:border-[var(--border)] file:bg-[var(--surface-2)] file:px-3 file:py-1.5 file:text-sm"/>
+                         className="text-sm text-[var(--muted)] file:mr-2 file:rounded-lg file:border file:border-[var(--border)] file:bg-[var(--surface-2)] file:px-3 file:py-1.5 file:text-sm file:text-[var(--text)]"/>
                   {settings.logoDataUrl && (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={settings.logoDataUrl} alt="Logo" className="h-12 object-contain rounded border border-[var(--border)]"/>
-                      <button type="button" onClick={clearLogo} className="text-xs text-red-400 hover:underline">Entfernen</button>
+                      <img src={settings.logoDataUrl} alt="Logo" className="h-12 object-contain rounded-lg border border-[var(--border)]"/>
+                      <button type="button" onClick={clearLogo} className="text-xs text-red-400 hover:underline font-medium">Remove</button>
                     </>
                   )}
                 </div>
               </div>
               <div>
-                <label className="text-xs text-[var(--muted)]">Admin notice (optional, e.g. for maintenance)</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Admin notice (optional, e.g. maintenance)</label>
                 <textarea value={settings.adminNotice} onChange={e=>setSettings(s=>({...s, adminNotice:e.target.value}))}
-                          rows={2} className="w-full mt-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2"/>
+                          rows={2} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Shown to admins on login"/>
               </div>
               <button onClick={saveSettings} disabled={settingsSaving}
-                      className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white disabled:opacity-50">
+                      className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90 disabled:opacity-50">
                 {settingsSaving ? 'Saving…' : 'Save settings'}
               </button>
             </div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );
