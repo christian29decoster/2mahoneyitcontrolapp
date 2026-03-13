@@ -40,6 +40,9 @@ export default function IncidentsPage() {
   const [slaReport, setSlaReport] = useState<SlaReport | null>(null)
   const [dataSource, setDataSource] = useState<'local' | 'autotask' | 'mixed'>('local')
   const [integrations, setIntegrations] = useState<Integrations | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 50
 
   const load = useCallback(() => {
     setLoading(true)
@@ -54,6 +57,8 @@ export default function IncidentsPage() {
         setItems(data.items ?? [])
         setDataSource(data.source ?? 'local')
         setIntegrations(data.integrations ?? null)
+        setLastUpdated(new Date())
+        setPage(1)
       })
       .catch(() => setItems([]))
       .finally(() => setLoading(false))
@@ -86,12 +91,37 @@ export default function IncidentsPage() {
     return 'Local'
   }
 
+  const openStatuses = ['New', 'Assigned', 'In Progress']
+  const openCount = items.filter((i) => openStatuses.includes(i.status)).length
+  const byStatus = INCIDENT_STATUSES.reduce((acc, s) => ({ ...acc, [s]: items.filter((i) => i.status === s).length }), {} as Record<string, number>)
+  const bySource = items.reduce((acc, i) => {
+    const label = incidentSourceLabel(i)
+    acc[label] = (acc[label] ?? 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
+  const paginatedItems = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const lastUpdatedText = lastUpdated
+    ? (() => {
+        const min = Math.floor((Date.now() - lastUpdated.getTime()) / 60000)
+        if (min < 1) return 'Just now'
+        if (min < 60) return `${min} min ago`
+        return `${Math.floor(min / 60)} h ago`
+      })()
+    : null
+
   return (
     <div className="mx-auto w-full max-w-[960px] px-4 py-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-6 h-6 text-[var(--primary)]" />
           <h1 className="text-2xl font-bold text-[var(--text)]">Incidents</h1>
+          {lastUpdatedText && (
+            <span className="text-xs text-[var(--muted)] font-normal" title="Last data refresh">
+              Updated {lastUpdatedText}
+            </span>
+          )}
         </div>
         <div className="flex gap-2">
           <button
@@ -160,11 +190,13 @@ export default function IncidentsPage() {
             <p className="text-[var(--text)]">
               <span className="font-medium text-[var(--primary)]">Live data:</span>
               {' '}
+              {items.length.toLocaleString()} total
               {[
-                integrations.autotask.count > 0 && `${integrations.autotask.count} from Autotask`,
-                integrations.rmm.count > 0 && `${integrations.rmm.count} from RMM (Datto)`,
-                integrations.sophos.count > 0 && `${integrations.sophos.count} from Sophos`,
-              ].filter(Boolean).join(', ') || '—'}
+                integrations.autotask.count > 0 && ` (${integrations.autotask.count.toLocaleString()} Autotask)`,
+                integrations.rmm.count > 0 && ` (${integrations.rmm.count.toLocaleString()} RMM)`,
+                integrations.sophos.count > 0 && ` (${integrations.sophos.count.toLocaleString()} Sophos)`,
+              ].filter(Boolean).join('')}
+              .
             </p>
           ) : (integrations.autotask.configured || integrations.rmm.configured || integrations.sophos.configured) ? (
             <p className="text-[var(--muted)]">
@@ -177,11 +209,36 @@ export default function IncidentsPage() {
             </p>
           ) : (
             <p className="text-[var(--muted)]">
-              <span className="text-amber-400/90">Demo data only.</span>
+              <span className="text-amber-400/90">Demo data:</span>
               {' '}
-              For live data, connect Autotask PSA, RMM (Datto), or Sophos (Settings / environment variables: Autotask, DATTO_RMM_*, SOPHOS_*).
+              {items.length.toLocaleString()} incidents (last 30 days). For live data, connect Autotask PSA, RMM (Datto), or Sophos (Settings / environment variables).
             </p>
           )}
+        </Card>
+      )}
+
+      {!loading && items.length > 0 && (
+        <Card className="mt-4 p-3 flex flex-wrap items-center gap-4 text-sm">
+          <span className="font-medium text-[var(--text)]">
+            Total: <strong>{items.length.toLocaleString()}</strong>
+          </span>
+          <span className="text-[var(--muted)]">
+            Open: <strong className="text-[var(--text)]">{openCount.toLocaleString()}</strong>
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {INCIDENT_STATUSES.filter((s) => byStatus[s] > 0).map((s) => (
+              <span key={s} className="px-2 py-0.5 rounded-lg bg-[var(--surface-2)] text-[var(--muted)] text-xs">
+                {s}: {byStatus[s].toLocaleString()}
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(bySource).map(([src, n]) => (
+              <span key={src} className="px-2 py-0.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-xs">
+                {src}: {n.toLocaleString()}
+              </span>
+            ))}
+          </div>
         </Card>
       )}
 
@@ -243,35 +300,63 @@ export default function IncidentsPage() {
           {items.length === 0 ? (
             <Card className="p-6 text-center text-[var(--muted)]">No incidents match the current filters.</Card>
           ) : (
-            items.map((inc) => (
-              <Link key={inc.id} href={`/incidents/${inc.id}`}>
-                <Card className="p-4 hover:border-[var(--primary)]/40 transition-colors">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-[var(--text)] truncate">{inc.title}</div>
-                      <div className="text-xs text-[var(--muted)] mt-0.5">
-                        {inc.id} · Logged {new Date(inc.loggedAtISO).toLocaleString()}
-                        {inc.assignedTo && ` · ${inc.assignedTo}`}
+            <>
+              <p className="text-xs text-[var(--muted)] mb-2">
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, items.length)} of {items.length.toLocaleString()}
+              </p>
+              {paginatedItems.map((inc) => (
+                <Link key={inc.id} href={`/incidents/${inc.id}`}>
+                  <Card className="p-3 hover:border-[var(--primary)]/40 transition-colors">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-[var(--text)] truncate">{inc.title}</div>
+                        <div className="text-xs text-[var(--muted)] mt-0.5">
+                          {inc.id} · Logged {new Date(inc.loggedAtISO).toLocaleString()}
+                          {inc.assignedTo && ` · ${inc.assignedTo}`}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                        <span className="px-2 py-0.5 rounded-lg text-xs font-medium bg-[var(--primary)]/20 text-[var(--primary)]" title="Source">
+                          {incidentSourceLabel(inc)}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${priorityColor[inc.priority]}`}>
+                          {inc.priority}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-lg text-xs border border-[var(--border)] text-[var(--muted)]">
+                          {inc.category}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-lg text-xs bg-[var(--surface-2)] text-[var(--text)]">
+                          {inc.status}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-2 py-1 rounded-lg text-xs font-medium bg-[var(--primary)]/20 text-[var(--primary)]" title="Source">
-                        {incidentSourceLabel(inc)}
-                      </span>
-                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${priorityColor[inc.priority]}`}>
-                        {inc.priority}
-                      </span>
-                      <span className="px-2 py-1 rounded-lg text-xs border border-[var(--border)] text-[var(--muted)]">
-                        {inc.category}
-                      </span>
-                      <span className="px-2 py-1 rounded-lg text-xs bg-[var(--surface-2)] text-[var(--text)]">
-                        {inc.status}
-                      </span>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            ))
+                  </Card>
+                </Link>
+              ))}
+              {totalPages > 1 && (
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                    disabled={page <= 1}
+                    className="px-3 py-2 rounded-xl border border-[var(--border)] text-sm text-[var(--text)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-2)]"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-[var(--muted)]">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                    disabled={page >= totalPages}
+                    className="px-3 py-2 rounded-xl border border-[var(--border)] text-sm text-[var(--text)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-2)]"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

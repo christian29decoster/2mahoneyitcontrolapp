@@ -114,8 +114,8 @@ export async function fetchIncidentsFromRmm(tenantConfig: RmmIncidentsConfig = n
   try {
     const token = await getDattoRmmAccessToken(apiUrl, apiKey, apiSecret)
     const [open, resolved] = await Promise.all([
-      getDattoRmmAccountAlertsOpenList(apiUrl, token, 200),
-      getDattoRmmAccountAlertsResolvedList(apiUrl, token, 200, 15),
+      getDattoRmmAccountAlertsOpenList(apiUrl, token, 1500),
+      getDattoRmmAccountAlertsResolvedList(apiUrl, token, 2500, 15),
     ])
     const openIncidents = open.alerts.map((a, i) => mapRmmAlertToIncident(a, i, 'New'))
     const resolvedIncidents = resolved.alerts.map((a, i) => mapRmmAlertToIncident(a, i + open.alerts.length, 'Resolved'))

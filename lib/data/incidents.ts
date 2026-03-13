@@ -67,6 +67,29 @@ const VALID_TRANSITIONS: Record<IncidentStatus, IncidentStatus[]> = {
 
 const store: IncidentRecord[] = []
 
+const DEMO_TITLES = [
+  'Disk space below threshold',
+  'Windows Update failed',
+  'Agent offline',
+  'High CPU usage',
+  'Memory usage critical',
+  'Service stopped',
+  'Patch pending',
+  'Antivirus definition update failed',
+  'Backup failed',
+  'Certificate expiring',
+  'Login failure threshold exceeded',
+  'RMM Alert',
+  'EDR detection',
+  'Unusual process',
+  'Network adapter disconnected',
+  'Low disk space',
+  'Pending reboot',
+  'Failed login attempt',
+  'Software install required',
+  'Monitoring alert',
+]
+
 function seed() {
   if (store.length > 0) return
   const now = new Date().toISOString()
@@ -127,6 +150,41 @@ function seed() {
   )
 }
 seed()
+
+/** Demo incidents with varied, recent timestamps (for demo mode when no RMM/Autotask/Sophos). */
+export function getDemoIncidents(opts: { count?: number; lastDays?: number } = {}): IncidentRecord[] {
+  const count = opts.count ?? 2800
+  const lastDays = opts.lastDays ?? 30
+  const end = Date.now()
+  const start = end - lastDays * 24 * 60 * 60 * 1000
+  const statuses: IncidentStatus[] = ['New', 'Assigned', 'In Progress', 'Resolved', 'Resolved', 'Closed', 'Closed']
+  const categories: IncidentCategory[] = ['Other', 'Other', 'Hardware', 'Software', 'Network', 'Security', 'Performance', 'Access']
+  const priorities: IncidentPriority[] = ['P4', 'P4', 'P3', 'P3', 'P2', 'P1']
+  const sources: Array<'rmm' | 'edr' | 'manual'> = ['rmm', 'rmm', 'rmm', 'edr', 'manual']
+  const out: IncidentRecord[] = []
+  for (let i = 0; i < count; i++) {
+    const t = start + Math.random() * (end - start)
+    const loggedAt = new Date(t).toISOString()
+    const status = statuses[Math.floor(Math.random() * statuses.length)]
+    const category = categories[Math.floor(Math.random() * categories.length)]
+    const priority = priorities[Math.floor(Math.random() * priorities.length)]
+    const source = sources[Math.floor(Math.random() * sources.length)]
+    const title = DEMO_TITLES[Math.floor(Math.random() * DEMO_TITLES.length)]
+    out.push({
+      id: `demo-${source}-${i + 1}`,
+      title: `${title} #${i + 1}`,
+      description: `Demo incident from ${source}.`,
+      category,
+      priority,
+      status,
+      loggedAtISO: loggedAt,
+      source,
+      timeline: [{ atISO: loggedAt, text: 'Logged' }],
+    })
+  }
+  out.sort((a, b) => new Date(b.loggedAtISO).getTime() - new Date(a.loggedAtISO).getTime())
+  return out
+}
 
 export function listIncidents(filters?: {
   status?: IncidentStatus

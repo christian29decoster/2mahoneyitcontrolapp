@@ -356,7 +356,7 @@ export async function getDattoRmmDeviceAlertsOpen(
   return { alerts: all }
 }
 
-const RMM_ALERTS_LIST_MAX = 150
+const RMM_ALERTS_LIST_MAX = 2500
 
 /** Account-weite offene Alerts als Liste (für Incidents). Max. RMM_ALERTS_LIST_MAX. */
 export async function getDattoRmmAccountAlertsOpenList(

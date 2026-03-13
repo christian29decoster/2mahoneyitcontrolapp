@@ -3,7 +3,7 @@
  * Used by GET /api/incidents and GET /api/admin/billing.
  */
 
-import { listIncidents } from '@/lib/data/incidents'
+import { listIncidents, getDemoIncidents } from '@/lib/data/incidents'
 import type { IncidentCategory, IncidentPriority, IncidentStatus } from '@/lib/data/incidents'
 import type { IncidentRecord } from '@/lib/data/incidents'
 import { fetchIncidentsFromAutotask, getAutotaskConfig } from '@/lib/autotask'
@@ -101,14 +101,22 @@ export async function getMergedIncidents(opts: GetMergedIncidentsOptions = {}): 
   fromRmm.forEach((i) => byId.set(i.id, i))
   fromSophos.forEach((i) => byId.set(i.id, i))
 
-  let items = Array.from(byId.values()).sort(
-    (a, b) => new Date(b.loggedAtISO).getTime() - new Date(a.loggedAtISO).getTime()
-  )
+  const useDemoData = fromRmm.length === 0 && fromAutotask.length === 0 && fromSophos.length === 0
+  let items: IncidentRecord[]
+  if (useDemoData) {
+    items = getDemoIncidents({ lastDays }).sort(
+      (a, b) => new Date(b.loggedAtISO).getTime() - new Date(a.loggedAtISO).getTime()
+    )
+  } else {
+    items = Array.from(byId.values()).sort(
+      (a, b) => new Date(b.loggedAtISO).getTime() - new Date(a.loggedAtISO).getTime()
+    )
+  }
   if (status) items = items.filter((i) => i.status === status)
   if (category) items = items.filter((i) => i.category === category)
   if (priority) items = items.filter((i) => i.priority === priority)
   if (queryTenantId != null) items = items.filter((i) => i.tenantId === queryTenantId)
-  if (lastDays > 0) {
+  if (lastDays > 0 && !useDemoData) {
     const cutoff = Date.now() - lastDays * 24 * 60 * 60 * 1000
     items = items.filter((i) => new Date(i.loggedAtISO).getTime() >= cutoff)
   }
