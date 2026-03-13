@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox } from 'lucide-react';
 
@@ -23,12 +23,18 @@ const TABS = [
   { id: 'settings' as const, label: 'Settings', icon: Settings },
 ] as const;
 
+function getDemoRoleFromCookie(): string {
+  const m = document.cookie.match(/demo_role=([^;]+)/);
+  return (m && m[1] ? m[1] : '').toLowerCase();
+}
+
 export default function AdminPage(){
   const [tab, setTab] = useState<'users'|'audit'|'partners'|'tenants'|'billing'|'settings'>('users');
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [audit, setAudit] = useState<AuditItem[]>([]);
   const [form, setForm] = useState({ username:'', password:'Mahoney#1', role:'sales', expiresAtISO:'' });
+  const [currentRole, setCurrentRole] = useState('');
 
   const [partners, setPartners] = useState<PartnerItem[]>([]);
   const [partnersLoading, setPartnersLoading] = useState(false);
@@ -75,17 +81,13 @@ export default function AdminPage(){
   const [billingExpandedId, setBillingExpandedId] = useState<string | null>(null);
   const [billingCopyDone, setBillingCopyDone] = useState(false);
 
-  async function loadAll(){
+  const loadAll = async () => {
     setLoading(true);
     try {
       const [u, a] = await Promise.all([
         fetch('/api/demo/users').then(r=>r.json()).catch(()=>({items:[]})),
         fetch('/api/demo/audit').then(r=>r.json()).catch(()=>({items:[]})),
       ]);
-      
-      console.log('Users response:', u);
-      console.log('Audit response:', a);
-      
       setUsers(u.items||[]);
       setAudit(a.items||[]);
     } catch (error) {
@@ -94,10 +96,19 @@ export default function AdminPage(){
     } finally {
       setLoading(false);
     }
-  }
+  };
   useEffect(()=>{ loadAll(); }, []);
 
-  async function loadPartners() {
+  const isSuperAdmin = currentRole === 'superadmin';
+  useEffect(function checkAdminRole() {
+    const role = getDemoRoleFromCookie();
+    setCurrentRole(role);
+    if (!['admin', 'superadmin'].includes(role)) {
+      window.location.assign('/');
+    }
+  }, []);
+
+  const loadPartners = async () => {
     setPartnersLoading(true);
     try {
       const r = await fetch('/api/partners');
@@ -109,8 +120,8 @@ export default function AdminPage(){
     } finally {
       setPartnersLoading(false);
     }
-  }
-  async function loadTenants() {
+  };
+  const loadTenants = async () => {
     setTenantsLoading(true);
     try {
       const r = await fetch('/api/tenants');
@@ -122,7 +133,7 @@ export default function AdminPage(){
     } finally {
       setTenantsLoading(false);
     }
-  }
+  };
   useEffect(() => { loadPartners(); }, []);
   useEffect(() => { loadTenants(); }, []);
   useEffect(() => { if (tab === 'partners') loadPartners(); }, [tab]);
@@ -345,18 +356,7 @@ export default function AdminPage(){
     }
   }
 
-  const [currentRole, setCurrentRole] = useState('');
-  const isSuperAdmin = currentRole === 'superadmin';
-
-  useEffect(() => {
-    const role = (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1] || '').toLowerCase();
-    setCurrentRole(role);
-    if (!['admin', 'superadmin'].includes(role)) {
-      window.location.assign('/');
-    }
-  }, []);
-
-  return (
+  const render = (): React.ReactNode => (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
       <header className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-[var(--text)]">Admin Dashboard</h1>
@@ -957,7 +957,7 @@ export default function AdminPage(){
                 </ul>
               </div>
             )}
-          </div>
+          </Card>
         </div>
       )}
 
@@ -1023,4 +1023,6 @@ export default function AdminPage(){
       )}
     </div>
   );
+
+  return render();
 }
