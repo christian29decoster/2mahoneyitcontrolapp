@@ -35,10 +35,12 @@ export default function MarketplacePage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
           Mahoney One – Managed Service
-          <Info
-            className="w-4 h-4 text-[var(--muted)]"
+          <span
+            className="inline-flex items-center justify-center"
             title="Full-service managed offering combining platform, operations, and security for Mahoney customers."
-          />
+          >
+            <Info className="w-4 h-4 text-[var(--muted)]" />
+          </span>
         </h2>
         <p className="text-sm text-[var(--muted)]">
           Full-service operations for customers with or without their own IT. Mahoney One combines platform, operations,
@@ -49,12 +51,14 @@ export default function MarketplacePage() {
           <Card className="space-y-2">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-[var(--text)]">Mahoney One USA</h3>
-              <Info
-                className="w-3 h-3 text-[var(--muted)]"
+              <span
+                className="inline-flex items-center justify-center"
                 title="US service packaging of Mahoney One including Mahoney Control platform and managed security operations."
-              />
+              >
+                <Info className="w-3 h-3 text-[var(--muted)]" />
+              </span>
             </div>
-            <p className="text-xs text-[var(--muted)]">Device-based pricing (USD per device per month).</p>
+            <p className="text-xs text-[var(--muted)]">Device-based pricing ($ per device per month).</p>
             <table className="w-full text-xs text-left mt-2">
               <thead>
                 <tr className="text-[var(--muted)] border-b border-[var(--border)]">
@@ -119,12 +123,14 @@ export default function MarketplacePage() {
           <Card className="space-y-2">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-[var(--text)]">Mahoney One – Customer IT on site</h3>
-              <Info
-                className="w-3 h-3 text-[var(--muted)]"
+              <span
+                className="inline-flex items-center justify-center"
                 title="Mahoney One service for customers operating their own on-site IT, with device-based pricing."
-              />
+              >
+                <Info className="w-3 h-3 text-[var(--muted)]" />
+              </span>
             </div>
-            <p className="text-xs text-[var(--muted)]">Device-based pricing (USD per device per month).</p>
+            <p className="text-xs text-[var(--muted)]">Device-based pricing ($ per device per month).</p>
             <table className="w-full text-xs text-left mt-2">
               <thead>
                 <tr className="text-[var(--muted)] border-b border-[var(--border)]">
@@ -192,10 +198,12 @@ export default function MarketplacePage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
           Mahoney Control Platform
-          <Info
-            className="w-4 h-4 text-[var(--muted)]"
+          <span
+            className="inline-flex items-center justify-center"
             title="Multi-tenant governance platform including dashboard, devices & staff, incidents, governance views, billing and optional Mahoney Grow."
-          />
+          >
+            <Info className="w-4 h-4 text-[var(--muted)]" />
+          </span>
         </h2>
         <p className="text-sm text-[var(--muted)]">
           Multi-tenant governance platform for devices, incidents, risk and financials. Pricing as per MIT-AI price
@@ -214,7 +222,7 @@ export default function MarketplacePage() {
             <tbody className="text-[var(--text)]">
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Starter</td>
-                <td className="py-2 pr-4">499 €</td>
+                <td className="py-2 pr-4">$499</td>
                 <td className="py-2 text-sm">
                   Up to 25 users/devices, 1M events included, standard support.
                 </td>
@@ -225,7 +233,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'platform-starter',
                         name: 'Mahoney Control Platform – Starter',
-                        description: '499 € / month',
+                        description: '$499 / month',
                       })
                     }
                   />
@@ -233,7 +241,7 @@ export default function MarketplacePage() {
               </tr>
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Professional</td>
-                <td className="py-2 pr-4">1,499 €</td>
+                <td className="py-2 pr-4">$1,499</td>
                 <td className="py-2 text-sm">
                   Higher limits, priority support, advanced reports.
                 </td>
@@ -244,7 +252,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'platform-professional',
                         name: 'Mahoney Control Platform – Professional',
-                        description: '1,499 € / month',
+                        description: '$1,499 / month',
                       })
                     }
                   />
@@ -252,7 +260,7 @@ export default function MarketplacePage() {
               </tr>
               <tr>
                 <td className="py-2 pr-4 font-medium">Enterprise</td>
-                <td className="py-2 pr-4">Custom (from 2,500 €)</td>
+                <td className="py-2 pr-4">Custom (from $2,500)</td>
                 <td className="py-2 text-sm">
                   Full usage, SLA, dedicated support.
                 </td>
@@ -264,7 +272,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'platform-enterprise',
                         name: 'Mahoney Control Platform – Enterprise',
-                        description: 'Custom pricing – from 2,500 € / month',
+                        description: 'Custom pricing – from $2,500 / month',
                       })
                     }
                   />
@@ -282,13 +290,15 @@ export default function MarketplacePage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
           SOC (Security Operations)
-          <Info
-            className="w-4 h-4 text-[var(--muted)]"
+          <span
+            className="inline-flex items-center justify-center"
             title="SOC tiers from Core Monitoring up to Enterprise Threat Operations, aligned with the SOC section of the price list."
-          />
+          >
+            <Info className="w-4 h-4 text-[var(--muted)]" />
+          </span>
         </h2>
         <p className="text-sm text-[var(--muted)]">
-          Security Operations Center as a Service. Pricing per MIT-AI price list (USD).
+          Security Operations Center as a Service. Pricing per MIT-AI price list ($).
         </p>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
@@ -303,7 +313,7 @@ export default function MarketplacePage() {
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Core Monitoring</td>
                 <td className="py-2 text-sm">
-                  85 USD per user / month (minimum 3,000 USD / month)
+                  $85 per user / month (minimum $3,000 / month)
                 </td>
                 <td className="py-2 text-sm">
                   <HapticButton
@@ -312,7 +322,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'soc-core',
                         name: 'SOC – Core Monitoring',
-                        description: '85 USD / user / month (min. 3,000 USD)',
+                        description: '$85 / user / month (min. $3,000)',
                       })
                     }
                   />
@@ -321,7 +331,7 @@ export default function MarketplacePage() {
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Advanced SOC</td>
                 <td className="py-2 text-sm">
-                  135 USD per user / month (minimum 7,500 USD / month)
+                  $135 per user / month (minimum $7,500 / month)
                 </td>
                 <td className="py-2 text-sm">
                   <HapticButton
@@ -330,7 +340,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'soc-advanced',
                         name: 'SOC – Advanced',
-                        description: '135 USD / user / month (min. 7,500 USD)',
+                        description: '$135 / user / month (min. $7,500)',
                       })
                     }
                   />
@@ -338,7 +348,7 @@ export default function MarketplacePage() {
               </tr>
               <tr>
                 <td className="py-2 pr-4 font-medium">Enterprise Threat Operations</td>
-                <td className="py-2 text-sm">from 45,000 USD / month</td>
+                <td className="py-2 text-sm">from $45,000 / month</td>
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Request quote"
@@ -347,7 +357,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'soc-enterprise',
                         name: 'SOC – Enterprise Threat Operations',
-                        description: 'from 45,000 USD / month',
+                        description: 'from $45,000 / month',
                       })
                     }
                   />
@@ -366,10 +376,12 @@ export default function MarketplacePage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
           Platform &amp; Data (MDU) – Events
-          <Info
-            className="w-4 h-4 text-[var(--muted)]"
+          <span
+            className="inline-flex items-center justify-center"
             title="Volume-based billing for events per month (from RMM, EDR, SIEM); 0–1M events are included with the platform."
-          />
+          >
+            <Info className="w-4 h-4 text-[var(--muted)]" />
+          </span>
         </h2>
         <p className="text-sm text-[var(--muted)]">
           Event-based billing per month (RMM, EDR, SIEM). RMM/EDR alert counts alone do not increase MDU cost.
@@ -389,15 +401,15 @@ export default function MarketplacePage() {
               </tr>
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4">1M – 50M</td>
-                <td className="py-2">0.10 USD per 1,000 events</td>
+                <td className="py-2">0.10 $ per 1,000 events</td>
               </tr>
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4">50M – 200M</td>
-                <td className="py-2">0.08 USD per 1,000 events</td>
+                <td className="py-2">0.08 $ per 1,000 events</td>
               </tr>
               <tr>
                 <td className="py-2 pr-4">&gt; 200M</td>
-                <td className="py-2">0.05 USD per 1,000 events</td>
+                <td className="py-2">0.05 $ per 1,000 events</td>
               </tr>
             </tbody>
           </table>
@@ -412,10 +424,12 @@ export default function MarketplacePage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
           MIT-AI – AI Analytics &amp; Co-Pilot
-          <Info
-            className="w-4 h-4 text-[var(--muted)]"
+          <span
+            className="inline-flex items-center justify-center"
             title="AI-powered analytics and Co-Pilot usage, billed by input/output tokens across Standard, Pro and Premium plans."
-          />
+          >
+            <Info className="w-4 h-4 text-[var(--muted)]" />
+          </span>
         </h2>
         <p className="text-sm text-[var(--muted)]">
           AI-supported analytics and Co-Pilot, billed by tokens used (input / output).
@@ -434,8 +448,8 @@ export default function MarketplacePage() {
             <tbody className="text-[var(--text)]">
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Standard</td>
-                <td className="py-2 pr-4">1.50 USD</td>
-                <td className="py-2 pr-4">7.50 USD</td>
+                <td className="py-2 pr-4">$1.50</td>
+                <td className="py-2 pr-4">$7.50</td>
                 <td className="py-2 text-sm">Short queries, standard evaluations.</td>
                 <td className="py-2 text-sm">
                   <HapticButton
@@ -444,7 +458,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'mitai-standard',
                         name: 'MIT-AI – Standard',
-                        description: '1.50 USD input / 7.50 USD output per 1M tokens',
+                        description: '$1.50 input / $7.50 output per 1M tokens',
                       })
                     }
                   />
@@ -452,8 +466,8 @@ export default function MarketplacePage() {
               </tr>
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">Pro</td>
-                <td className="py-2 pr-4">4.50 USD</td>
-                <td className="py-2 pr-4">22.50 USD</td>
+                <td className="py-2 pr-4">$4.50</td>
+                <td className="py-2 pr-4">$22.50</td>
                 <td className="py-2 text-sm">
                   Co-Pilot, analysis, recommendations (standard use).
                 </td>
@@ -464,7 +478,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'mitai-pro',
                         name: 'MIT-AI – Pro',
-                        description: '4.50 USD input / 22.50 USD output per 1M tokens',
+                        description: '$4.50 input / $22.50 output per 1M tokens',
                       })
                     }
                   />
@@ -472,8 +486,8 @@ export default function MarketplacePage() {
               </tr>
               <tr>
                 <td className="py-2 pr-4 font-medium">Premium</td>
-                <td className="py-2 pr-4">7.50 USD</td>
-                <td className="py-2 pr-4">37.50 USD</td>
+                <td className="py-2 pr-4">$7.50</td>
+                <td className="py-2 pr-4">$37.50</td>
                 <td className="py-2 text-sm">
                   Complex analytics, large context windows.
                 </td>
@@ -484,7 +498,7 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'mitai-premium',
                         name: 'MIT-AI – Premium',
-                        description: '7.50 USD input / 37.50 USD output per 1M tokens',
+                        description: '$7.50 input / $37.50 output per 1M tokens',
                       })
                     }
                   />
