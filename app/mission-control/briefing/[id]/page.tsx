@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Radio, Check, Lock, AlertTriangle, Flag } from 'lucide-react'
+import { Radio, Check, Lock, AlertTriangle, Flag, FileText } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import type { BriefingStatus } from '@/lib/mission-briefing/types'
+import { BRIEFING_DEMO_SITREP } from '@/lib/mission-briefing/briefing-demo'
 
 type Briefing = {
   id: string
@@ -206,6 +207,26 @@ export default function BriefingFlowPage() {
           {error}
         </div>
       )}
+
+      {/* Briefing (SITREP) – always visible in flow */}
+      <Card className="p-4 border-[var(--border)]">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3 flex items-center gap-2">
+          <FileText size={14} />
+          Briefing — Situation Report
+        </h2>
+        <div className="space-y-3">
+          {BRIEFING_DEMO_SITREP.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-xs font-semibold text-[var(--text)] uppercase tracking-wide mb-1">{section.title}</h3>
+              <ul className="list-disc list-inside text-xs text-[var(--muted)] space-y-0.5">
+                {section.items.slice(0, 2).map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {isLocked && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-900/20 border border-emerald-500/50 text-emerald-200 text-sm">

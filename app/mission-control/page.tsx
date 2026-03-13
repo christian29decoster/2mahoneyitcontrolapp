@@ -12,9 +12,15 @@ import {
   MessageSquare,
   Play,
   ChevronRight,
+  FileText,
+  Sparkles,
+  TrendingUp,
+  Briefcase,
 } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import { scoreToLevel, type RiskLevel, type PerCustomerRisk } from '@/lib/mission-briefing/types'
+import { BRIEFING_DEMO_SITREP, AI_COORDINATOR_DEMO, AI_COORDINATOR_SUMMARY } from '@/lib/mission-briefing/briefing-demo'
+import { GROW_INSIGHTS, growAiScore, GROW_DEMO_BASELINE } from '@/lib/mahoney-grow-demo'
 
 type DashboardSummary = {
   tenantId: string
@@ -166,6 +172,32 @@ export default function MissionControlPage() {
         </button>
       </div>
 
+      {/* Briefing (Situation Report) – Mehrwert, aviation-oriented */}
+      <Card className="p-4 border-[var(--border)]">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3 flex items-center gap-2">
+          <FileText size={14} />
+          Briefing — Situation Report (SITREP)
+        </h2>
+        <p className="text-xs text-[var(--muted)] mb-4">
+          What this briefing delivers: one coordinated picture for teams, resources, and in-house IT.
+        </p>
+        <div className="space-y-4">
+          {BRIEFING_DEMO_SITREP.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-xs font-semibold text-[var(--text)] uppercase tracking-wide mb-1">
+                {section.title}
+                {section.subtitle && <span className="font-normal text-[var(--muted)] normal-case"> — {section.subtitle}</span>}
+              </h3>
+              <ul className="list-disc list-inside text-sm text-[var(--text)] space-y-0.5">
+                {section.items.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Card>
+
       {/* Risk Radar – 5 scores */}
       <Card className="p-4 border-[var(--border)]">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3 flex items-center gap-2">
@@ -299,6 +331,68 @@ export default function MissionControlPage() {
           {raw.highSeveritySiemAlerts24h === 0 && raw.activeSophosIncidents === 0 && raw.openP1Tickets === 0 && raw.slaBreachesPending === 0 && (
             <li className="text-[var(--muted)]">No critical notices. Review Risk Radar and Critical Clients above.</li>
           )}
+        </ul>
+      </Card>
+
+      {/* From Mahoney Grow – Business & Technical (data from Grow shown in briefing context) */}
+      <Card className="p-4 border-[var(--border)]">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-3 flex items-center gap-2">
+          <TrendingUp size={14} />
+          From Mahoney Grow — In This Briefing
+        </h2>
+        <p className="text-xs text-[var(--muted)] mb-3">
+          Security-to-Growth Score: <span className="font-semibold text-[var(--text)]">{growAiScore(GROW_DEMO_BASELINE).score}/100</span> ({growAiScore(GROW_DEMO_BASELINE).label}). Findings below feed into coordinated planning.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="text-xs font-semibold text-[var(--primary)] uppercase tracking-wide mb-2 flex items-center gap-1">
+              <Briefcase size={12} />
+              Business
+            </h3>
+            <ul className="space-y-2">
+              {GROW_INSIGHTS.filter((i) => i.category === 'Business').map((ins) => (
+                <li key={ins.id} className="text-sm text-[var(--text)]">
+                  <span className="font-medium">{ins.title}</span>
+                  <span className="text-[var(--muted)]"> — {ins.short}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-xs font-semibold text-[var(--primary)] uppercase tracking-wide mb-2 flex items-center gap-1">
+              <Activity size={12} />
+              Technical
+            </h3>
+            <ul className="space-y-2">
+              {GROW_INSIGHTS.filter((i) => i.category === 'Technical').map((ins) => (
+                <li key={ins.id} className="text-sm text-[var(--text)]">
+                  <span className="font-medium">{ins.title}</span>
+                  <span className="text-[var(--muted)]"> — {ins.short}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </Card>
+
+      {/* AI Mission Coordinator (demo) – coordinated planning, improvement */}
+      <Card className="p-4 border-[var(--primary)]/30 bg-[var(--primary)]/5">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)] mb-2 flex items-center gap-2">
+          <Sparkles size={14} />
+          AI Mission Coordinator (Demo)
+        </h2>
+        <p className="text-xs text-[var(--muted)] mb-4">{AI_COORDINATOR_SUMMARY}</p>
+        <ul className="space-y-3">
+          {AI_COORDINATOR_DEMO.map((rec) => (
+            <li key={rec.id} className="flex gap-3">
+              <span className={`shrink-0 w-2 h-2 rounded-full mt-1.5 ${rec.priority === 'high' ? 'bg-red-400' : rec.priority === 'medium' ? 'bg-amber-400' : 'bg-[var(--muted)]'}`} />
+              <div>
+                <p className="text-sm font-medium text-[var(--text)]">{rec.title}</p>
+                <p className="text-xs text-[var(--muted)] mt-0.5">{rec.summary}</p>
+                <p className="text-[10px] text-[var(--muted)] mt-1">Source: {rec.source}</p>
+              </div>
+            </li>
+          ))}
         </ul>
       </Card>
 
