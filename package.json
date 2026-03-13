@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@babel/runtime": "^7.26.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.12",
