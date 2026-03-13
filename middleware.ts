@@ -4,8 +4,12 @@ import type { NextRequest } from 'next/server'
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // open routes
-  const open = pathname === '/login' || pathname === '/api/health'
+  // open routes (Nexus portal has its own auth)
+  const open =
+    pathname === '/login' ||
+    pathname === '/api/health' ||
+    pathname.startsWith('/nexus') ||
+    pathname.startsWith('/api/nexus')
   const isAsset =
     pathname.startsWith('/_next') ||
     /\.(png|jpg|jpeg|webp|svg|ico|css|js|map|txt)$/i.test(pathname)

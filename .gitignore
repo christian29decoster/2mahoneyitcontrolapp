@@ -17,6 +17,9 @@
 # production
 /build
 
+# Nexus portal user store (persisted at runtime; seed from code)
+/data
+
 # misc
 .DS_Store
 *.pem

@@ -2,7 +2,7 @@
 
 import './globals.css'
 import { AnimatePresence, motion } from 'framer-motion'
-import AppShell from '@/components/AppShell'
+import ConditionalShell from '@/components/ConditionalShell'
 import ViewModeWrapper from '@/components/ViewModeWrapper'
 
 export default function RootLayout({
@@ -21,7 +21,7 @@ export default function RootLayout({
       </head>
       <body>
         <ViewModeWrapper>
-          <AppShell>
+          <ConditionalShell>
             <AnimatePresence mode="wait">
               <motion.main
                 key={typeof window !== 'undefined' ? location.pathname : 'ssr'}
@@ -34,7 +34,7 @@ export default function RootLayout({
                 {children}
               </motion.main>
             </AnimatePresence>
-          </AppShell>
+          </ConditionalShell>
         </ViewModeWrapper>
       </body>
     </html>
