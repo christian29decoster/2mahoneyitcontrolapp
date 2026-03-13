@@ -15,9 +15,11 @@ type CartItem = {
 
 export default function MarketplacePage() {
   const [cart, setCart] = useState<CartItem[]>([])
+  const [lastAdded, setLastAdded] = useState<string | null>(null)
 
   const addToCart = (item: CartItem) => {
     setCart((prev) => [...prev, item])
+    setLastAdded(item.name)
   }
 
   const clearCart = () => setCart([])
@@ -29,6 +31,13 @@ export default function MarketplacePage() {
         <p className="text-[var(--muted)]">
           Overview of Mahoney services. Pricing may vary by region and commercial agreement.
         </p>
+        {lastAdded && (
+          <p className="text-xs text-[var(--muted)]">
+            Added <span className="text-[var(--text)] font-medium">{lastAdded}</span> to cart. You can review and submit
+            your order in the <span className="font-medium">Cart &amp; checkout</span> section at the bottom of this page
+            ({cart.length} item{cart.length === 1 ? '' : 's'} in cart).
+          </p>
+        )}
       </div>
 
       {/* Mahoney One – Service Packages */}
@@ -221,7 +230,17 @@ export default function MarketplacePage() {
             </thead>
             <tbody className="text-[var(--text)]">
               <tr className="border-b border-[var(--border)]">
-                <td className="py-2 pr-4 font-medium">Starter</td>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Starter
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="Up to 25 users/devices, 1M events included, standard support."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
                 <td className="py-2 pr-4">$499</td>
                 <td className="py-2 text-sm">
                   Up to 25 users/devices, 1M events included, standard support.
@@ -240,7 +259,17 @@ export default function MarketplacePage() {
                 </td>
               </tr>
               <tr className="border-b border-[var(--border)]">
-                <td className="py-2 pr-4 font-medium">Professional</td>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Professional
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="Higher limits, priority support, advanced reports."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
                 <td className="py-2 pr-4">$1,499</td>
                 <td className="py-2 text-sm">
                   Higher limits, priority support, advanced reports.
@@ -259,7 +288,17 @@ export default function MarketplacePage() {
                 </td>
               </tr>
               <tr>
-                <td className="py-2 pr-4 font-medium">Enterprise</td>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Enterprise
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="Full usage, SLA-backed service and dedicated support for larger organizations."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
                 <td className="py-2 pr-4">Custom (from $2,500)</td>
                 <td className="py-2 text-sm">
                   Full usage, SLA, dedicated support.
@@ -311,7 +350,17 @@ export default function MarketplacePage() {
             </thead>
             <tbody className="text-[var(--text)]">
               <tr className="border-b border-[var(--border)]">
-                <td className="py-2 pr-4 font-medium">Core Monitoring</td>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Core Monitoring
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="Baseline 24/7 monitoring with alert triage and monthly reporting."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
                 <td className="py-2 text-sm">
                   $85 per user / month (minimum $3,000 / month)
                 </td>
@@ -329,7 +378,17 @@ export default function MarketplacePage() {
                 </td>
               </tr>
               <tr className="border-b border-[var(--border)]">
-                <td className="py-2 pr-4 font-medium">Advanced SOC</td>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Advanced SOC
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="24/7 monitoring with incident prioritization, threat intelligence and compliance-aligned reporting."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
                 <td className="py-2 text-sm">
                   $135 per user / month (minimum $7,500 / month)
                 </td>
@@ -347,7 +406,17 @@ export default function MarketplacePage() {
                 </td>
               </tr>
               <tr>
-                <td className="py-2 pr-4 font-medium">Enterprise Threat Operations</td>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Enterprise Threat Operations
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="Dedicated SOC pod, advanced threat hunting, war-room support and executive reporting for regulated/enterprise customers."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
                 <td className="py-2 text-sm">from $45,000 / month</td>
                 <td className="py-2 text-sm">
                   <HapticButton
@@ -447,7 +516,17 @@ export default function MarketplacePage() {
             </thead>
             <tbody className="text-[var(--text)]">
               <tr className="border-b border-[var(--border)]">
-                <td className="py-2 pr-4 font-medium">Standard</td>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Standard
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="Standard AI usage tier for short queries and basic evaluations."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
                 <td className="py-2 pr-4">$1.50</td>
                 <td className="py-2 pr-4">$7.50</td>
                 <td className="py-2 text-sm">Short queries, standard evaluations.</td>
@@ -465,7 +544,17 @@ export default function MarketplacePage() {
                 </td>
               </tr>
               <tr className="border-b border-[var(--border)]">
-                <td className="py-2 pr-4 font-medium">Pro</td>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Pro
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="Pro tier for Co-Pilot, analytics and recommendations in day-to-day operations."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
                 <td className="py-2 pr-4">$4.50</td>
                 <td className="py-2 pr-4">$22.50</td>
                 <td className="py-2 text-sm">
@@ -485,7 +574,17 @@ export default function MarketplacePage() {
                 </td>
               </tr>
               <tr>
-                <td className="py-2 pr-4 font-medium">Premium</td>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Premium
+                    <span
+                      className="inline-flex items-center justify-center"
+                      title="Premium AI tier for complex analyses, long contexts and executive-grade outputs."
+                    >
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
                 <td className="py-2 pr-4">$7.50</td>
                 <td className="py-2 pr-4">$37.50</td>
                 <td className="py-2 text-sm">
