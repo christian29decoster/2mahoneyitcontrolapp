@@ -32,6 +32,7 @@ import { AlertsChart, MttrChart } from '@/components/dashboard/DesktopDashboardC
 import KpiTile from '@/components/dashboard/KpiTile'
 import { computeMduCost } from '@/lib/mdu-pricing'
 import { Database, DollarSign } from 'lucide-react'
+import { KEY_METRIC_TOOLTIPS } from '@/lib/dashboard-metric-tooltips'
 
 export type UsageData = {
   source: 'rmm' | 'demo'
@@ -167,12 +168,12 @@ export default function DashboardPage() {
               <div>
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] mb-3">Key metrics</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  <KpiTile label="Active Alerts" value={String(stats.activeAlerts)} trend={{ delta: `+${stats.trend.alerts}`, positive: false }} />
-                  <KpiTile label="Offline Devices" value={String(stats.offlineDevices)} trend={{ delta: String(stats.trend.offline), positive: true }} />
-                  <KpiTile label="MTTR" value={`${stats.mttrHours}h`} trend={{ delta: `${stats.trend.mttr}h`, positive: true }} />
-                  <KpiTile label="Coverage" value={`${stats.coveragePct}%`} trend={{ delta: `+${stats.trend.coverage}%`, positive: true }} />
-                  <KpiTile label="Open Incidents" value="2" trend={{ delta: '0', positive: true }} />
-                  <KpiTile label="Compliance" value="78%" trend={{ delta: '+3%', positive: true }} />
+                  <KpiTile label="Active Alerts" value={String(stats.activeAlerts)} trend={{ delta: `+${stats.trend.alerts}`, positive: false }} trendTooltip={KEY_METRIC_TOOLTIPS.activeAlerts} />
+                  <KpiTile label="Offline Devices" value={String(stats.offlineDevices)} trend={{ delta: String(stats.trend.offline), positive: true }} trendTooltip={KEY_METRIC_TOOLTIPS.offlineDevices} />
+                  <KpiTile label="MTTR" value={`${stats.mttrHours}h`} trend={{ delta: `${stats.trend.mttr}h`, positive: true }} trendTooltip={KEY_METRIC_TOOLTIPS.mttr} />
+                  <KpiTile label="Coverage" value={`${stats.coveragePct}%`} trend={{ delta: `+${stats.trend.coverage}%`, positive: true }} trendTooltip={KEY_METRIC_TOOLTIPS.coverage} />
+                  <KpiTile label="Open Incidents" value="2" trend={{ delta: '0', positive: true }} trendTooltip={KEY_METRIC_TOOLTIPS.openIncidents} />
+                  <KpiTile label="Compliance" value="78%" trend={{ delta: '+3%', positive: true }} trendTooltip={KEY_METRIC_TOOLTIPS.compliance} />
                 </div>
               </div>
 
