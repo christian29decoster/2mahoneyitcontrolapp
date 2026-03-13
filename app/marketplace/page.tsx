@@ -18,7 +18,7 @@ import {
   type MarketplaceTier,
   type MarketplaceBundle,
 } from '@/lib/marketplace-pricing'
-import { MDU_TIERS, computeMduCost } from '@/lib/mdu-pricing'
+import { MDU_TIERS, mduPriceDisplay } from '@/lib/mdu-pricing'
 import { Database } from 'lucide-react'
 
 type SelectedItem = { type: 'tier'; tier: MarketplaceTier; categoryName: string } | { type: 'bundle'; bundle: MarketplaceBundle }
@@ -164,41 +164,39 @@ export default function MarketplacePage() {
       <motion.div className="space-y-8" variants={stagger} initial="initial" animate="animate">
         <div className="text-center space-y-3">
           <h1 className="text-2xl font-bold text-[var(--text)]">Marketplace</h1>
-          <p className="text-[var(--muted)]">Enterprise risk platform – high-anchor pricing, tier contrast, CFO-friendly</p>
+          <p className="text-[var(--muted)]">Services und Pakete – Preise und Strukturen werden ergänzt</p>
         </div>
 
         {/* Events & Data (MDU) – transparent pricing table */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <Database className="w-5 h-5 text-[var(--primary)]" />
-            <h2 className="text-lg font-semibold text-[var(--text)]">Events & Data (MDU) – Transparent pricing</h2>
+            <h2 className="text-lg font-semibold text-[var(--text)]">Events & Data (MDU)</h2>
           </div>
           <p className="text-sm text-[var(--muted)]">
-            Layer 3 data processing is billed by event volume per month. RMM and EDR alert counts are for visibility only and do not affect MDU cost.
+            Layer 3 wird nach Event-Volumen abgerechnet. RMM- und EDR-Alerts sind nur zur Anzeige. Konkrete Preise folgen.
           </p>
           <Card className="p-4 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[var(--muted)] border-b border-[var(--border)]">
-                  <th className="pb-2 pr-4">Tier</th>
-                  <th className="pb-2 pr-4">Events / month</th>
-                  <th className="pb-2 pr-4">Price per 1,000 events</th>
-                  <th className="pb-2">Example monthly cost</th>
+                  <th className="pb-2 pr-4">Stufe</th>
+                  <th className="pb-2 pr-4">Events / Monat</th>
+                  <th className="pb-2 pr-4">Preis pro 1.000 Events</th>
+                  <th className="pb-2">Hinweis</th>
                 </tr>
               </thead>
               <tbody className="text-[var(--text)]">
                 {MDU_TIERS.map((tier, i) => {
                   const prevUpTo = i === 0 ? 0 : MDU_TIERS[i - 1].upTo
                   const rangeLabel = tier.upTo === Infinity ? '200M+' : `${prevUpTo === 0 ? '0' : (prevUpTo / 1_000_000).toFixed(0) + 'M'} – ${(tier.upTo / 1_000_000).toFixed(0)}M`
-                  const exampleEvents = [500_000, 10_000_000, 100_000_000, 250_000_000][i] ?? 500_000
-                  const example = computeMduCost(exampleEvents)
                   return (
                     <tr key={tier.label} className="border-b border-[var(--border)] last:border-0">
                       <td className="py-3 pr-4 font-medium">{tier.label}</td>
                       <td className="py-3 pr-4">{rangeLabel}</td>
-                      <td className="py-3 pr-4">{tier.perThousandUsd === 0 ? 'Included' : `$${tier.perThousandUsd.toFixed(2)}`}</td>
+                      <td className="py-3 pr-4">{tier.upTo === 1_000_000 ? 'Inklusive' : mduPriceDisplay(tier.perThousandUsd)}</td>
                       <td className="py-3">
-                        {tier.perThousandUsd === 0 ? '$0 (included)' : `$${example.costUsd.toFixed(2)}/mo for ${(exampleEvents / 1_000_000).toFixed(0)}M events`}
+                        {tier.upTo === 1_000_000 ? '0–1M inklusive' : mduPriceDisplay(tier.perThousandUsd)}
                       </td>
                     </tr>
                   )
@@ -207,12 +205,8 @@ export default function MarketplacePage() {
             </table>
           </Card>
           <div className="rounded-xl bg-[var(--surface-2)]/50 border border-[var(--border)] p-4">
-            <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-2">Quick examples</p>
-            <ul className="text-sm text-[var(--text)] space-y-1">
-              <li>500k events/mo → <strong>$0</strong> (within 0–1M included)</li>
-              <li>2M events/mo → <strong>${computeMduCost(2_000_000).costUsd.toFixed(2)}/mo</strong></li>
-              <li>50M events/mo → <strong>${computeMduCost(50_000_000).costUsd.toFixed(2)}/mo</strong></li>
-            </ul>
+            <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-2">Hinweis</p>
+            <p className="text-sm text-[var(--text)]">Staffelung nach Event-Volumen (0–1M, 1M–50M, 50M–200M, 200M+). Konkrete Preise werden ergänzt.</p>
           </div>
         </section>
 
@@ -232,7 +226,7 @@ export default function MarketplacePage() {
                   {tier.mostPopular && (
                     <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-[var(--primary)]/15 px-2 py-0.5 text-xs font-medium text-[var(--primary)]">
                       <Star size={12} />
-                      Most Popular
+                      Beliebt
                     </div>
                   )}
                   <div className="space-y-3">
@@ -248,7 +242,7 @@ export default function MarketplacePage() {
                       </div>
                       {tier.minimumDisplay && <p className="text-[10px] text-[var(--muted)] mt-0.5">{tier.minimumDisplay}</p>}
                     </div>
-                    {tier.recommendedFor && <p className="text-[10px] text-[var(--muted)]">Recommended for: {tier.recommendedFor}</p>}
+                    {tier.recommendedFor && <p className="text-[10px] text-[var(--muted)]">Empfohlen für: {tier.recommendedFor}</p>}
                     <ul className="space-y-1">
                       {tier.bullets.slice(0, 3).map((b, i) => (
                         <li key={i} className="flex items-start gap-1.5 text-xs text-[var(--muted)]">
@@ -265,8 +259,8 @@ export default function MarketplacePage() {
         ))}
 
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-[var(--text)]">Strategic Bundles</h2>
-          <p className="text-sm text-[var(--muted)]">Anchor stacking – enterprise value and contract size</p>
+          <h2 className="text-lg font-semibold text-[var(--text)]">Bundles</h2>
+          <p className="text-sm text-[var(--muted)]">Pakete für Enterprise und Mid-Market</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {marketplaceBundles.map((bundle) => (
               <Card
@@ -277,13 +271,13 @@ export default function MarketplacePage() {
                 {bundle.mostPopular && (
                   <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-[var(--primary)]/15 px-2 py-0.5 text-xs font-medium text-[var(--primary)]">
                     <Star size={12} />
-                    Most Popular
+                    Beliebt
                   </div>
                 )}
                 <div className="space-y-3">
                   <h3 className="font-semibold text-[var(--text)] pr-24">{bundle.name}</h3>
                   <p className="text-[var(--primary)] font-medium">{bundle.priceMonthlyDisplay}</p>
-                  {bundle.recommendedFor && <p className="text-[10px] text-[var(--muted)]">Recommended for: {bundle.recommendedFor}</p>}
+                  {bundle.recommendedFor && <p className="text-[10px] text-[var(--muted)]">Empfohlen für: {bundle.recommendedFor}</p>}
                   <ul className="space-y-1">
                     {bundle.bullets.slice(0, 4).map((b, i) => (
                       <li key={i} className="flex items-start gap-1.5 text-xs text-[var(--muted)]">

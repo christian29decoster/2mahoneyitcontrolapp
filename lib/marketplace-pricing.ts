@@ -1,6 +1,6 @@
 /**
- * Strategic Marketplace Pricing – High Anchor Model (US Market)
- * Annual-first, tier contrast, enterprise positioning, CFO-friendly framing.
+ * Marketplace – Kategorien und Tiers ohne Preise.
+ * Struktur bleibt; neue Preise und Strukturen werden separat ergänzt.
  */
 
 export type PricingUnit = 'flat' | 'user' | 'device' | 'gb' | 'hour'
@@ -8,23 +8,20 @@ export type PricingUnit = 'flat' | 'user' | 'device' | 'gb' | 'hour'
 export interface MarketplaceTier {
   id: string
   name: string
-  /** Primary display: annual first (e.g. "$336,000 / year") */
-  priceAnnualDisplay?: string
-  /** Monthly equivalent – shown smaller (e.g. "$28,000 / month") */
+  /** Anzeige (z. B. "Preis auf Anfrage" oder später konkreter Preis) */
   priceMonthlyDisplay: string
-  /** Numeric monthly for calculations (USD) */
+  /** Numerisch für Berechnungen – 0 = nur Anfrage */
   priceMonthlyUSD: number
+  /** Jahrespreis-Anzeige, optional */
+  priceAnnualDisplay?: string
   unit?: PricingUnit
-  /** Per-user or per-device rate when applicable */
   unitPriceUSD?: number
-  /** Minimum spend or minimum quantity */
   minimumDisplay?: string
   minimumMonthlyUSD?: number
   bullets: string[]
   mostPopular?: boolean
   recommendedFor?: string
   scheduleStrategyCall?: boolean
-  /** Billed annually note */
   billedAnnually?: boolean
 }
 
@@ -46,75 +43,72 @@ export interface MarketplaceBundle {
   scheduleStrategyCall?: boolean
 }
 
-// ─── vCISO – Premium Authority ─────────────────────────────────────────────
+const PLACEHOLDER_PRICE = 'Preis auf Anfrage'
+
+// ─── vCISO ───────────────────────────────────────────────────────────────────
 export const vCISOCategory: MarketplaceCategory = {
   id: 'vciso',
   name: 'Virtual CISO Advisory',
-  description: 'Board-level governance and strategic security leadership',
+  description: 'Governance und strategische Sicherheitsführung',
   tiers: [
     {
       id: 'vciso-board',
-      name: 'Board-Level Governance (Enterprise Anchor)',
-      priceAnnualDisplay: '$336,000 / year',
-      priceMonthlyDisplay: '$28,000 / month',
-      priceMonthlyUSD: 28000,
-      billedAnnually: true,
+      name: 'Board-Level Governance',
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       bullets: [
-        'Dedicated fractional CISO',
-        'Board participation (quarterly)',
-        'Regulatory alignment (ISO/NIS2/SOC2)',
-        'Enterprise risk modeling',
-        'Vendor & supply chain risk oversight',
-        'Crisis governance leadership',
-        'Executive cyber financial modeling',
+        'Dedizierter fractional CISO',
+        'Board-Teilnahme (quartalsweise)',
+        'Regulatorik (ISO/NIS2/SOC2)',
+        'Enterprise-Risikomodellierung',
+        'Vendor- und Lieferketten-Risiko',
+        'Krisen-Governance',
+        'Executive Cyber Financial Modeling',
       ],
-      recommendedFor: 'Regulated and board-driven organizations',
+      recommendedFor: 'Regulierte und board-getriebene Organisationen',
       scheduleStrategyCall: true,
     },
     {
       id: 'vciso-strategic',
       name: 'Strategic Governance Partner',
-      priceMonthlyDisplay: '$14,500 / month',
-      priceMonthlyUSD: 14500,
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       bullets: [
-        'Monthly executive session',
-        'Compliance oversight',
-        'Risk index reporting',
-        'Policy & governance review',
-        'Executive-level reporting',
+        'Monatliche Executive-Session',
+        'Compliance-Oversight',
+        'Risk-Index-Reporting',
+        'Policy- und Governance-Review',
+        'Executive-Reporting',
       ],
       mostPopular: true,
-      recommendedFor: 'Mid-market and growth-stage companies',
+      recommendedFor: 'Mid-Market und Wachstumsunternehmen',
     },
     {
       id: 'vciso-advisory',
       name: 'Advisory Essentials',
-      priceMonthlyDisplay: '$7,500 / month',
-      priceMonthlyUSD: 7500,
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       bullets: [
-        'Quarterly advisory',
-        'Risk posture review',
-        'Policy updates',
-        'Security roadmap',
+        'Quartalsweise Beratung',
+        'Risiko-Posture-Review',
+        'Policy-Updates',
+        'Security-Roadmap',
       ],
-      recommendedFor: 'SMBs building governance foundation',
+      recommendedFor: 'SMBs mit Fokus auf Governance-Grundlage',
     },
     {
       id: 'vciso-ondemand',
       name: 'On-Demand Executive Consulting',
-      priceMonthlyDisplay: '$500 / hour',
-      priceMonthlyUSD: 5000,
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       unit: 'hour',
-      unitPriceUSD: 500,
-      minimumDisplay: 'Minimum 10 hours per engagement',
-      minimumMonthlyUSD: 5000,
-      bullets: ['Executive advisory', 'Project-based engagement'],
-      recommendedFor: 'Specific initiatives or assessments',
+      bullets: ['Executive Advisory', 'Projektbasierte Engagements'],
+      recommendedFor: 'Konkrete Initiativen oder Assessments',
     },
   ],
 }
 
-// ─── SOCaaS – Value Ladder ─────────────────────────────────────────────────
+// ─── SOCaaS ─────────────────────────────────────────────────────────────────
 export const SOCaaSCategory: MarketplaceCategory = {
   id: 'soc',
   name: 'SOCaaS',
@@ -123,48 +117,41 @@ export const SOCaaSCategory: MarketplaceCategory = {
     {
       id: 'soc-enterprise',
       name: 'Enterprise Threat Operations',
-      priceMonthlyDisplay: 'Starting at $45,000 / month',
-      priceMonthlyUSD: 45000,
-      minimumDisplay: 'Minimum 300 users',
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       bullets: [
-        'Dedicated SOC pod',
-        'Advanced threat hunting',
-        'SLA-backed incident response',
-        'Executive war-room support',
-        'Compliance integration',
+        'Dediziertes SOC-Pod',
+        'Advanced Threat Hunting',
+        'SLA-basierter Incident Response',
+        'Executive War-Room-Support',
+        'Compliance-Integration',
       ],
-      recommendedFor: 'Large enterprises and regulated industries',
+      recommendedFor: 'Große Unternehmen und regulierte Branchen',
       scheduleStrategyCall: true,
     },
     {
       id: 'soc-advanced',
       name: 'Advanced SOC Protection',
-      priceMonthlyDisplay: '$135 / user / month',
-      priceMonthlyUSD: 135,
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       unit: 'user',
-      unitPriceUSD: 135,
-      minimumDisplay: 'Minimum $7,500 / month',
-      minimumMonthlyUSD: 7500,
       bullets: [
-        '24/7 monitoring',
-        'Incident prioritization',
-        'Threat intelligence',
-        'Compliance-aligned reporting',
+        '24/7 Monitoring',
+        'Incident-Priorisierung',
+        'Threat Intelligence',
+        'Compliance-Reporting',
       ],
       mostPopular: true,
-      recommendedFor: 'Mid-market with compliance needs',
+      recommendedFor: 'Mid-Market mit Compliance-Bedarf',
     },
     {
       id: 'soc-core',
       name: 'Core Monitoring',
-      priceMonthlyDisplay: '$85 / user / month',
-      priceMonthlyUSD: 85,
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       unit: 'user',
-      unitPriceUSD: 85,
-      minimumDisplay: 'Minimum $3,000 / month',
-      minimumMonthlyUSD: 3000,
-      bullets: ['Monitoring', 'Alert triage', 'Monthly reporting'],
-      recommendedFor: 'SMBs and first-step SOC',
+      bullets: ['Monitoring', 'Alert-Triage', 'Monatliches Reporting'],
+      recommendedFor: 'SMBs und Einstieg SOC',
     },
   ],
 }
@@ -173,139 +160,128 @@ export const SOCaaSCategory: MarketplaceCategory = {
 export const endpointCategory: MarketplaceCategory = {
   id: 'endpoint',
   name: 'Managed Endpoint',
-  description: 'Device protection and management',
+  description: 'Geräteschutz und -verwaltung',
   tiers: [
     {
       id: 'endpoint-elite',
       name: 'Elite Endpoint Protection',
-      priceMonthlyDisplay: '$125 / device / month',
-      priceMonthlyUSD: 125,
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       unit: 'device',
-      unitPriceUSD: 125,
-      bullets: ['Full stack EDR', 'MDR integration', 'Priority support'],
-      recommendedFor: 'High-value assets and regulated environments',
+      bullets: ['Full-Stack EDR', 'MDR-Integration', 'Priority Support'],
+      recommendedFor: 'High-Value-Assets und regulierte Umgebungen',
     },
     {
       id: 'endpoint-advanced',
       name: 'Advanced Endpoint',
-      priceMonthlyDisplay: '$79 / device / month',
-      priceMonthlyUSD: 79,
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       unit: 'device',
-      unitPriceUSD: 79,
       mostPopular: true,
-      bullets: ['EDR', 'Patch & policy', '24/7 monitoring'],
-      recommendedFor: 'Most organizations',
+      bullets: ['EDR', 'Patch & Policy', '24/7 Monitoring'],
+      recommendedFor: 'Die meisten Organisationen',
     },
     {
       id: 'endpoint-essential',
       name: 'Essential Endpoint',
-      priceMonthlyDisplay: '$49 / device / month',
-      priceMonthlyUSD: 49,
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       unit: 'device',
-      unitPriceUSD: 49,
-      minimumDisplay: 'Minimum $2,500 / month',
-      minimumMonthlyUSD: 2500,
-      bullets: ['AV/EPP', 'Patch management', 'Reporting'],
-      recommendedFor: 'Cost-conscious SMB',
+      bullets: ['AV/EPP', 'Patch-Management', 'Reporting'],
+      recommendedFor: 'Kostenbewusste SMBs',
     },
   ],
 }
 
-// ─── Backup ────────────────────────────────────────────────────────────────
+// ─── Backup ─────────────────────────────────────────────────────────────────
 export const backupCategory: MarketplaceCategory = {
   id: 'backup',
   name: 'Backup & Recovery',
-  description: 'Data protection and disaster recovery',
+  description: 'Datenschutz und Disaster Recovery',
   tiers: [
     {
       id: 'backup-gb',
       name: 'Backup Storage',
-      priceMonthlyDisplay: '$0.45 / GB / month',
-      priceMonthlyUSD: 0.45,
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
       unit: 'gb',
-      unitPriceUSD: 0.45,
-      minimumDisplay: 'Minimum $750 / month',
-      minimumMonthlyUSD: 750,
-      bullets: ['Encrypted storage', 'Point-in-time recovery', 'Retention policies'],
-      recommendedFor: 'Variable data volumes',
+      bullets: ['Verschlüsselter Storage', 'Point-in-Time Recovery', 'Retention Policies'],
+      recommendedFor: 'Variable Datenmengen',
     },
     {
       id: 'backup-dr',
       name: 'Disaster Recovery Premium',
-      priceMonthlyDisplay: '$3,500 / month',
-      priceMonthlyUSD: 3500,
-      bullets: ['DR orchestration', 'Failover testing', 'RTO/RPO SLA'],
-      recommendedFor: 'Business-critical recovery',
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
+      bullets: ['DR-Orchestrierung', 'Failover-Tests', 'RTO/RPO SLA'],
+      recommendedFor: 'Business-kritische Recovery',
     },
   ],
 }
 
-// ─── Governance & Risk Premium ─────────────────────────────────────────────
+// ─── Governance & Risk ──────────────────────────────────────────────────────
 export const governanceCategory: MarketplaceCategory = {
   id: 'governance',
   name: 'Governance & Risk Premium',
-  description: 'Monitoring, intelligence, and executive modeling',
+  description: 'Monitoring, Intelligence und Executive Modeling',
   tiers: [
     {
       id: 'gov-monitoring',
       name: 'Governance Monitoring Suite',
-      priceMonthlyDisplay: '$3,500 / month',
-      priceMonthlyUSD: 3500,
-      bullets: ['Control monitoring', 'Compliance dashboards', 'Audit trails'],
-      recommendedFor: 'Ongoing compliance and audit readiness',
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
+      bullets: ['Control Monitoring', 'Compliance-Dashboards', 'Audit Trails'],
+      recommendedFor: 'Laufende Compliance und Audit-Readiness',
     },
     {
       id: 'gov-predictive',
       name: 'Predictive Risk Intelligence',
-      priceMonthlyDisplay: '$4,500 / month',
-      priceMonthlyUSD: 4500,
-      bullets: ['AI risk forecast', 'Threat trend analysis', 'Vulnerability prioritization'],
-      recommendedFor: 'Proactive risk management',
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
+      bullets: ['AI-Risiko-Prognose', 'Threat-Trend-Analyse', 'Vulnerability-Priorisierung'],
+      recommendedFor: 'Proaktives Risikomanagement',
     },
     {
       id: 'gov-financial',
       name: 'Executive Cyber Financial Modeling',
-      priceMonthlyDisplay: '$3,000 / month',
-      priceMonthlyUSD: 3000,
-      bullets: ['ROI modeling', 'Risk quantification', 'Board-ready financials'],
-      recommendedFor: 'CFO and board reporting',
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
+      priceMonthlyUSD: 0,
+      bullets: ['ROI-Modellierung', 'Risiko-Quantifizierung', 'Board-taugliche Finanzen'],
+      recommendedFor: 'CFO- und Board-Reporting',
     },
   ],
 }
 
-// ─── Platform & Data (MDU) – Layer 3, current price list ───────────────────
+// ─── Platform & Data (MDU) ──────────────────────────────────────────────────
 export const dataMduCategory: MarketplaceCategory = {
   id: 'data-mdu',
   name: 'Platform & Data (MDU)',
-  description: 'Event-based data processing – RMM, EDR, machine events. Billing by volume only; RMM and EDR alerts are for display only.',
+  description: 'Event-basierte Datenverarbeitung – RMM, EDR, Maschinen-Events. Struktur für Volumenpreise; konkrete Preise folgen.',
   tiers: [
     {
       id: 'mdu-tiered',
       name: 'Mahoney Data Units (MDU)',
-      priceMonthlyDisplay: 'From $0 / month',
+      priceMonthlyDisplay: PLACEHOLDER_PRICE,
       priceMonthlyUSD: 0,
       unit: 'flat',
       bullets: [
-        '0–1M events / month included',
-        '1M–50M: $0.10 per 1,000 events',
-        '50M–200M: $0.08 per 1,000 events',
-        '200M+: $0.05 per 1,000 events',
-        'Billing by event volume only; RMM and EDR alerts are for display',
-        'Transparent volume-based billing',
+        'Staffelung nach Event-Volumen',
+        'Transparente volumenbasierte Abrechnung',
+        'RMM- und EDR-Alerts nur zur Anzeige, nicht abrechnungsrelevant',
       ],
       mostPopular: true,
-      recommendedFor: 'All tiers – base of every platform calculation',
+      recommendedFor: 'Alle Tiers – Basis jeder Plattform-Berechnung',
     },
   ],
 }
 
-// ─── Strategic Bundles ─────────────────────────────────────────────────────
+// ─── Bundles ───────────────────────────────────────────────────────────────
 export const marketplaceBundles: MarketplaceBundle[] = [
   {
     id: 'bundle-enterprise',
     name: 'Enterprise Governance Bundle',
-    priceMonthlyDisplay: '$75,000 / month',
-    priceMonthlyUSD: 75000,
+    priceMonthlyDisplay: PLACEHOLDER_PRICE,
+    priceMonthlyUSD: 0,
     bullets: [
       'Enterprise SOC',
       'vCISO Board-Level',
@@ -313,14 +289,14 @@ export const marketplaceBundles: MarketplaceBundle[] = [
       'Governance Monitoring',
       'Executive Reporting',
     ],
-    recommendedFor: 'Enterprise and regulated organizations',
+    recommendedFor: 'Enterprise und regulierte Organisationen',
     scheduleStrategyCall: true,
   },
   {
     id: 'bundle-growth',
     name: 'Growth & Risk Optimization Bundle',
-    priceMonthlyDisplay: '$22,000 / month',
-    priceMonthlyUSD: 22000,
+    priceMonthlyDisplay: PLACEHOLDER_PRICE,
+    priceMonthlyUSD: 0,
     mostPopular: true,
     bullets: [
       'Advanced SOC',
@@ -328,7 +304,7 @@ export const marketplaceBundles: MarketplaceBundle[] = [
       'AI Risk Forecast',
       'Financial Dashboard',
     ],
-    recommendedFor: 'Growth-stage and mid-market',
+    recommendedFor: 'Wachstums- und Mid-Market',
   },
 ]
 

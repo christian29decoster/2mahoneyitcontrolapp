@@ -45,7 +45,7 @@ export default function TierDetailsSheet({
   const monthlyUSD = useMemo(() => {
     if (isBundle(item)) return item.priceMonthlyUSD
     const t = tier as MarketplaceTier
-    if (t.unit && t.unitPriceUSD != null) {
+    if (t.unit && t.unitPriceUSD != null && t.unitPriceUSD > 0) {
       if (t.unit === 'gb') return Math.max(t.minimumMonthlyUSD ?? 0, t.unitPriceUSD * qty)
       return Math.max(t.minimumMonthlyUSD ?? 0, t.unitPriceUSD * qty)
     }
@@ -75,8 +75,10 @@ export default function TierDetailsSheet({
   const priceDisplay = isBundle(item)
     ? item.priceMonthlyDisplay
     : tier.priceAnnualDisplay
-      ? `${tier.priceAnnualDisplay}${tier.billedAnnually ? ' (billed annually)' : ''}`
+      ? `${tier.priceAnnualDisplay}${tier.billedAnnually ? ' (jährlich)' : ''}`
       : tier.priceMonthlyDisplay
+
+  const hasPrice = monthlyUSD > 0
 
   return (
     <Sheet isOpen={isOpen} onClose={onClose} title={item.name} maxHeight="90vh">
@@ -87,10 +89,10 @@ export default function TierDetailsSheet({
 
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-lg font-semibold text-[var(--primary)]">{priceDisplay}</span>
-          {!isBundle(tier) && tier.priceAnnualDisplay && (
+          {hasPrice && !isBundle(tier) && tier.priceAnnualDisplay && (
             <span className="text-sm text-[var(--muted)]">≈ {tier.priceMonthlyDisplay}</span>
           )}
-          {(tier as MarketplaceTier).minimumDisplay && (
+          {hasPrice && (tier as MarketplaceTier).minimumDisplay && (
             <Badge variant="secondary" className="text-xs">
               {(tier as MarketplaceTier).minimumDisplay}
             </Badge>
@@ -99,7 +101,7 @@ export default function TierDetailsSheet({
 
         {(tier.recommendedFor || item.recommendedFor) && (
           <p className="text-sm text-[var(--muted)]">
-            <strong className="text-[var(--text)]">Recommended for:</strong> {tier.recommendedFor || (item as MarketplaceBundle).recommendedFor}
+            <strong className="text-[var(--text)]">Empfohlen für:</strong> {tier.recommendedFor || (item as MarketplaceBundle).recommendedFor}
           </p>
         )}
 
@@ -112,7 +114,7 @@ export default function TierDetailsSheet({
           ))}
         </div>
 
-        {showQuantity && tier.unit && tier.unitPriceUSD != null && (
+        {hasPrice && showQuantity && tier.unit && tier.unitPriceUSD != null && tier.unitPriceUSD > 0 && (
           <div className="space-y-2">
             <label className="text-sm font-medium text-[var(--text)]">Quantity ({tier.unit})</label>
             <input
@@ -128,38 +130,46 @@ export default function TierDetailsSheet({
           </div>
         )}
 
-        <div className="bg-[var(--surface)]/50 rounded-xl p-4 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-[var(--muted)]">Monthly</span>
-            <span className="font-medium text-[var(--text)]">{formatCurrency(monthlyUSD)}</span>
+        {hasPrice && (
+          <div className="bg-[var(--surface)]/50 rounded-xl p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-[var(--muted)]">Monatlich</span>
+              <span className="font-medium text-[var(--text)]">{formatCurrency(monthlyUSD)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-[var(--muted)]">
+              <span>Prorata (erste Periode)</span>
+              <span>{formatCurrency(proratedUSD)}</span>
+            </div>
           </div>
-          <div className="flex justify-between text-xs text-[var(--muted)]">
-            <span>Prorated (first period)</span>
-            <span>{formatCurrency(proratedUSD)}</span>
-          </div>
-        </div>
+        )}
 
         <div className="flex flex-col gap-2">
           {scheduleStrategyCall ? (
             <HapticButton
-              label="Schedule Strategy Call"
+              label="Strategie-Call vereinbaren"
               onClick={handleScheduleCall}
               className="w-full"
             />
-          ) : (
+          ) : hasPrice ? (
             <>
               <HapticButton
-                label="Add to Plan"
+                label="Zum Plan hinzufügen"
                 onClick={handleAdd}
                 className="w-full"
               />
               <HapticButton
-                label="Request Quote"
+                label="Anfrage stellen"
                 onClick={() => { h.impact('light'); onRequestQuote?.(); onClose(); }}
                 variant="surface"
                 className="w-full"
               />
             </>
+          ) : (
+            <HapticButton
+              label="Anfrage stellen"
+              onClick={() => { h.impact('light'); onRequestQuote?.(); onClose(); }}
+              className="w-full"
+            />
           )}
         </div>
       </div>
