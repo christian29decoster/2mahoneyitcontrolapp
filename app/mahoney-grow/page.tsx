@@ -52,6 +52,7 @@ export default function MahoneyGrowPage() {
   const [riskHistoryFilter, setRiskHistoryFilter] = useState<'day' | 'month' | 'year' | 'custom'>('month')
   const [riskHistoryCustomFrom, setRiskHistoryCustomFrom] = useState('')
   const [riskHistoryCustomTo, setRiskHistoryCustomTo] = useState('')
+  const [hoveredBar, setHoveredBar] = useState<{ date: string; riskScore: number } | null>(null)
   const [toasts, setToasts] = useState<
     Array<{ id: string; type: ToastType; title: string; message?: string }>
   >([])
@@ -237,9 +238,19 @@ export default function MahoneyGrowPage() {
                 <span>25%</span>
                 <span>0%</span>
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 relative">
+                {hoveredBar && (
+                  <div
+                    className="absolute top-0 left-1/2 -translate-x-1/2 z-10 px-3 py-2 rounded-lg bg-[var(--surface-elev)] border border-[var(--border)] shadow-lg text-xs text-[var(--text)] whitespace-nowrap"
+                    role="tooltip"
+                  >
+                    <span className="font-medium">{hoveredBar.date}</span>
+                    <span className="text-[var(--muted)] mx-1">·</span>
+                    <span className="font-semibold text-[var(--primary)]">Risk {hoveredBar.riskScore}%</span>
+                  </div>
+                )}
                 <div
-                  className="relative flex items-end gap-0.5 rounded-lg bg-[var(--surface-2)]/50 border border-[var(--border)] p-3"
+                  className="relative flex items-end gap-0.5 rounded-lg bg-[var(--surface-2)]/50 border border-[var(--border)] p-3 pt-8"
                   style={{ height: '160px' }}
                 >
                   {riskHistoryData.map((d) => {
@@ -248,8 +259,11 @@ export default function MahoneyGrowPage() {
                     return (
                       <div
                         key={d.date}
-                        className="flex-1 min-w-[6px] flex flex-col justify-end items-center group"
-                        title={`${d.date}: ${d.riskScore}%`}
+                        className="flex-1 min-w-[6px] flex flex-col justify-end items-center group cursor-pointer"
+                        onMouseEnter={() => setHoveredBar({ date: d.date, riskScore: d.riskScore })}
+                        onMouseLeave={() => setHoveredBar(null)}
+                        role="img"
+                        aria-label={`${d.date}: ${d.riskScore}% risk`}
                       >
                         <div
                           className="w-full max-w-[14px] rounded-t bg-[var(--primary)] transition-all group-hover:bg-[var(--primary)]/90"
