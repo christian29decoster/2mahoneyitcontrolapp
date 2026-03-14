@@ -403,11 +403,11 @@ export default function DashboardPage() {
               <Card className="card-desktop p-5">
                 <h2 className="text-base font-semibold text-[var(--text)] mb-4">Partner overview</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                  <div>
+                  <div className="cursor-help" title="Source: Count of active customers in your partner portfolio (CRM / tenant list).">
                     <div className="text-xs text-[var(--muted)]">Managed customers</div>
                     <div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.totalCustomers}</div>
                   </div>
-                  <div>
+                  <div className="cursor-help" title="Source: Sum of monthly recurring revenue per customer. Growth % from MRR trend (last 6 months) vs previous month. Data: billing / subscription per tenant.">
                     <div className="text-xs text-[var(--muted)]">Total MRR</div>
                     <div className="text-xl font-semibold text-[var(--text)]">${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })}</div>
                     {partnerSummary.mrrGrowthPct !== 0 && (
@@ -416,23 +416,23 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </div>
-                  <div>
+                  <div className="cursor-help" title="Source: Average of each customer's Mahoney Grow score (security-to-growth index). Data: Mahoney Grow module per tenant.">
                     <div className="text-xs text-[var(--muted)]">Avg Grow score</div>
                     <div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.avgGrowScore}/100</div>
                   </div>
-                  <div>
+                  <div className="cursor-help" title="Source: Sum of active (open) alerts across all managed customers. Data: RMM, EDR, SIEM per tenant.">
                     <div className="text-xs text-[var(--muted)]">Open alerts</div>
                     <div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.totalOpenAlerts}</div>
                     <span className="text-xs text-[var(--muted)]">across portfolio</span>
                   </div>
-                  <div>
+                  <div className="cursor-help" title="Source: Count of customers with churn risk ≥4%. Data: churn model / billing health and engagement per tenant.">
                     <div className="text-xs text-[var(--muted)]">At-risk customers</div>
                     <div className={`text-xl font-semibold ${partnerSummary.atRiskCount > 0 ? 'text-[var(--warning)]' : 'text-[var(--text)]'}`}>
                       {partnerSummary.atRiskCount}
                     </div>
                     <span className="text-xs text-[var(--muted)]">churn risk ≥4%</span>
                   </div>
-                  <div>
+                  <div className="cursor-help" title="Source: Count of contracts with renewal date in the next 30 days. Data: contract / subscription end dates per customer.">
                     <div className="text-xs text-[var(--muted)]">Renewals (30d)</div>
                     <div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.renewalsThisMonth}</div>
                     <span className="text-xs text-[var(--muted)]">due this month</span>
@@ -925,11 +925,11 @@ export default function DashboardPage() {
                 Portfolio view: security posture, revenue, and risk across all managed customers.
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                <div className="p-3 rounded-xl bg-[var(--surface-2)] cursor-help" title="Source: Count of active customers in your partner portfolio (CRM / tenant list).">
                   <div className="text-[var(--muted)]">Customers</div>
                   <div className="text-lg font-semibold text-[var(--text)]">{partnerSummary.totalCustomers}</div>
                 </div>
-                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                <div className="p-3 rounded-xl bg-[var(--surface-2)] cursor-help" title="Source: Sum of MRR per customer. Growth % from MRR trend vs previous month. Data: billing per tenant.">
                   <div className="text-[var(--muted)]">Total MRR</div>
                   <div className="text-lg font-semibold text-[var(--text)]">${(partnerSummary.totalMRR / 1000).toFixed(0)}k</div>
                   {partnerSummary.mrrGrowthPct !== 0 && (
@@ -938,21 +938,21 @@ export default function DashboardPage() {
                     </span>
                   )}
                 </div>
-                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                <div className="p-3 rounded-xl bg-[var(--surface-2)] cursor-help" title="Source: Average of each customer's Mahoney Grow score. Data: Mahoney Grow module per tenant.">
                   <div className="text-[var(--muted)]">Avg Grow</div>
                   <div className="text-lg font-semibold text-[var(--text)]">{partnerSummary.avgGrowScore}/100</div>
                 </div>
-                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                <div className="p-3 rounded-xl bg-[var(--surface-2)] cursor-help" title="Source: Sum of active alerts across all customers. Data: RMM, EDR, SIEM per tenant.">
                   <div className="text-[var(--muted)]">Open alerts</div>
                   <div className="text-lg font-semibold text-[var(--text)]">{partnerSummary.totalOpenAlerts}</div>
                 </div>
-                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                <div className="p-3 rounded-xl bg-[var(--surface-2)] cursor-help" title="Source: Customers with churn risk ≥4%. Data: churn model / billing health per tenant.">
                   <div className="text-[var(--muted)]">At-risk</div>
                   <div className={`text-lg font-semibold ${partnerSummary.atRiskCount > 0 ? 'text-[var(--warning)]' : 'text-[var(--text)]'}`}>
                     {partnerSummary.atRiskCount}
                   </div>
                 </div>
-                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                <div className="p-3 rounded-xl bg-[var(--surface-2)] cursor-help" title="Source: Contracts with renewal date in next 30 days. Data: contract end dates per customer.">
                   <div className="text-[var(--muted)]">Renewals (30d)</div>
                   <div className="text-lg font-semibold text-[var(--text)]">{partnerSummary.renewalsThisMonth}</div>
                 </div>
