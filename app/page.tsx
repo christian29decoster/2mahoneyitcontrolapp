@@ -409,16 +409,22 @@ export default function DashboardPage() {
                     <DollarSign className="w-5 h-5 text-[var(--primary)]" />
                     <h3 className="text-base font-semibold text-[var(--text)]">MRR trend (portfolio)</h3>
                   </div>
-                  <div className="flex items-end justify-between gap-2 h-24">
-                    {partnerMRRTrendMonths.map((m) => (
-                      <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
-                        <div
-                          className="w-full rounded-t bg-[var(--primary)]/30 min-h-[4px] transition-all"
-                          style={{ height: `${(m.mrr / Math.max(...partnerMRRTrendMonths.map((x) => x.mrr))) * 80}%` }}
-                        />
-                        <span className="text-[10px] text-[var(--muted)]">{m.month}</span>
-                      </div>
-                    ))}
+                  <div className="flex items-end justify-between gap-2 h-28">
+                    {partnerMRRTrendMonths.map((m) => {
+                      const maxMrr = Math.max(...partnerMRRTrendMonths.map((x) => x.mrr))
+                      const barHeightPx = maxMrr > 0 ? Math.max(4, (m.mrr / maxMrr) * 88) : 4
+                      return (
+                        <div key={m.month} className="flex-1 flex flex-col items-center gap-1.5">
+                          <div className="w-full flex flex-col justify-end" style={{ height: 96 }}>
+                            <div
+                              className="w-full rounded-t bg-[var(--primary)] transition-all"
+                              style={{ height: barHeightPx }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-[var(--muted)]">{m.month}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                   <p className="text-xs text-[var(--muted)] mt-2">
                     Last 6 months · Total MRR ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })} (+{partnerSummary.mrrGrowthPct}% MoM)
@@ -710,16 +716,22 @@ export default function DashboardPage() {
                 <DollarSign className="w-4 h-4 text-[var(--primary)]" />
                 <h3 className="text-sm font-semibold text-[var(--text)]">MRR trend (last 6 months)</h3>
               </div>
-              <div className="flex items-end gap-1 h-16">
-                {partnerMRRTrendMonths.map((m) => (
-                  <div key={m.month} className="flex-1 flex flex-col items-center gap-0.5">
-                    <div
-                      className="w-full rounded-t bg-[var(--primary)]/40 min-h-[2px]"
-                      style={{ height: `${(m.mrr / Math.max(...partnerMRRTrendMonths.map((x) => x.mrr))) * 100}%` }}
-                    />
-                    <span className="text-[9px] text-[var(--muted)]">{m.month}</span>
-                  </div>
-                ))}
+              <div className="flex items-end gap-1 h-20">
+                {partnerMRRTrendMonths.map((m) => {
+                  const maxMrr = Math.max(...partnerMRRTrendMonths.map((x) => x.mrr))
+                  const barHeightPx = maxMrr > 0 ? Math.max(3, (m.mrr / maxMrr) * 56) : 3
+                  return (
+                    <div key={m.month} className="flex-1 flex flex-col items-center gap-0.5">
+                      <div className="w-full flex flex-col justify-end" style={{ height: 60 }}>
+                        <div
+                          className="w-full rounded-t bg-[var(--primary)]"
+                          style={{ height: barHeightPx }}
+                        />
+                      </div>
+                      <span className="text-[9px] text-[var(--muted)]">{m.month}</span>
+                    </div>
+                  )
+                })}
               </div>
               <p className="text-[10px] text-[var(--muted)] mt-2">
                 Portfolio MRR ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })} (+{partnerSummary.mrrGrowthPct}% vs last month)
