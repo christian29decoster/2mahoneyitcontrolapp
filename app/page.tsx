@@ -28,6 +28,7 @@ import { GROW_DEMO_BASELINE, growAiScore } from '@/lib/mahoney-grow-demo'
 import { LineChart } from 'lucide-react'
 import { partnerCustomers, partnerSummary, partnerMRRTrendMonths, partnerAppUpsells, partnerUpsellSummary, partnerAutomationImpacts, partnerAutomationSummary, PARTNER_PRICING, MARKETPLACE_PLAN, PARTNER_APP_PRICE_USD, PARTNER_PL_APP_DEMO, PARTNER_MDU_DEMO, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
 import { useViewModeStore } from '@/lib/viewMode.store'
+import { useDemoViewRoleStore } from '@/lib/demoViewRole.store'
 import { AlertsChart, MttrChart } from '@/components/dashboard/DesktopDashboardCharts'
 import KpiTile from '@/components/dashboard/KpiTile'
 import { computeMduCost } from '@/lib/mdu-pricing'
@@ -70,9 +71,16 @@ export default function DashboardPage() {
       .then((d: UsageData) => setUsage(d))
       .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000, eventsPerMonth: 39000 }))
   }, [])
+
+  // Clients (with/without IT) must not see Partner dashboard – force customer view and hide toggle
+  useEffect(() => {
+    if (!showPartnerView && view === 'partner') setView('customer')
+  }, [showPartnerView, view])
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
   const addActivity = useActivityStore((s) => s.addActivity)
   const viewMode = useViewModeStore((s) => s.viewMode)
+  const demoViewRole = useDemoViewRoleStore((s) => s.demoViewRole)
+  const showPartnerView = demoViewRole !== 'client_wit' && demoViewRole !== 'client_woit'
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -170,6 +178,7 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
+              {showPartnerView && (
               <div className="inline-flex rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-1">
                 <button
                   className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${view === 'customer' ? 'bg-[var(--primary)] text-white shadow-sm' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
@@ -184,6 +193,7 @@ export default function DashboardPage() {
                   Partner
                 </button>
               </div>
+            )}
             </div>
           </div>
 
@@ -768,10 +778,11 @@ export default function DashboardPage() {
               Your Mahoney Control Dashboard.
             </h1>
             <p className="text-sm text-[var(--muted)]">
-              Switch between a single-customer view and a partner view across all of your customers.
+              {showPartnerView ? 'Switch between a single-customer view and a partner view across all of your customers.' : 'Single-tenant view for your organization.'}
             </p>
           </div>
           <div className="flex flex-col items-center gap-3">
+            {showPartnerView && (
             <div className="inline-flex rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
               <button
                 className={`px-4 py-2 text-xs font-medium ${
@@ -794,6 +805,7 @@ export default function DashboardPage() {
                 Partner view (MSSP/MSP)
               </button>
             </div>
+            )}
             {view === 'customer' && partnerCustomers.length > 0 && (
               <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
                 Viewing:
