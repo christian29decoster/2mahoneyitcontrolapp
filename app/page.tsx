@@ -26,12 +26,12 @@ import KpiGrid from '@/components/dashboard/KpiGrid'
 import CloudTiles from '@/components/dashboard/CloudTiles'
 import { GROW_DEMO_BASELINE, growAiScore } from '@/lib/mahoney-grow-demo'
 import { LineChart } from 'lucide-react'
-import { partnerCustomers, partnerSummary, partnerMRRTrendMonths, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
+import { partnerCustomers, partnerSummary, partnerMRRTrendMonths, partnerAppUpsells, partnerUpsellSummary, partnerAutomationImpacts, partnerAutomationSummary, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
 import { useViewModeStore } from '@/lib/viewMode.store'
 import { AlertsChart, MttrChart } from '@/components/dashboard/DesktopDashboardCharts'
 import KpiTile from '@/components/dashboard/KpiTile'
 import { computeMduCost } from '@/lib/mdu-pricing'
-import { Database, DollarSign, AlertTriangle, Shield, CalendarClock } from 'lucide-react'
+import { Database, DollarSign, AlertTriangle, Shield, CalendarClock, TrendingUp as TrendIcon, Zap } from 'lucide-react'
 import { KEY_METRIC_TOOLTIPS, GROW_SCORE_TOOLTIP } from '@/lib/dashboard-metric-tooltips'
 import MetricDeltaTooltip from '@/components/ui/MetricDeltaTooltip'
 
@@ -468,6 +468,73 @@ export default function DashboardPage() {
                 </Card>
               </div>
 
+              {/* App-driven upsell & Automation efficiency */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <Card className="card-desktop p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendIcon className="w-5 h-5 text-[var(--success)]" />
+                    <h3 className="text-base font-semibold text-[var(--text)]">App-driven upsell</h3>
+                  </div>
+                  <p className="text-xs text-[var(--muted)] mb-3">
+                    Revenue from recommendations, in-app prompts, and Mahoney Grow insights.
+                  </p>
+                  <div className="p-3 rounded-xl bg-[var(--success)]/10 border border-[var(--success)]/20 mb-4">
+                    <div className="text-xs text-[var(--muted)]">Total MRR from app-driven upsell</div>
+                    <div className="text-xl font-semibold text-[var(--success)]">
+                      ${partnerUpsellSummary.totalMrrFromUpsell.toLocaleString('en-US')}/mo
+                    </div>
+                    <div className="text-xs text-[var(--muted)] mt-0.5">{partnerUpsellSummary.count} deals</div>
+                  </div>
+                  <div className="space-y-2">
+                    {partnerAppUpsells.map((u) => (
+                      <div key={u.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] text-sm">
+                        <div className="min-w-0">
+                          <div className="font-medium text-[var(--text)] truncate">{u.customerName}</div>
+                          <div className="text-xs text-[var(--muted)]">{u.product} · {u.sourceLabel}</div>
+                        </div>
+                        <div className="text-right shrink-0 ml-2">
+                          <span className="font-semibold text-[var(--success)]">+${u.mrrAddedUSD.toLocaleString()}</span>/mo
+                          <div className="text-[10px] text-[var(--muted)]">{u.month}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                <Card className="card-desktop p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Zap className="w-5 h-5 text-[var(--primary)]" />
+                    <h3 className="text-base font-semibold text-[var(--text)]">Automation & efficiency</h3>
+                  </div>
+                  <p className="text-xs text-[var(--muted)] mb-3">
+                    RMM automations, MSP scripts, and Control dashboards – time and cost saved.
+                  </p>
+                  <div className="p-3 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 mb-4">
+                    <div className="text-xs text-[var(--muted)]">Estimated savings (portfolio)</div>
+                    <div className="text-xl font-semibold text-[var(--primary)]">
+                      {partnerAutomationSummary.timeSavedHoursPerMonth}h/mo saved
+                    </div>
+                    <div className="text-xs text-[var(--muted)] mt-0.5">
+                      ~${partnerAutomationSummary.costSavedUsdPerMonth.toLocaleString('en-US')}/mo equivalent
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {partnerAutomationImpacts.map((a) => (
+                      <div key={a.id} className="py-2 px-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
+                        <div className="flex items-center justify-between gap-2">
+                          <Badge variant="secondary" className="text-[10px]">{a.typeLabel}</Badge>
+                          <span className="text-xs font-medium text-[var(--success)]">
+                            {a.timeSavedHoursPerMonth}h saved · ${a.costSavedUsdPerMonth}/mo
+                          </span>
+                        </div>
+                        <div className="font-medium text-[var(--text)] text-sm mt-1">{a.title}</div>
+                        <p className="text-xs text-[var(--muted)] mt-0.5">{a.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
               {/* Customers table */}
               <Card className="card-desktop p-5">
                 <h3 className="text-base font-semibold text-[var(--text)] mb-4">Customers – security, growth & commercial</h3>
@@ -765,6 +832,61 @@ export default function DashboardPage() {
                     <span className="font-semibold text-[var(--primary)]">{partnerSummary.renewalsThisMonth}</span>
                   </div>
                 )}
+              </div>
+            </Card>
+
+            {/* App-driven upsell (mobile) */}
+            <Card className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendIcon className="w-4 h-4 text-[var(--success)]" />
+                <h3 className="text-sm font-semibold text-[var(--text)]">App-driven upsell</h3>
+              </div>
+              <p className="text-[11px] text-[var(--muted)] mb-3">
+                Revenue from app recommendations, in-app prompts, and Grow insights.
+              </p>
+              <div className="p-2.5 rounded-xl bg-[var(--success)]/10 border border-[var(--success)]/20 mb-3">
+                <div className="text-[10px] text-[var(--muted)]">MRR from app-driven upsell</div>
+                <div className="text-lg font-semibold text-[var(--success)]">${partnerUpsellSummary.totalMrrFromUpsell.toLocaleString('en-US')}/mo</div>
+                <div className="text-[10px] text-[var(--muted)]">{partnerUpsellSummary.count} deals</div>
+              </div>
+              <div className="space-y-1.5">
+                {partnerAppUpsells.map((u) => (
+                  <div key={u.id} className="flex justify-between items-start py-2 px-2.5 rounded-lg bg-[var(--surface-2)] text-[11px]">
+                    <div className="min-w-0">
+                      <div className="font-medium text-[var(--text)] truncate">{u.customerName}</div>
+                      <div className="text-[10px] text-[var(--muted)]">{u.product} · {u.sourceLabel}</div>
+                    </div>
+                    <span className="font-semibold text-[var(--success)] shrink-0 ml-2">+${u.mrrAddedUSD.toLocaleString()}/mo</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Automation & efficiency (mobile) */}
+            <Card className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="w-4 h-4 text-[var(--primary)]" />
+                <h3 className="text-sm font-semibold text-[var(--text)]">Automation & efficiency</h3>
+              </div>
+              <p className="text-[11px] text-[var(--muted)] mb-3">
+                RMM, MSP scripts, dashboards – time and cost saved.
+              </p>
+              <div className="p-2.5 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 mb-3">
+                <div className="text-[10px] text-[var(--muted)]">Portfolio savings</div>
+                <div className="text-lg font-semibold text-[var(--primary)]">{partnerAutomationSummary.timeSavedHoursPerMonth}h/mo saved</div>
+                <div className="text-[10px] text-[var(--muted)]">~${partnerAutomationSummary.costSavedUsdPerMonth.toLocaleString('en-US')}/mo</div>
+              </div>
+              <div className="space-y-2">
+                {partnerAutomationImpacts.map((a) => (
+                  <div key={a.id} className="py-2 px-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge variant="secondary" className="text-[9px]">{a.typeLabel}</Badge>
+                      <span className="text-[10px] font-medium text-[var(--success)]">{a.timeSavedHoursPerMonth}h · ${a.costSavedUsdPerMonth}/mo</span>
+                    </div>
+                    <div className="font-medium text-[var(--text)] text-[11px] mt-1">{a.title}</div>
+                    <p className="text-[10px] text-[var(--muted)] mt-0.5">{a.description}</p>
+                  </div>
+                ))}
               </div>
             </Card>
 
