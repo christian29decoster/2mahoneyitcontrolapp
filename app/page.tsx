@@ -59,6 +59,7 @@ export default function DashboardPage() {
   const [selectedPartnerCustomer, setSelectedPartnerCustomer] = useState<PartnerCustomer | null>(null)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const [usage, setUsage] = useState<UsageData | null>(null)
+  const [mrrChartHovered, setMrrChartHovered] = useState<number | null>(null)
   const h = useHaptics()
 
   useEffect(() => {
@@ -419,11 +420,11 @@ export default function DashboardPage() {
                     const points = partnerMRRTrendMonths.map((m, i) => {
                       const x = pad + (i / Math.max(1, partnerMRRTrendMonths.length - 1)) * (w - 2 * pad)
                       const y = h - pad - ((m.mrr - minMrr) / range) * (h - 2 * pad)
-                      return { x, y, month: m.month }
+                      return { x, y, month: m.month, mrr: m.mrr }
                     })
                     const linePoints = points.map((p) => `${p.x},${p.y}`).join(' ')
                     return (
-                      <>
+                      <div className="w-full" onMouseLeave={() => setMrrChartHovered(null)}>
                         <div className="w-full" style={{ height: 96 }}>
                           <svg width="100%" height={96} viewBox={`0 0 ${w} ${h}`} className="overflow-visible" preserveAspectRatio="xMidYMid meet">
                             <polyline
@@ -435,7 +436,18 @@ export default function DashboardPage() {
                               points={linePoints}
                             />
                             {points.map((p, i) => (
-                              <circle key={i} cx={p.x} cy={p.y} r="5" fill="var(--primary)" stroke="var(--bg)" strokeWidth="2" />
+                              <circle
+                                key={i}
+                                cx={p.x}
+                                cy={p.y}
+                                r="5"
+                                fill="var(--primary)"
+                                stroke="var(--bg)"
+                                strokeWidth="2"
+                                className="cursor-pointer"
+                                onMouseEnter={() => setMrrChartHovered(i)}
+                                onMouseLeave={() => setMrrChartHovered(null)}
+                              />
                             ))}
                           </svg>
                         </div>
@@ -444,10 +456,20 @@ export default function DashboardPage() {
                             <span key={m.month} className="text-[10px] text-[var(--muted)]">{m.month}</span>
                           ))}
                         </div>
+                        {mrrChartHovered !== null && (
+                          <div className="mt-2 py-1.5 px-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] text-sm">
+                            <span className="font-medium text-[var(--text)]">{partnerMRRTrendMonths[mrrChartHovered].month}</span>
+                            {' · '}
+                            <span className="text-[var(--primary)] font-semibold">
+                              ${partnerMRRTrendMonths[mrrChartHovered].mrr.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                            </span>
+                            {' MRR'}
+                          </div>
+                        )}
                         <p className="text-xs text-[var(--muted)] mt-2">
                           Last 6 months · Total MRR ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })} (+{partnerSummary.mrrGrowthPct}% MoM)
                         </p>
-                      </>
+                      </div>
                     )
                   })()}
                 </Card>
@@ -814,16 +836,27 @@ export default function DashboardPage() {
                 const points = partnerMRRTrendMonths.map((m, i) => {
                   const x = pad + (i / Math.max(1, partnerMRRTrendMonths.length - 1)) * (w - 2 * pad)
                   const y = chartH - pad - ((m.mrr - minMrr) / range) * (chartH - 2 * pad)
-                  return { x, y, month: m.month }
+                  return { x, y, month: m.month, mrr: m.mrr }
                 })
                 const linePoints = points.map((p) => `${p.x},${p.y}`).join(' ')
                 return (
-                  <>
+                  <div className="w-full" onMouseLeave={() => setMrrChartHovered(null)}>
                     <div className="w-full" style={{ height: 56 }}>
                       <svg width="100%" height={56} viewBox={`0 0 ${w} ${chartH}`} className="overflow-visible" preserveAspectRatio="xMidYMid meet">
                         <polyline fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" points={linePoints} />
                         {points.map((p, i) => (
-                          <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="var(--primary)" stroke="var(--bg)" strokeWidth="1.5" />
+                          <circle
+                            key={i}
+                            cx={p.x}
+                            cy={p.y}
+                            r="3.5"
+                            fill="var(--primary)"
+                            stroke="var(--bg)"
+                            strokeWidth="1.5"
+                            className="cursor-pointer"
+                            onMouseEnter={() => setMrrChartHovered(i)}
+                            onMouseLeave={() => setMrrChartHovered(null)}
+                          />
                         ))}
                       </svg>
                     </div>
@@ -832,10 +865,20 @@ export default function DashboardPage() {
                         <span key={m.month} className="text-[9px] text-[var(--muted)]">{m.month}</span>
                       ))}
                     </div>
+                    {mrrChartHovered !== null && (
+                      <div className="mt-1.5 py-1 px-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] text-xs">
+                        <span className="font-medium text-[var(--text)]">{partnerMRRTrendMonths[mrrChartHovered].month}</span>
+                        {' · '}
+                        <span className="text-[var(--primary)] font-semibold">
+                          ${partnerMRRTrendMonths[mrrChartHovered].mrr.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                        </span>
+                        {' MRR'}
+                      </div>
+                    )}
                     <p className="text-[10px] text-[var(--muted)] mt-2">
                       Portfolio MRR ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })} (+{partnerSummary.mrrGrowthPct}% vs last month)
                     </p>
-                  </>
+                  </div>
                 )
               })()}
             </Card>
