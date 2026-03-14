@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Info } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Info, X } from 'lucide-react'
 import { stagger } from '@/lib/ui/motion'
 import { Card } from '@/components/Card'
 import { HapticButton } from '@/components/HapticButton'
@@ -11,6 +11,96 @@ type CartItem = {
   id: string
   name: string
   description?: string
+}
+
+function InfoIconWithPopover({
+  bullets,
+  fullContent,
+  title,
+  size = 'default',
+  tooltipPosition = 'right',
+}: {
+  title: string
+  bullets: string[]
+  fullContent: React.ReactNode
+  size?: 'default' | 'sm'
+  tooltipPosition?: 'right' | 'bottom'
+}) {
+  const [hover, setHover] = useState(false)
+  const [open, setOpen] = useState(false)
+  const iconSize = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'
+  const tooltipClass =
+    tooltipPosition === 'bottom'
+      ? 'absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 min-w-[200px] max-w-[280px] py-2 px-3 rounded-xl bg-[var(--surface-elev)] border border-[var(--border)] shadow-lg text-left pointer-events-none z-30'
+      : 'absolute z-30 left-full ml-1.5 top-1/2 -translate-y-1/2 min-w-[200px] max-w-[280px] py-2 px-3 rounded-xl bg-[var(--surface-elev)] border border-[var(--border)] shadow-lg text-left pointer-events-none'
+  return (
+    <>
+      <span
+        className="relative inline-flex items-center justify-center cursor-help"
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen(true)
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Info: ${title}`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setOpen(true)
+          }
+        }}
+      >
+        <Info className={`${iconSize} text-[var(--muted)] hover:text-[var(--primary)] transition-colors`} />
+        {hover && (
+          <div className={tooltipClass}>
+            <div className="text-xs font-semibold text-[var(--text)] mb-1.5">{title}</div>
+            <ul className="text-xs text-[var(--muted)] space-y-0.5 list-disc list-inside">
+              {bullets.map((b, i) => (
+                <li key={i}>{b}</li>
+              ))}
+            </ul>
+            <span className="text-[10px] text-[var(--primary)] mt-1 block">Click for full details</span>
+          </div>
+        )}
+      </span>
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md max-h-[85vh] overflow-auto rounded-2xl bg-[var(--surface-elev)] border border-[var(--border)] shadow-xl p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <h3 className="text-lg font-semibold text-[var(--text)]">{title}</h3>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="p-1 rounded-lg hover:bg-[var(--surface-2)] text-[var(--muted)]"
+                  aria-label="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="text-sm text-[var(--text)] space-y-2">{fullContent}</div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  )
 }
 
 export default function MarketplacePage() {
@@ -207,12 +297,28 @@ export default function MarketplacePage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
           Mahoney Control Platform
-          <span
-            className="inline-flex items-center justify-center"
-            title="Multi-tenant governance platform including dashboard, devices & staff, incidents, governance views, billing and optional Mahoney Grow."
-          >
-            <Info className="w-4 h-4 text-[var(--muted)]" />
-          </span>
+          <InfoIconWithPopover
+            title="Mahoney Control Platform"
+            bullets={[
+              'Multi-tenant dashboard and governance',
+              'Devices, staff and asset management',
+              'Incidents, risk and compliance views',
+              'Billing and financials',
+              'Optional Mahoney Grow (growth from security data)',
+            ]}
+            fullContent={
+              <>
+                <p>
+                  Multi-tenant governance platform for devices, incidents, risk and financials. Includes unified
+                  dashboard, device and user management, incident tracking, governance and compliance views, and
+                  billing. Optional add-on: Mahoney Grow for business growth insights from security data.
+                </p>
+                <p className="text-[var(--muted)] mt-2">
+                  Pricing as per MIT-AI price list. Partners receive 20% discount; see Control Dashboard for partner P/L.
+                </p>
+              </>
+            }
+          />
         </h2>
         <p className="text-sm text-[var(--muted)]">
           Multi-tenant governance platform for devices, incidents, risk and financials. Pricing as per MIT-AI price
@@ -233,12 +339,33 @@ export default function MarketplacePage() {
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
                     Starter
-                    <span
-                      className="inline-flex items-center justify-center"
-                      title="Up to 25 users/devices, 1M events included, standard support."
-                    >
-                      <Info className="w-3 h-3 text-[var(--muted)]" />
-                    </span>
+                    <InfoIconWithPopover
+                      size="sm"
+                      tooltipPosition="bottom"
+                      title="Starter – included"
+                      bullets={[
+                        'Up to 25 users or devices',
+                        '1M events included per month',
+                        'Standard support (email, portal)',
+                        'Dashboard, devices, incidents, governance',
+                        'Billing and basic reporting',
+                      ]}
+                      fullContent={
+                        <>
+                          <p>
+                            <strong>Starter</strong> ($499/month gross) is the entry tier for small teams and first
+                            steps with the Control Platform.
+                          </p>
+                          <ul className="list-disc list-inside mt-2 space-y-1 text-[var(--muted)]">
+                            <li>Up to 25 users or devices (whichever is lower)</li>
+                            <li>1M events per month included (MDU); beyond that, volume pricing applies</li>
+                            <li>Standard support: email and portal; response per SLA</li>
+                            <li>Full access to dashboard, device and staff management, incidents, governance views, and billing</li>
+                            <li>Basic reporting; no advanced analytics or dedicated success manager</li>
+                          </ul>
+                        </>
+                      }
+                    />
                   </span>
                 </td>
                 <td className="py-2 pr-4">$499</td>
@@ -262,12 +389,31 @@ export default function MarketplacePage() {
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
                     Professional
-                    <span
-                      className="inline-flex items-center justify-center"
-                      title="Higher limits, priority support, advanced reports."
-                    >
-                      <Info className="w-3 h-3 text-[var(--muted)]" />
-                    </span>
+                    <InfoIconWithPopover
+                      size="sm"
+                      tooltipPosition="bottom"
+                      title="Professional – included"
+                      bullets={[
+                        'Higher user/device limits',
+                        'Priority support',
+                        'Advanced reports and analytics',
+                        'All Starter features included',
+                      ]}
+                      fullContent={
+                        <>
+                          <p>
+                            <strong>Professional</strong> ($1,499/month gross) is for growing teams that need higher
+                            limits and priority support.
+                          </p>
+                          <ul className="list-disc list-inside mt-2 space-y-1 text-[var(--muted)]">
+                            <li>Higher limits on users and devices (exact caps per agreement)</li>
+                            <li>Priority support: faster response and escalation path</li>
+                            <li>Advanced reports and analytics; customizable dashboards</li>
+                            <li>All Starter features included; optional add-ons (e.g. Mahoney Grow, MIT-AI) available</li>
+                          </ul>
+                        </>
+                      }
+                    />
                   </span>
                 </td>
                 <td className="py-2 pr-4">$1,499</td>
@@ -291,12 +437,31 @@ export default function MarketplacePage() {
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
                     Enterprise
-                    <span
-                      className="inline-flex items-center justify-center"
-                      title="Full usage, SLA-backed service and dedicated support for larger organizations."
-                    >
-                      <Info className="w-3 h-3 text-[var(--muted)]" />
-                    </span>
+                    <InfoIconWithPopover
+                      size="sm"
+                      tooltipPosition="bottom"
+                      title="Enterprise – included"
+                      bullets={[
+                        'Full usage and custom limits',
+                        'SLA-backed service',
+                        'Dedicated support and success manager',
+                        'Custom integrations and onboarding',
+                      ]}
+                      fullContent={
+                        <>
+                          <p>
+                            <strong>Enterprise</strong> (custom pricing, typically from $2,500/month) is for larger
+                            or regulated organizations that need full usage and dedicated support.
+                          </p>
+                          <ul className="list-disc list-inside mt-2 space-y-1 text-[var(--muted)]">
+                            <li>Full usage; custom limits on users, devices and events</li>
+                            <li>SLA-backed availability and response times</li>
+                            <li>Dedicated support and optional success manager</li>
+                            <li>Custom integrations, onboarding and training; optional on-prem or hybrid</li>
+                          </ul>
+                        </>
+                      }
+                    />
                   </span>
                 </td>
                 <td className="py-2 pr-4">Custom (from $2,500)</td>
