@@ -117,9 +117,20 @@ function formatUsd(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
+type PlatformKey = keyof typeof PLATFORM_LIST_PRICES
+
+const tierIds: PartnerTierId[] = ['authorized', 'advanced', 'elite']
+
 export default function PartnerPricingPage() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [calcPartnerTier, setCalcPartnerTier] = useState<PartnerTierId>('authorized')
+  const [calcCurrentCustomers, setCalcCurrentCustomers] = useState(2)
+  const [calcPlatform, setCalcPlatform] = useState<PlatformKey>('essential')
+  const [calcSoc, setCalcSoc] = useState<string>('')
+  const [calcMitai, setCalcMitai] = useState<string>('')
+
+  const myTierId = (session?.partnerTier && tierIds.includes(session.partnerTier as PartnerTierId)) ? (session.partnerTier as PartnerTierId) : null
 
   useEffect(() => {
     fetch('/api/demo/me')
@@ -128,6 +139,10 @@ export default function PartnerPricingPage() {
       .catch(() => setSession({ role: null, partnerId: null }))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (myTierId) setCalcPartnerTier(myTierId)
+  }, [myTierId])
 
   if (loading) {
     return (
@@ -156,18 +171,8 @@ export default function PartnerPricingPage() {
     )
   }
 
-  const tierIds: PartnerTierId[] = ['authorized', 'advanced', 'elite']
-  const myTierId = (session?.partnerTier && tierIds.includes(session.partnerTier as PartnerTierId)) ? (session.partnerTier as PartnerTierId) : null
   const myDiscountPct = myTierId ? PARTNER_TIERS[myTierId].discountPct : PARTNER_TIERS.elite.discountPct
   const tableDiscountPct = myTierId ? PARTNER_TIERS[myTierId].discountPct : PARTNER_TIERS.elite.discountPct
-
-  // Deal calculator state
-  type PlatformKey = keyof typeof PLATFORM_LIST_PRICES
-  const [calcPartnerTier, setCalcPartnerTier] = useState<PartnerTierId>(myTierId ?? 'authorized')
-  const [calcCurrentCustomers, setCalcCurrentCustomers] = useState(2)
-  const [calcPlatform, setCalcPlatform] = useState<PlatformKey>('essential')
-  const [calcSoc, setCalcSoc] = useState<string>('')
-  const [calcMitai, setCalcMitai] = useState<string>('')
 
   const calcDiscountPct = PARTNER_TIERS[calcPartnerTier].discountPct
   const listPlatform = PLATFORM_LIST_PRICES[calcPlatform]
