@@ -78,9 +78,12 @@ export default function DashboardPage() {
       .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000, eventsPerMonth: 39000 }))
   }, [])
 
-  // Clients (with/without IT) must not see Partner dashboard – force customer view and hide toggle
+  // Clients (with/without IT) must not see Partner dashboard – force customer view, hide toggle and company dropdown
   useEffect(() => {
-    if (!showPartnerView && view === 'partner') setView('customer')
+    if (!showPartnerView) {
+      if (view === 'partner') setView('customer')
+      setSelectedTenantId(partnerCustomers[0]?.id ?? null)
+    }
   }, [showPartnerView, view])
   
   const addToast = (type: ToastType, title: string, message?: string) => {
@@ -140,7 +143,7 @@ export default function DashboardPage() {
               <span className="text-sm text-[var(--muted)] font-medium">
                 {view === 'customer' ? 'Single-tenant view' : 'Partner overview'}
               </span>
-              {view === 'customer' && partnerCustomers.length > 0 && (
+              {view === 'customer' && partnerCustomers.length > 0 && showPartnerView && (
                 <select
                   value={selectedTenantId ?? ''}
                   onChange={(e) => setSelectedTenantId(e.target.value || null)}
@@ -807,7 +810,7 @@ export default function DashboardPage() {
               </button>
             </div>
             )}
-            {view === 'customer' && partnerCustomers.length > 0 && (
+            {view === 'customer' && partnerCustomers.length > 0 && showPartnerView && (
               <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
                 Viewing:
                 <select

@@ -12,6 +12,10 @@ import { company as demoCompany, demoTenant } from '@/lib/demo'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useActivityStore } from '@/lib/activity.store'
+import { useDemoViewRoleStore } from '@/lib/demoViewRole.store'
+
+/** Tenant id for Acme Engineering Inc. (single-tenant demo for clients). */
+const ACME_TENANT_ID = 'O-25-001'
 
 type TenantLocation = { name: string; address: string; lat: number; lng: number }
 type TenantCertificate = { id: string; name: string }
@@ -47,9 +51,12 @@ export default function CompanyPage() {
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
   const addActivity = useActivityStore((s) => s.addActivity)
+  const demoViewRole = useDemoViewRoleStore((s) => s.demoViewRole)
+  const isClientDemo = demoViewRole === 'client_wit' || demoViewRole === 'client_woit'
 
-  const canSeeMultipleCompanies = role === 'superadmin' || role === 'admin' || role === 'partner'
-  const effectiveTenantId = selectedTenantId ?? (canSeeMultipleCompanies ? null : tenantIdFromSession)
+  const canSeeMultipleCompanies = !isClientDemo && (role === 'superadmin' || role === 'admin' || role === 'partner')
+  const effectiveSingleTenantId = tenantIdFromSession ?? (isClientDemo ? ACME_TENANT_ID : null)
+  const effectiveTenantId = selectedTenantId ?? (canSeeMultipleCompanies ? null : effectiveSingleTenantId)
 
   useEffect(() => {
     setRole(getRoleFromCookie())
@@ -72,20 +79,20 @@ export default function CompanyPage() {
   }, [canSeeMultipleCompanies, tenants, selectedTenantId])
 
   useEffect(() => {
-    if (!canSeeMultipleCompanies && tenantIdFromSession) setSelectedTenantId(tenantIdFromSession)
-  }, [canSeeMultipleCompanies, tenantIdFromSession])
+    if (!canSeeMultipleCompanies && effectiveSingleTenantId) setSelectedTenantId(effectiveSingleTenantId)
+  }, [canSeeMultipleCompanies, effectiveSingleTenantId])
 
   useEffect(() => {
-    if (canSeeMultipleCompanies || !tenantIdFromSession) return
+    if (canSeeMultipleCompanies || !effectiveSingleTenantId) return
     setTenantsLoading(true)
-    fetch(`/api/tenants/${tenantIdFromSession}`)
+    fetch(`/api/tenants/${effectiveSingleTenantId}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { item?: TenantItem } | null) => {
         if (data?.item) setTenants([data.item])
       })
       .catch(() => {})
       .finally(() => setTenantsLoading(false))
-  }, [canSeeMultipleCompanies, tenantIdFromSession])
+  }, [canSeeMultipleCompanies, effectiveSingleTenantId])
 
   const selectedTenant = effectiveTenantId ? tenants.find((t) => t.id === effectiveTenantId) : null
 
@@ -128,7 +135,7 @@ export default function CompanyPage() {
     selectedTenant?.certificates && selectedTenant.certificates.length > 0
       ? selectedTenant.certificates
       : demoCompany.certificates
-  const showDetail = selectedTenant || (!canSeeMultipleCompanies && !tenantIdFromSession)
+  const showDetail = selectedTenant || (!canSeeMultipleCompanies && !effectiveSingleTenantId)
 
   if (canSeeMultipleCompanies && !selectedTenantId && !tenantsLoading && tenants.length === 0) {
     return (
@@ -150,7 +157,7 @@ export default function CompanyPage() {
     <>
       <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
         {/* Scope: Customer sees read-only org name; Partner/Mahoney see selector */}
-        {!canSeeMultipleCompanies && (tenantIdFromSession || tenants.length > 0) && (
+        {!canSeeMultipleCompanies && (effectiveSingleTenantId || tenants.length > 0) && (
           <Card className="p-4">
             <div className="flex items-center gap-2">
               <Building2 className="w-5 h-5 text-[var(--muted)] shrink-0" />
