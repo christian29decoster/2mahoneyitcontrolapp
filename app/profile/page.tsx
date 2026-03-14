@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { User, Mail, Phone, Bell, Shield, Settings, LogOut, Camera, Upload } from 'lucide-react'
+import { Mail, Phone, Bell, Shield, Settings, Camera } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { HapticButton } from '@/components/HapticButton'
 import { Toast, ToastType } from '@/components/Toasts'
@@ -19,7 +19,7 @@ export default function ProfilePage() {
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const h = useHaptics()
-  
+
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
     setToasts(prev => [...prev, { id, type, title, message }])
@@ -27,7 +27,7 @@ export default function ProfilePage() {
       setToasts(prev => prev.filter(t => t.id !== id))
     }, 4000)
   }
-  
+
   const handleToggleNotification = (type: keyof typeof notifications) => {
     h.impact('light')
     setNotifications(prev => ({
@@ -36,7 +36,7 @@ export default function ProfilePage() {
     }))
     addToast('success', `${type.charAt(0).toUpperCase() + type.slice(1)} notifications ${notifications[type] ? 'disabled' : 'enabled'}`)
   }
-  
+
   const handleLogout = () => {
     h.impact('medium')
     addToast('info', 'Logout', 'Logout functionality would be implemented in production.')
@@ -59,141 +59,153 @@ export default function ProfilePage() {
     h.impact('light')
     fileInputRef.current?.click()
   }
-  
+
   return (
     <>
-      <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+      <motion.div className="max-w-2xl mx-auto space-y-6" variants={stagger} initial="initial" animate="animate">
+        {/* Page header */}
+        <div className="mb-2">
+          <h1 className="text-xl font-semibold text-[var(--text)]">Profile</h1>
+          <p className="text-sm text-[var(--muted)]">Personal details, notifications, and security</p>
+        </div>
+
         {/* Profile Header */}
         <Card>
-          <div className="text-center space-y-4">
-            <div className="relative w-24 h-24 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-600)] rounded-full flex items-center justify-center mx-auto shadow-lg">
-              {/* Profile Picture */}
-              {profileImage ? (
-                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={profileImage} 
-                    alt="Profile Picture" 
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                </div>
-              ) : (
-                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center overflow-hidden">
-                  <svg width="64" height="64" viewBox="0 0 64 64" className="text-[var(--primary)]">
-                    {/* Person Icon */}
-                    <circle cx="32" cy="20" r="8" fill="currentColor" />
-                    <path d="M8 56c0-13.3 10.7-24 24-24s24 10.7 24 24" fill="currentColor" />
-                  </svg>
-                </div>
-              )}
-              
-              {/* Upload Button Overlay */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
+            <div className="relative shrink-0">
+              <div className="w-24 h-24 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-600)] rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+                {profileImage ? (
+                  <div className="w-full h-full flex items-center justify-center overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={profileImage}
+                      alt="Profile picture"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <svg width="48" height="48" viewBox="0 0 64 64" className="text-white shrink-0">
+                      <circle cx="32" cy="20" r="8" fill="currentColor" />
+                      <path d="M8 56c0-13.3 10.7-24 24-24s24 10.7 24 24" fill="currentColor" />
+                    </svg>
+                  </div>
+                )}
+              </div>
               <button
+                type="button"
                 onClick={triggerFileUpload}
-                className="absolute -bottom-1 -right-1 w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center shadow-lg hover:bg-[var(--primary-600)] transition-colors"
-                title="Upload Profile Picture"
+                className="absolute -bottom-0.5 -right-0.5 w-9 h-9 bg-[var(--primary)] rounded-full flex items-center justify-center shadow-lg hover:bg-[var(--primary-600)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)]"
+                title="Upload profile picture"
+                aria-label="Upload profile picture"
               >
-                <Camera size={16} className="text-white" />
+                <Camera size={18} className="text-white" />
               </button>
             </div>
-            
-            {/* Hidden File Input */}
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={handleImageUpload}
               className="hidden"
+              aria-hidden
             />
-            
-            <div>
-              <h1 className="text-2xl font-bold text-[var(--text)]">John Doe</h1>
-              <p className="text-[var(--muted)]">Chief Information Security Officer</p>
+            <div className="text-center sm:text-left flex-1 min-w-0">
+              <h2 className="text-lg font-semibold text-[var(--text)]">John Doe</h2>
+              <p className="text-sm text-[var(--muted)]">Chief Information Security Officer</p>
             </div>
           </div>
         </Card>
 
         {/* Contact Information */}
         <Card>
-          <h2 className="text-lg font-semibold text-[var(--text)] mb-4">Contact Information</h2>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] flex items-center justify-center shrink-0">
               <Mail className="w-5 h-5 text-[var(--muted)]" />
-              <div>
-                <p className="text-[var(--text)]">john.doe@acme.com</p>
-                <p className="text-sm text-[var(--muted)]">Primary email</p>
-              </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <Phone className="w-5 h-5 text-[var(--muted)]" />
-              <div>
-                <p className="text-[var(--text)]">+1 (555) 123-4567</p>
-                <p className="text-sm text-[var(--muted)]">Mobile</p>
-              </div>
+            <div>
+              <h2 className="text-base font-semibold text-[var(--text)]">Contact</h2>
+              <p className="text-xs text-[var(--muted)]">Email and phone</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <p className="block text-xs font-medium text-[var(--muted)] mb-1">Email</p>
+              <p className="text-[var(--text)]">john.doe@acme.com</p>
+            </div>
+            <div>
+              <p className="block text-xs font-medium text-[var(--muted)] mb-1">Phone</p>
+              <p className="text-[var(--text)]">+1 (555) 123-4567</p>
             </div>
           </div>
         </Card>
 
         {/* Notification Settings */}
         <Card>
-          <h2 className="text-lg font-semibold text-[var(--text)] mb-4">Notifications</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-[var(--muted)]" />
-                <div>
-                  <p className="text-[var(--text)]">Email Notifications</p>
-                  <p className="text-sm text-[var(--muted)]">Security alerts and updates</p>
-                </div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+              <Bell className="w-5 h-5 text-[var(--muted)]" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-[var(--text)]">Notifications</h2>
+              <p className="text-xs text-[var(--muted)]">Email, push, and SMS</p>
+            </div>
+          </div>
+          <div className="space-y-4 divide-y divide-[var(--border)]">
+            <div className="flex items-center justify-between gap-4 pt-0 first:pt-0">
+              <div className="min-w-0">
+                <p className="text-[var(--text)] font-medium">Email</p>
+                <p className="text-xs text-[var(--muted)]">Security alerts and updates</p>
               </div>
               <button
+                type="button"
                 onClick={() => handleToggleNotification('email')}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  notifications.email ? 'bg-[var(--primary)]' : 'bg-[var(--surface)]'
+                className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 shrink-0 ${
+                  notifications.email ? 'bg-[var(--primary)]' : 'bg-[var(--surface-2)]'
                 }`}
+                aria-pressed={notifications.email}
+                aria-label="Email notifications"
               >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  notifications.email ? 'translate-x-6' : 'translate-x-0.5'
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  notifications.email ? 'translate-x-5' : 'translate-x-0'
                 }`} />
               </button>
             </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Bell className="w-5 h-5 text-[var(--muted)]" />
-                <div>
-                  <p className="text-[var(--text)]">Push Notifications</p>
-                  <p className="text-sm text-[var(--muted)]">Real-time alerts</p>
-                </div>
+            <div className="flex items-center justify-between gap-4 py-4">
+              <div className="min-w-0">
+                <p className="text-[var(--text)] font-medium">Push</p>
+                <p className="text-xs text-[var(--muted)]">Real-time alerts</p>
               </div>
               <button
+                type="button"
                 onClick={() => handleToggleNotification('push')}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  notifications.push ? 'bg-[var(--primary)]' : 'bg-[var(--surface)]'
+                className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 shrink-0 ${
+                  notifications.push ? 'bg-[var(--primary)]' : 'bg-[var(--surface-2)]'
                 }`}
+                aria-pressed={notifications.push}
+                aria-label="Push notifications"
               >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  notifications.push ? 'translate-x-6' : 'translate-x-0.5'
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  notifications.push ? 'translate-x-5' : 'translate-x-0'
                 }`} />
               </button>
             </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-[var(--muted)]" />
-                <div>
-                  <p className="text-[var(--text)]">SMS Notifications</p>
-                  <p className="text-sm text-[var(--muted)]">Critical alerts only</p>
-                </div>
+            <div className="flex items-center justify-between gap-4 pt-4">
+              <div className="min-w-0">
+                <p className="text-[var(--text)] font-medium">SMS</p>
+                <p className="text-xs text-[var(--muted)]">Critical alerts only</p>
               </div>
               <button
+                type="button"
                 onClick={() => handleToggleNotification('sms')}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  notifications.sms ? 'bg-[var(--primary)]' : 'bg-[var(--surface)]'
+                className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 shrink-0 ${
+                  notifications.sms ? 'bg-[var(--primary)]' : 'bg-[var(--surface-2)]'
                 }`}
+                aria-pressed={notifications.sms}
+                aria-label="SMS notifications"
               >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  notifications.sms ? 'translate-x-6' : 'translate-x-0.5'
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  notifications.sms ? 'translate-x-5' : 'translate-x-0'
                 }`} />
               </button>
             </div>
@@ -202,51 +214,66 @@ export default function ProfilePage() {
 
         {/* Security Status */}
         <Card>
-          <h2 className="text-lg font-semibold text-[var(--text)] mb-4">Security Status</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-[var(--success)]/10 rounded-[16px] border border-[var(--success)]/20">
-              <div className="flex items-center space-x-3">
-                <Shield className="w-5 h-5 text-[var(--success)]" />
-                <div>
-                  <p className="text-[var(--text)] font-medium">Two-Factor Authentication</p>
-                  <p className="text-sm text-[var(--muted)]">Enabled</p>
-                </div>
-              </div>
-              <div className="w-2 h-2 bg-[var(--success)] rounded-full" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-[var(--success)]/15 flex items-center justify-center shrink-0">
+              <Shield className="w-5 h-5 text-[var(--success)]" />
             </div>
-            
-            <div className="flex items-center justify-between p-3 bg-[var(--success)]/10 rounded-[16px] border border-[var(--success)]/20">
-              <div className="flex items-center space-x-3">
-                <Shield className="w-5 h-5 text-[var(--success)]" />
-                <div>
-                  <p className="text-[var(--text)] font-medium">Last Login</p>
-                  <p className="text-sm text-[var(--muted)]">Today at 9:24 AM</p>
+            <div>
+              <h2 className="text-base font-semibold text-[var(--text)]">Security</h2>
+              <p className="text-xs text-[var(--muted)]">2FA and last sign-in</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--success)]/10 border border-[var(--success)]/20">
+              <div className="flex items-center gap-3 min-w-0">
+                <Shield className="w-5 h-5 text-[var(--success)] shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[var(--text)] font-medium">Two-factor authentication</p>
+                  <p className="text-xs text-[var(--muted)]">Enabled</p>
                 </div>
               </div>
-              <div className="w-2 h-2 bg-[var(--success)] rounded-full" />
+              <span className="w-2 h-2 bg-[var(--success)] rounded-full shrink-0" aria-hidden />
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+              <div className="flex items-center gap-3 min-w-0">
+                <Shield className="w-5 h-5 text-[var(--muted)] shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[var(--text)] font-medium">Last sign-in</p>
+                  <p className="text-xs text-[var(--muted)]">Today at 9:24 AM</p>
+                </div>
+              </div>
             </div>
           </div>
         </Card>
 
         {/* Account Actions */}
-        <div className="space-y-3">
-          <HapticButton
-            label="Account Settings"
-            variant="surface"
-            onClick={() => addToast('info', 'Account Settings', 'Settings would be available in production.')}
-            className="w-full"
-          />
-          
-          <HapticButton
-            label="Logout"
-            variant="danger"
-            onClick={handleLogout}
-            className="w-full"
-          />
-        </div>
+        <Card>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-[var(--surface-2)] flex items-center justify-center shrink-0">
+              <Settings className="w-5 h-5 text-[var(--muted)]" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-[var(--text)]">Account</h2>
+              <p className="text-xs text-[var(--muted)]">Settings and sign out</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <HapticButton
+              label="Settings"
+              variant="surface"
+              onClick={() => addToast('info', 'Settings', 'Settings will be available in production.')}
+              className="w-full"
+            />
+            <HapticButton
+              label="Sign out"
+              variant="danger"
+              onClick={handleLogout}
+              className="w-full"
+            />
+          </div>
+        </Card>
       </motion.div>
 
-      {/* Toast Manager */}
       <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
         {toasts.map((toast) => (
           <div key={toast.id} className="pointer-events-auto">
