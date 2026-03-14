@@ -62,7 +62,7 @@ function InfoIconWithPopover({
                 <li key={i} className="leading-snug">{b}</li>
               ))}
             </ul>
-            <span className="text-[10px] text-[var(--primary)] mt-2 block">Klick für Details</span>
+            <span className="text-[10px] text-[var(--primary)] mt-2 block">Click for details</span>
           </div>
         )}
       </span>
@@ -86,22 +86,22 @@ function InfoIconWithPopover({
   )
 }
 
-/** Vorteile pro MIT-AI-Plan für psychologische Argumentation. */
+/** Benefits per MIT-AI plan for psychological argumentation. */
 const MITAI_PLAN_BENEFITS: Record<string, { short: string; bullets: string[]; fullTitle: string }> = {
   Insight: {
-    short: 'Einstieg, kurze Auswertungen, Basis-Co-Pilot.',
-    bullets: ['Geringer Einstiegspreis – Kunde testet AI ohne großes Risiko.', 'Ideal für erste Use Cases und Proof of Concept.', 'Deine Marge pro Kunde bei minimalem Verkaufsaufwand.'],
-    fullTitle: 'MIT-AI Insight – Warum verkaufen?',
+    short: 'Entry-level, short evaluations, basic Co-Pilot.',
+    bullets: ['Low entry price – customer tries AI with minimal risk.', 'Ideal for first use cases and proof of concept.', 'Your margin per customer with minimal sales effort.'],
+    fullTitle: 'MIT-AI Insight – Why sell it?',
   },
   Intelligence: {
-    short: 'Co-Pilot, Analysen, Empfehlungen, Governance-Reports.',
-    bullets: ['Der meistverkaufte Plan: Co-Pilot im Alltag.', 'Starke Argumentation: weniger manuelle Arbeit, bessere Entscheidungen.', 'Wiederkehrende Umsätze – Kunde bindet sich an die Plattform.'],
-    fullTitle: 'MIT-AI Intelligence – Partner-Vorteile',
+    short: 'Co-Pilot, analytics, recommendations, governance reports.',
+    bullets: ['The most-sold plan: Co-Pilot in daily use.', 'Strong pitch: less manual work, better decisions.', 'Recurring revenue – customer commits to the platform.'],
+    fullTitle: 'MIT-AI Intelligence – Partner benefits',
   },
   Command: {
-    short: 'Komplexe Analysen, großer Kontext, Executive-Dashboards.',
-    bullets: ['Premium-Marge bei Enterprise-Kunden.', 'Positionierung als strategischer Partner, nicht nur Reseller.', 'Hoher Deckungsbeitrag pro Vertrag bei vergleichsweise geringem Support.'],
-    fullTitle: 'MIT-AI Command – Maximale Marge',
+    short: 'Complex analytics, large context, executive dashboards.',
+    bullets: ['Premium margin with enterprise customers.', 'Position as strategic partner, not just reseller.', 'High contribution per contract with relatively low support.'],
+    fullTitle: 'MIT-AI Command – Maximum margin',
   },
 }
 
@@ -139,12 +139,12 @@ export default function PartnerPricingPage() {
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] mb-4">
           <Lock className="w-7 h-7 text-[var(--muted)]" />
         </div>
-        <h1 className="text-xl font-semibold text-[var(--text)] mb-2">Partner-Preise</h1>
+        <h1 className="text-xl font-semibold text-[var(--text)] mb-2">Partner Pricing</h1>
         <p className="text-sm text-[var(--muted)]">
-          Der Zugriff auf Partner-Preise und Margen ist nur für eingeloggte Partner (und Admins) sichtbar. So bleibt der Marktpreis stabil und Partner verkaufen immer zum offiziellen Listenpreis.
+          Access to partner pricing and margins is only visible to logged-in partners (and admins). This keeps the market price stable and partners always sell at the official list price.
         </p>
         <p className="text-xs text-[var(--muted)] mt-4">
-          Bitte als Partner einloggen oder im Admin einen Partner-Account anlegen.
+          Please log in as a partner or create a partner account in Admin.
         </p>
       </div>
     )
@@ -158,26 +158,26 @@ export default function PartnerPricingPage() {
   return (
     <motion.div className="max-w-4xl mx-auto py-8 px-4 space-y-10" variants={stagger} initial="initial" animate="animate">
       <motion.div variants={fadeUp}>
-        <h1 className="text-2xl font-bold text-[var(--text)]">Partner-Preise &amp; Margen</h1>
+        <h1 className="text-2xl font-bold text-[var(--text)]">Partner Pricing &amp; Margins</h1>
         {session?.partnerName && <p className="text-sm text-[var(--muted)] mt-0.5">Partner: {session.partnerName}</p>}
         {myTierId && (
-          <p className="text-sm font-medium text-[var(--primary)] mt-1">Dein Tier: {PARTNER_TIERS[myTierId].label} ({tableDiscountPct} % Rabatt)</p>
+          <p className="text-sm font-medium text-[var(--primary)] mt-1">Your tier: {PARTNER_TIERS[myTierId].label} ({tableDiscountPct}% discount)</p>
         )}
         <p className="text-sm text-[var(--muted)] mt-1">
-          Vertraulich – nur für Partner. Du verkaufst immer zum Listenpreis; dein Gewinn ist die Differenz zum Einkaufspreis. Direktverkauf von Mahoney = Listenpreis; Partner dürfen Endkunden optional bis max. {MAX_PARTNER_CUSTOMER_DISCOUNT_PCT} % Rabatt geben.
+          Confidential – for partners only. You always sell at list price; your profit is the difference to your cost. Direct sales from Mahoney = list price; partners may give end customers up to {MAX_PARTNER_CUSTOMER_DISCOUNT_PCT}% discount.
         </p>
       </motion.div>
 
       {/* Partner Tiers */}
       <motion.section className="space-y-3" variants={fadeUp}>
-        <h2 className="text-lg font-semibold text-[var(--text)]">Partner-Stufen</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)]">Partner Tiers</h2>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
                 <th className="py-2 pr-4 text-left">Tier</th>
-                <th className="py-2 pr-4 text-left">Rabatt / Marge</th>
-                <th className="py-2 text-left">Voraussetzungen</th>
+                <th className="py-2 pr-4 text-left">Discount / Margin</th>
+                <th className="py-2 text-left">Requirements</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
@@ -193,19 +193,19 @@ export default function PartnerPricingPage() {
         </Card>
       </motion.section>
 
-      {/* Platform – List vs Dein Einkauf (nach Tier) */}
+      {/* Platform – List vs your cost by tier */}
       <motion.section className="space-y-3" variants={fadeUp}>
         <h2 className="text-lg font-semibold text-[var(--text)]">
-          Plattform {myTierId ? `(Dein Einkauf: ${PARTNER_TIERS[myTierId].label})` : '(Beispiel: Elite Partner)'}
+          Platform {myTierId ? `(Your cost: ${PARTNER_TIERS[myTierId].label})` : '(Example: Elite Partner)'}
         </h2>
-        <p className="text-xs text-[var(--muted)]">Listenpreis = was der Endkunde zahlt. Dein Einkauf = Listenpreis minus Tier-Rabatt.</p>
+        <p className="text-xs text-[var(--muted)]">List price = what the end customer pays. Your cost = list price minus tier discount.</p>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
                 <th className="py-2 pr-4 text-left">Tier</th>
-                <th className="py-2 pr-4 text-right">Listenpreis (net)</th>
-                <th className="py-2 text-right">{myTierId ? 'Dein Einkauf' : 'Elite-Partner Einkauf'}</th>
+                <th className="py-2 pr-4 text-right">List price (net)</th>
+                <th className="py-2 text-right">{myTierId ? 'Your cost' : 'Elite partner cost'}</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
@@ -236,16 +236,16 @@ export default function PartnerPricingPage() {
 
       {/* SOC – lower margins */}
       <motion.section className="space-y-3" variants={fadeUp}>
-        <h2 className="text-lg font-semibold text-[var(--text)]">SOC – Partner-Marge (operativer Service)</h2>
-        <p className="text-xs text-[var(--muted)]">SOC hat geringere Margen (Analysten, Infrastruktur, SIEM).</p>
+        <h2 className="text-lg font-semibold text-[var(--text)]">SOC – Partner margin (operational service)</h2>
+        <p className="text-xs text-[var(--muted)]">SOC has lower margins (analysts, infrastructure, SIEM).</p>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
                 <th className="py-2 pr-4 text-left">Tier</th>
-                <th className="py-2 pr-4 text-right">Listenpreis</th>
-                <th className="py-2 pr-4 text-right">Partner-Marge</th>
-                <th className="py-2 text-right">Partner-Einkauf</th>
+                <th className="py-2 pr-4 text-right">List price</th>
+                <th className="py-2 pr-4 text-right">Partner margin</th>
+                <th className="py-2 text-right">Partner cost</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
@@ -265,37 +265,37 @@ export default function PartnerPricingPage() {
         </Card>
       </motion.section>
 
-      {/* MIT-AI – 40 % (ausziehbar wie Marketplace, mit psychologischen Vorteilen) */}
+      {/* MIT-AI – 40 % partner margin (expandable like Marketplace) */}
       <motion.section className="space-y-3" variants={fadeUp}>
         <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
-          MIT-AI – 40 % Partner-Marge
+          MIT-AI – 40% Partner Margin
           <InfoIconWithPopover
-            title="Warum 40 % Marge bei MIT-AI?"
+            title="Why 40% margin on MIT-AI?"
             bullets={[
-              'Software skaliert ohne hohe Betriebskosten – deine Marge bleibt sicher.',
-              'Wiederkehrende Umsätze bei minimalen Grenzkosten für Mahoney.',
-              'Attraktiver Einstieg für Kunden (Insight) → Upsell zu Intelligence und Command.',
-              'Du positionierst dich als AI-Partner, nicht nur Reseller.',
+              'Software scales without high operating costs – your margin stays secure.',
+              'Recurring revenue at minimal marginal cost for Mahoney.',
+              'Attractive entry for customers (Insight) → upsell to Intelligence and Command.',
+              'You position as an AI partner, not just a reseller.',
             ]}
             fullContent={
               <>
-                <p>Bei MIT-AI handelt es sich um Software: Sie skaliert praktisch ohne zusätzliche Betriebskosten. Deshalb können wir Partnern eine großzügige Marge von 40 % einräumen.</p>
-                <p className="mt-2">Vorteile für dich: Wiederkehrende Umsätze pro Kunde, klare Preisargumentation (Listenpreis vs. dein Einkauf), und die Möglichkeit, Kunden schrittweise von Insight über Intelligence bis Command zu begleiten – mit steigender Marge pro Vertrag.</p>
+                <p>MIT-AI is software: it scales with virtually no extra operating cost. That is why we can offer partners a 40% margin.</p>
+                <p className="mt-2">Benefits for you: recurring revenue per customer, clear pricing story (list price vs. your cost), and the chance to move customers from Insight to Intelligence to Command – with higher margin per contract.</p>
               </>
             }
           />
         </h2>
         <p className="text-sm text-[var(--muted)]">
-          Software skaliert ohne hohe Betriebskosten – großzügigere Marge.
+          Software scales without high operating costs – more generous margin.
         </p>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
                 <th className="py-2 pr-4 text-left">Plan</th>
-                <th className="py-2 pr-4 text-left">Vorteile / Einsatz</th>
-                <th className="py-2 pr-4 text-right">Listenpreis</th>
-                <th className="py-2 text-right">Partner-Einkauf</th>
+                <th className="py-2 pr-4 text-left">Benefits / Use case</th>
+                <th className="py-2 pr-4 text-right">List price</th>
+                <th className="py-2 text-right">Partner cost</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
@@ -312,8 +312,8 @@ export default function PartnerPricingPage() {
                       </span>
                     </td>
                     <td className="py-2 pr-4 text-[var(--muted)] align-top max-w-[240px]">{benefit?.short ?? '—'}</td>
-                    <td className="py-2 pr-4 text-right align-top">{formatUsd(listPrice)} / Monat</td>
-                    <td className="py-2 text-right align-top">{formatUsd(mitaiPartnerCost(listPrice))} / Monat</td>
+                    <td className="py-2 pr-4 text-right align-top">{formatUsd(listPrice)} / mo</td>
+                    <td className="py-2 text-right align-top">{formatUsd(mitaiPartnerCost(listPrice))} / mo</td>
                   </tr>
                 )
               })}
@@ -325,30 +325,30 @@ export default function PartnerPricingPage() {
       {/* Bundles */}
       <motion.section className="space-y-3" variants={fadeUp}>
         <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
-          Bundle-Preise für Partner
+          Bundle Pricing for Partners
           <InfoIconWithPopover
-            title="Warum Bundles verkaufen?"
+            title="Why sell bundles?"
             bullets={[
-              'Höhere Marge pro Deal – ein Bundle statt viele Einzelpositionen.',
-              'Kunde bekommt sofort Mehrwert (Platform + SOC + AI) – weniger Verhandlungsaufwand.',
-              'Dein MRR (Differenz) ist sofort sichtbar und motiviert zum Abschluss.',
+              'Higher margin per deal – one bundle instead of many line items.',
+              'Customer gets immediate value (Platform + SOC + AI) – less negotiation.',
+              'Your MRR (difference) is visible and motivates closing.',
             ]}
             fullContent={
               <>
-                <p>Partner sollen Bundles verkaufen, nicht nur Module. Pro Deal verdienst du die Differenz zwischen Listenpreis und deinem Einkauf – bei Bundles ist diese Differenz (dein MRR) besonders attraktiv und reduziert den Verkaufsaufwand pro Position.</p>
+                <p>Partners should sell bundles, not just modules. Per deal you earn the difference between list price and your cost – with bundles that difference (your MRR) is especially attractive and reduces sales effort per line.</p>
               </>
             }
           />
         </h2>
-        <p className="text-sm text-[var(--muted)]">Partner sollen Bundles verkaufen – höhere Marge pro Deal.</p>
+        <p className="text-sm text-[var(--muted)]">Partners should sell bundles – higher margin per deal.</p>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
                 <th className="py-2 pr-4 text-left">Bundle</th>
-                <th className="py-2 pr-4 text-right">Listenpreis</th>
-                <th className="py-2 pr-4 text-right">Partner-Einkauf</th>
-                <th className="py-2 text-right">Dein MRR (Differenz)</th>
+                <th className="py-2 pr-4 text-right">List price</th>
+                <th className="py-2 pr-4 text-right">Partner cost</th>
+                <th className="py-2 text-right">Your MRR (difference)</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
@@ -370,22 +370,22 @@ export default function PartnerPricingPage() {
         <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
           Volume Bonus (ARR)
           <InfoIconWithPopover
-            title="Warum Volume Bonus?"
+            title="Why volume bonus?"
             bullets={[
-              'Wachstumsanreiz: Je höher dein ARR, desto mehr Bonus-Marge.',
-              'Motivation für langfristige Partnerschaft und mehr Kunden.',
-              'Transparente Stufen – du weißt, was du bei $100k, $500k, $1M ARR erreichst.',
+              'Growth incentive: the higher your ARR, the more bonus margin.',
+              'Motivation for long-term partnership and more customers.',
+              'Transparent tiers – you know what you get at $100k, $500k, $1M ARR.',
             ]}
-            fullContent={<p>Top-Partner erwarten Anreize zum Skalieren. Mit dem Volume Bonus erhältst du zusätzliche Marge auf dein Jahresumsatz-Volumen – so lohnt sich Wachstum für beide Seiten.</p>}
+            fullContent={<p>Top partners expect incentives to scale. With the volume bonus you get extra margin on your annual recurring volume – so growth pays off for both sides.</p>}
           />
         </h2>
-        <p className="text-sm text-[var(--muted)]">Mehr ARR = mehr Bonus-Marge. Klare Stufen für Planbarkeit.</p>
+        <p className="text-sm text-[var(--muted)]">More ARR = more bonus margin. Clear tiers for planning.</p>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
-                <th className="py-2 pr-4 text-left">ARR Volumen</th>
-                <th className="py-2 text-right">Bonus-Marge</th>
+                <th className="py-2 pr-4 text-left">ARR volume</th>
+                <th className="py-2 text-right">Bonus margin</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
@@ -402,8 +402,8 @@ export default function PartnerPricingPage() {
 
       {/* Onboarding Fee */}
       <motion.section className="space-y-3" variants={fadeUp}>
-        <h2 className="text-lg font-semibold text-[var(--text)]">Partner Onboarding Fee (einmalig)</h2>
-        <p className="text-xs text-[var(--muted)]">Eintritt ins Programm – dafür erhält der Partner Training, Demo, Material.</p>
+        <h2 className="text-lg font-semibold text-[var(--text)]">Partner onboarding fee (one-time)</h2>
+        <p className="text-xs text-[var(--muted)]">Program entry – partner receives training, demo, and materials.</p>
         <Card className="p-4 space-y-4">
           <table className="w-full text-sm">
             <thead>
@@ -436,9 +436,9 @@ export default function PartnerPricingPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
-                <th className="py-2 pr-4 text-left">Modell</th>
-                <th className="py-2 pr-4 text-left">Beschreibung</th>
-                <th className="py-2 text-right">Partner-Anteil</th>
+                <th className="py-2 pr-4 text-left">Model</th>
+                <th className="py-2 pr-4 text-left">Description</th>
+                <th className="py-2 text-right">Partner share</th>
               </tr>
             </thead>
             <tbody className="text-[var(--text)]">
@@ -455,7 +455,7 @@ export default function PartnerPricingPage() {
       </motion.section>
 
       <motion.p className="text-xs text-[var(--muted)] border-t border-[var(--border)] pt-6" variants={fadeUp}>
-        Strategie: Partner als Security Infrastructure Partner positionieren – verkaufen Mahoney Control Platform, SOC, MIT-AI und Compliance. Direktverkauf von Mahoney = immer Listenpreis; du darfst nie günstiger verkaufen als dein Partner.
+        Strategy: Position partners as Security Infrastructure Partners – they sell Mahoney Control Platform, SOC, MIT-AI, and compliance. Direct sales from Mahoney = always list price; you must never sell cheaper than your partner.
       </motion.p>
     </motion.div>
   )

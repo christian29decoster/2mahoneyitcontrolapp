@@ -8,12 +8,15 @@ import NotificationBell from '@/components/NotificationBell'
 import { useHaptics } from '@/hooks/useHaptics'
 import { usePathname } from 'next/navigation'
 import { DEMO_APP_VERSION } from '@/lib/version'
+import { useDemoViewRoleStore, DEMO_VIEW_ROLE_LABELS, type DemoViewRole } from '@/lib/demoViewRole.store'
 
 export default function TopAppBar() {
   const [open, setOpen] = useState(false)
   const navVisible = useUIStore((s) => s.navVisible)
   const h = useHaptics()
   const pathname = usePathname()
+  const demoViewRole = useDemoViewRoleStore((s) => s.demoViewRole)
+  const setDemoViewRole = useDemoViewRoleStore((s) => s.setDemoViewRole)
   
   // Hide navigation on login page
   if (pathname.startsWith('/login')) return null
@@ -44,18 +47,28 @@ export default function TopAppBar() {
           Unified Risk, Operations & Growth Control Surface
         </div>
         <div className="flex items-center gap-2">
+          <select
+            value={demoViewRole}
+            onChange={(e) => { h.impact('light'); setDemoViewRole(e.target.value as DemoViewRole) }}
+            className="text-[10px] sm:text-xs px-2 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text)] min-w-0 max-w-[120px] sm:max-w-[160px]"
+            title="Demo view role"
+          >
+            {(Object.keys(DEMO_VIEW_ROLE_LABELS) as DemoViewRole[]).map((role) => (
+              <option key={role} value={role}>{DEMO_VIEW_ROLE_LABELS[role]}</option>
+            ))}
+          </select>
           <button
             type="button"
-            aria-label="Hinzufügen"
+            aria-label="Add"
             onClick={() => h.impact('medium')}
             className="h-9 w-9 grid place-items-center rounded-xl border border-[var(--border)] bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-colors"
           >
             <Plus size={18} />
           </button>
-          <div className="text-[10px] px-2 py-1 rounded-full bg-emerald-600/20 text-emerald-300 border border-emerald-500/30">
-            SOC-III-US-Team
+          <div className="text-[10px] px-2 py-1 rounded-full bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 hidden sm:inline-flex">
+            SOC-II-US-Team
           </div>
-          <span className="text-[10px] text-[var(--muted)] hidden sm:inline" title="Demo-App-Version">
+          <span className="text-[10px] text-[var(--muted)] hidden sm:inline" title="Demo app version">
             {DEMO_APP_VERSION}
           </span>
           <NotificationBell />

@@ -14,17 +14,17 @@ export const PARTNER_TIERS: Record<
   authorized: {
     label: 'Authorized Partner',
     discountPct: 20,
-    requirements: 'Registrierung + NDA',
+    requirements: 'Registration + NDA',
   },
   advanced: {
     label: 'Advanced Partner',
     discountPct: 30,
-    requirements: '3 Kunden + Training',
+    requirements: '3 customers + training',
   },
   elite: {
     label: 'Elite Partner',
     discountPct: 40,
-    requirements: '10 Kunden + zertifiziert',
+    requirements: '10 customers + certified',
   },
 }
 
@@ -95,17 +95,17 @@ export const PARTNER_ONBOARDING_FEE: Record<PartnerTierId, number> = {
 
 /** What partner gets for onboarding fee. */
 export const PARTNER_ONBOARDING_INCLUDES = [
-  'Sales Training',
-  'Demo Plattform',
-  'Marketing Material',
-  'Zugang zur Mahoney Control Demo',
+  'Sales training',
+  'Demo platform',
+  'Marketing material',
+  'Access to Mahoney Control demo',
 ]
 
 /** Revenue share models (partner share of recurring). */
 export const REVENUE_SHARE_MODELS: Array<{ id: string; label: string; partnerSharePct: number; description: string }> = [
-  { id: 'reseller', label: 'Reseller', partnerSharePct: 30, description: 'Partner verkauft, du betreibst' },
+  { id: 'reseller', label: 'Reseller', partnerSharePct: 30, description: 'Partner sells, you operate' },
   { id: 'co-managed', label: 'Co-Managed', partnerSharePct: 35, description: 'Partner + Mahoney SOC' },
-  { id: 'white-label', label: 'White Label', partnerSharePct: 45, description: 'Partner verkauft unter eigener Marke' },
+  { id: 'white-label', label: 'White Label', partnerSharePct: 45, description: 'Partner sells under own brand' },
 ]
 
 /** Direct sales = list price. Partner may give end customer max 10% discount. */

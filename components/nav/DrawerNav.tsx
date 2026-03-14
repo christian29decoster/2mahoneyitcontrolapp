@@ -32,6 +32,7 @@ import {
 import { useHaptics } from '@/hooks/useHaptics'
 import { useViewModeStore } from '@/lib/viewMode.store'
 import { useCopilotStore } from '@/lib/copilot.store'
+import { useDemoViewRoleStore } from '@/lib/demoViewRole.store'
 import LogoutButton from '@/components/auth/LogoutButton'
 import ThemeToggle from '@/components/ThemeToggle'
 
@@ -80,13 +81,15 @@ export default function DrawerNav({
   const setMenuPinned = useViewModeStore((s) => s.setMenuPinned)
   const viewModeSet = useViewModeStore((s) => s.setViewMode)
   const setCopilotOpen = useCopilotStore((s) => s.setOpen)
-  const [showAdminLink, setShowAdminLink] = useState(false)
-  const [showPartnerPricingLink, setShowPartnerPricingLink] = useState(false)
-  useEffect(() => {
-    const role = (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1] || '').toLowerCase()
-    setShowAdminLink(role === 'admin' || role === 'superadmin')
-    setShowPartnerPricingLink(role === 'partner' || role === 'admin' || role === 'superadmin')
-  }, [])
+  const demoViewRole = useDemoViewRoleStore((s) => s.demoViewRole)
+
+  // Demo view role controls menu visibility (for demos). Mahoney IT Group = all; Partner = no Enhance/Group Admin, yes Partner Pricing & Admin; Client-wit = like Partner minus Partner Pricing & Admin; Client-woit = only Mission Briefing
+  const showOnlyMissionBriefing = demoViewRole === 'client_woit'
+  const showOperations = !showOnlyMissionBriefing
+  const showEnhanceUpgrades = !showOnlyMissionBriefing && demoViewRole === 'mahoney_it_group'
+  const showGroupAdmin = !showOnlyMissionBriefing && demoViewRole === 'mahoney_it_group'
+  const showPartnerPricingLink = !showOnlyMissionBriefing && (demoViewRole === 'mahoney_it_group' || demoViewRole === 'partner')
+  const showAdminLink = !showOnlyMissionBriefing && (demoViewRole === 'mahoney_it_group' || demoViewRole === 'partner')
 
   const isPinnedSidebar = viewMode === 'desktop' && menuPinned
   const showDrawer = open && !isPinnedSidebar
@@ -136,43 +139,58 @@ export default function DrawerNav({
         )}
       </div>
       <nav className="grid gap-1">
-          <SectionTitle>Operations (Technik)</SectionTitle>
-          <NavLink href="/" label="Dashboard" icon={Home} onClick={handleNavClick} />
-          <NavLink href="/devices" label="Devices & Staff" icon={Shield} onClick={handleNavClick} />
-          <NavLink href="/company" label="Company" icon={Building2} onClick={handleNavClick} />
-          <NavLink href="/cloud" label="Cloud Security" icon={Cloud} onClick={handleNavClick} />
-          <NavLink href="/governance" label="Governance" icon={Scale} onClick={handleNavClick} />
-          <NavLink href="/governance/soc-questionnaire" label="SOC-Compliance & Handbook" icon={ClipboardList} onClick={handleNavClick} />
-          <NavLink href="/financials" label="Financials" icon={DollarSign} onClick={handleNavClick} />
-          <NavLink href="/contracts" label="Contracts" icon={FileText} onClick={handleNavClick} />
-          <NavLink href="/projects" label="Projects" icon={FolderOpen} onClick={handleNavClick} />
-          <NavLink href="/incidents" label="Incidents" icon={AlertTriangle} onClick={handleNavClick} />
-          <NavLink href="/mission-control" label="Mission Briefing" icon={Radio} onClick={handleNavClick} />
-
-          <SectionTitle>AI & Growth</SectionTitle>
-          <NavLink href="/mahoney-grow" label="AI Growth & Risk Intelligence" icon={LineChart} onClick={handleNavClick} />
-
-          <SectionTitle>Marketplace (Purchase)</SectionTitle>
-          <NavLink href="/marketplace" label="Marketplace" icon={ShoppingBag} onClick={handleNavClick} />
-          {showPartnerPricingLink && (
-            <NavLink href="/partner-pricing" label="Partner-Preise" icon={Receipt} onClick={handleNavClick} />
-          )}
-          <NavLink href="/upselling" label="Enhance / Upgrades" icon={TrendingUp} onClick={handleNavClick} />
-
-          <SectionTitle>Settings</SectionTitle>
-          <NavLink href="/settings" label="Settings" icon={Settings} onClick={handleNavClick} />
-          <NavLink href="/profile" label="Profile" icon={User} onClick={handleNavClick} />
-
-          <SectionTitle>Mahoney IT Group</SectionTitle>
-          <NavLink href="/group-admin" label="Group Admin (Onboarding)" icon={UsersRound} onClick={handleNavClick} />
-
-          {showAdminLink && (
+          {showOnlyMissionBriefing ? (
             <>
-              <SectionTitle>App Management</SectionTitle>
-              <Link href="/admin" onClick={handleNavClick} className={linkClass}>
-                <Wrench size={18} />
-                <span className="text-sm">Admin (User, Partner, Settings)</span>
-              </Link>
+              <SectionTitle>Operations</SectionTitle>
+              <NavLink href="/mission-control" label="Mission Briefing" icon={Radio} onClick={handleNavClick} />
+            </>
+          ) : (
+            <>
+              <SectionTitle>Operations (Technik)</SectionTitle>
+              <NavLink href="/" label="Dashboard" icon={Home} onClick={handleNavClick} />
+              <NavLink href="/devices" label="Devices & Staff" icon={Shield} onClick={handleNavClick} />
+              <NavLink href="/company" label="Company" icon={Building2} onClick={handleNavClick} />
+              <NavLink href="/cloud" label="Cloud Security" icon={Cloud} onClick={handleNavClick} />
+              <NavLink href="/governance" label="Governance" icon={Scale} onClick={handleNavClick} />
+              <NavLink href="/governance/soc-questionnaire" label="SOC-Compliance & Handbook" icon={ClipboardList} onClick={handleNavClick} />
+              <NavLink href="/financials" label="Financials" icon={DollarSign} onClick={handleNavClick} />
+              <NavLink href="/contracts" label="Contracts" icon={FileText} onClick={handleNavClick} />
+              <NavLink href="/projects" label="Projects" icon={FolderOpen} onClick={handleNavClick} />
+              <NavLink href="/incidents" label="Incidents" icon={AlertTriangle} onClick={handleNavClick} />
+              <NavLink href="/mission-control" label="Mission Briefing" icon={Radio} onClick={handleNavClick} />
+
+              <SectionTitle>AI & Growth</SectionTitle>
+              <NavLink href="/mahoney-grow" label="AI Growth & Risk Intelligence" icon={LineChart} onClick={handleNavClick} />
+
+              <SectionTitle>Marketplace (Purchase)</SectionTitle>
+              <NavLink href="/marketplace" label="Marketplace" icon={ShoppingBag} onClick={handleNavClick} />
+              {showPartnerPricingLink && (
+                <NavLink href="/partner-pricing" label="Partner Pricing" icon={Receipt} onClick={handleNavClick} />
+              )}
+              {showEnhanceUpgrades && (
+                <NavLink href="/upselling" label="Enhance / Upgrades" icon={TrendingUp} onClick={handleNavClick} />
+              )}
+
+              <SectionTitle>Settings</SectionTitle>
+              <NavLink href="/settings" label="Settings" icon={Settings} onClick={handleNavClick} />
+              <NavLink href="/profile" label="Profile" icon={User} onClick={handleNavClick} />
+
+              {showGroupAdmin && (
+                <>
+                  <SectionTitle>Mahoney IT Group</SectionTitle>
+                  <NavLink href="/group-admin" label="Group Admin (Onboarding)" icon={UsersRound} onClick={handleNavClick} />
+                </>
+              )}
+
+              {showAdminLink && (
+                <>
+                  <SectionTitle>App Management</SectionTitle>
+                  <Link href="/admin" onClick={handleNavClick} className={linkClass}>
+                    <Wrench size={18} />
+                    <span className="text-sm">Admin (User, Partner, Settings)</span>
+                  </Link>
+                </>
+              )}
             </>
           )}
         </nav>
