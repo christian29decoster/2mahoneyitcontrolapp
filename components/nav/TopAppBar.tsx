@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Menu, Plus } from 'lucide-react'
+import Link from 'next/link'
+import { Menu, MessageSquare } from 'lucide-react'
 import { useUIStore } from '@/lib/ui.store'
 import DrawerNav from './DrawerNav'
 import NotificationBell from '@/components/NotificationBell'
@@ -57,14 +58,15 @@ export default function TopAppBar() {
               <option key={role} value={role}>{DEMO_VIEW_ROLE_LABELS[role]}</option>
             ))}
           </select>
-          <button
-            type="button"
-            aria-label="Add"
+          <Link
+            href="/copilot"
             onClick={() => h.impact('medium')}
-            className="h-9 w-9 grid place-items-center rounded-xl border border-[var(--border)] bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-colors"
+            aria-label="Ask AI Co-Pilot"
+            className="h-9 w-9 grid place-items-center rounded-xl border border-[var(--primary)]/50 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-colors"
+            title="Ask AI Co-Pilot"
           >
-            <Plus size={18} />
-          </button>
+            <MessageSquare size={18} />
+          </Link>
           <div className="text-[10px] px-2 py-1 rounded-full bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 hidden sm:inline-flex">
             SOC-II-US-Team
           </div>

@@ -31,7 +31,6 @@ import {
 } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useViewModeStore } from '@/lib/viewMode.store'
-import { useCopilotStore } from '@/lib/copilot.store'
 import { useDemoViewRoleStore } from '@/lib/demoViewRole.store'
 import LogoutButton from '@/components/auth/LogoutButton'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -80,7 +79,6 @@ export default function DrawerNav({
   const menuPinned = useViewModeStore((s) => s.menuPinned)
   const setMenuPinned = useViewModeStore((s) => s.setMenuPinned)
   const viewModeSet = useViewModeStore((s) => s.setViewMode)
-  const setCopilotOpen = useCopilotStore((s) => s.setOpen)
   const demoViewRole = useDemoViewRoleStore((s) => s.demoViewRole)
 
   // Demo view role: Mahoney = all; Partner = no Enhance/Group Admin, yes Partner Pricing & Admin; Client-wit = like Partner minus Partner Pricing & Admin (includes Mission Briefing); Client-woit = same as Client-wit but no Mission Briefing
@@ -138,6 +136,8 @@ export default function DrawerNav({
         )}
       </div>
       <nav className="grid gap-1">
+          <SectionTitle>Ask AI</SectionTitle>
+          <NavLink href="/copilot" label="AI Co-Pilot" icon={MessageSquare} onClick={handleNavClick} />
           <SectionTitle>Operations (Technik)</SectionTitle>
           <NavLink href="/" label="Dashboard" icon={Home} onClick={handleNavClick} />
           <NavLink href="/devices" label="Devices & Staff" icon={Shield} onClick={handleNavClick} />
@@ -212,14 +212,10 @@ export default function DrawerNav({
             Desktop
           </button>
         </div>
-        <button
-          type="button"
-          onClick={() => { h.impact('light'); setCopilotOpen(true); if (!isPinnedSidebar) onOpenChange(false) }}
-          className={linkClass + ' w-full'}
-        >
+        <Link href="/copilot" onClick={handleNavClick} className={linkClass + ' w-full'}>
           <MessageSquare size={18} />
-          <span className="text-sm">AI Co-Pilot</span>
-        </button>
+          <span className="text-sm">Open AI Co-Pilot</span>
+        </Link>
         <LogoutButton />
       </div>
     </>
