@@ -251,10 +251,10 @@ export const partnerSummary = (() => {
   }
 })()
 
-/** Marketplace plan (shown in Single-tenant and as list for Partner) */
+/** Marketplace plan (shown in Single-tenant and as list for Partner). Aligned with price list v2: Essential $799. */
 export const MARKETPLACE_PLAN = {
-  name: 'Starter',
-  priceUsdPerMonth: 499,
+  name: 'Essential',
+  priceUsdPerMonth: 799,
 } as const
 
 /** Partner pricing & margin (from marketplace; partner sees this in dashboard) */
@@ -269,7 +269,7 @@ export const PARTNER_PRICING = {
   mduMarginPerUnitUSD: 0.05,
 } as const
 
-/** Partner's app fee per month (Starter list minus 20%) */
+/** Partner's app fee per month (Essential list minus 20%) */
 export const PARTNER_APP_PRICE_USD = Math.round(MARKETPLACE_PLAN.priceUsdPerMonth * (1 - PARTNER_PRICING.appDiscountPct / 100) * 100) / 100
 
 /** Demo: P/L with the app (platform revenue share minus partner app cost) */

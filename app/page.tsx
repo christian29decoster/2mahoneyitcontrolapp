@@ -481,7 +481,7 @@ export default function DashboardPage() {
                       <span className="font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PL_APP_DEMO.revenueFromPlatformShareUsd)}/mo</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--muted)]">App cost (Starter −20%)</span>
+                      <span className="text-[var(--muted)]">App cost (Essential −20%)</span>
                       <span className="font-semibold text-[var(--danger)]">−{formatCurrency(PARTNER_PL_APP_DEMO.appCostUsd)}/mo</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-[var(--border)]">

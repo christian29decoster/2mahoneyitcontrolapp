@@ -321,15 +321,14 @@ export default function MarketplacePage() {
           />
         </h2>
         <p className="text-sm text-[var(--muted)]">
-          Multi-tenant governance platform for devices, incidents, risk and financials. Pricing as per MIT-AI price
-          list.
+          Multi-tenant governance platform for devices, incidents, risk and financials. Pricing as per Mahoney Control App price list (net, excl. tax). Four tiers: Essential, Professional, Enterprise, Security OS.
         </p>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
                 <th className="py-2 pr-4 text-left">Tier</th>
-                <th className="py-2 pr-4 text-left">Monthly price (gross)</th>
+                <th className="py-2 pr-4 text-left">Monthly price (net)</th>
                 <th className="py-2 text-left">Included</th>
                 <th className="py-2 text-left">Action</th>
               </tr>
@@ -338,48 +337,46 @@ export default function MarketplacePage() {
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
-                    Starter
+                    Essential
                     <InfoIconWithPopover
                       size="sm"
                       tooltipPosition="bottom"
-                      title="Starter – included"
+                      title="Essential – included"
                       bullets={[
-                        'Up to 25 users or devices',
-                        '1M events included per month',
-                        'Standard support (email, portal)',
-                        'Dashboard, devices, incidents, governance',
-                        'Billing and basic reporting',
+                        '5 users included',
+                        'Dashboard, Devices & Staff, Incidents, Governance, Billing',
+                        'Standard support',
+                        'MDU: usage-based from 1M events',
                       ]}
                       fullContent={
                         <>
                           <p>
-                            <strong>Starter</strong> ($499/month gross) is the entry tier for small teams and first
-                            steps with the Control Platform.
+                            <strong>Essential</strong> ($799/month, net) equips small to mid-sized teams with the core
+                            operational toolkit. 5 users included; additional users $29/user/month.
                           </p>
                           <ul className="list-disc list-inside mt-2 space-y-1 text-[var(--muted)]">
-                            <li>Up to 25 users or devices (whichever is lower)</li>
-                            <li>1M events per month included (MDU); beyond that, volume pricing applies</li>
-                            <li>Standard support: email and portal; response per SLA</li>
-                            <li>Full access to dashboard, device and staff management, incidents, governance views, and billing</li>
-                            <li>Basic reporting; no advanced analytics or dedicated success manager</li>
+                            <li>Dashboard, Devices &amp; Staff, Incidents, Governance, Billing</li>
+                            <li>Standard support (email, portal)</li>
+                            <li>Platform &amp; Data (MDU): usage-based by event volume from 1M events</li>
+                            <li>Onboarding: one-time (Essential tier) – see price list</li>
                           </ul>
                         </>
                       }
                     />
                   </span>
                 </td>
-                <td className="py-2 pr-4">$499</td>
+                <td className="py-2 pr-4">$799</td>
                 <td className="py-2 text-sm">
-                  Up to 25 users/devices, 1M events included, standard support.
+                  5 users · Dashboard, Devices &amp; Staff, Incidents, Governance, Billing · Standard support.
                 </td>
                 <td className="py-2 text-sm">
                   <HapticButton
                     label="Add to cart"
                     onClick={() =>
                       addToCart({
-                        id: 'platform-starter',
-                        name: 'Mahoney Control Platform – Starter',
-                        description: '$499 / month',
+                        id: 'platform-essential',
+                        name: 'Mahoney Control Platform – Essential',
+                        description: '$799 / month',
                       })
                     }
                   />
@@ -394,31 +391,30 @@ export default function MarketplacePage() {
                       tooltipPosition="bottom"
                       title="Professional – included"
                       bullets={[
-                        'Higher user/device limits',
-                        'Priority support',
-                        'Advanced reports and analytics',
-                        'All Starter features included',
+                        '15 users included',
+                        'All Essential modules · Advanced Reports · API Access',
+                        'Security Financials · Cloud Posture · Priority support',
+                        'Additional users $25/user/month',
                       ]}
                       fullContent={
                         <>
                           <p>
-                            <strong>Professional</strong> ($1,499/month gross) is for growing teams that need higher
-                            limits and priority support.
+                            <strong>Professional</strong> ($2,999/month, net) adds advanced analytics, cloud posture
+                            management, and priority support. 15 users included; additional users $25/user/month.
                           </p>
                           <ul className="list-disc list-inside mt-2 space-y-1 text-[var(--muted)]">
-                            <li>Higher limits on users and devices (exact caps per agreement)</li>
-                            <li>Priority support: faster response and escalation path</li>
-                            <li>Advanced reports and analytics; customizable dashboards</li>
-                            <li>All Starter features included; optional add-ons (e.g. Mahoney Grow, MIT-AI) available</li>
+                            <li>All standard modules; Advanced Reports; API access</li>
+                            <li>Security Financials; Cloud Posture; Priority support</li>
+                            <li>Onboarding: one-time (Professional tier) – see price list</li>
                           </ul>
                         </>
                       }
                     />
                   </span>
                 </td>
-                <td className="py-2 pr-4">$1,499</td>
+                <td className="py-2 pr-4">$2,999</td>
                 <td className="py-2 text-sm">
-                  Higher limits, priority support, advanced reports.
+                  15 users · Advanced Reports, API, Security Financials, Cloud Posture · Priority support.
                 </td>
                 <td className="py-2 text-sm">
                   <HapticButton
@@ -427,13 +423,13 @@ export default function MarketplacePage() {
                       addToCart({
                         id: 'platform-professional',
                         name: 'Mahoney Control Platform – Professional',
-                        description: '$1,499 / month',
+                        description: '$2,999 / month',
                       })
                     }
                   />
                 </td>
               </tr>
-              <tr>
+              <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
                     Enterprise
@@ -442,31 +438,78 @@ export default function MarketplacePage() {
                       tooltipPosition="bottom"
                       title="Enterprise – included"
                       bullets={[
-                        'Full usage and custom limits',
-                        'SLA-backed service',
-                        'Dedicated support and success manager',
+                        '50 users included',
+                        'Full utilization · SLA · Dedicated support',
                         'Custom integrations and onboarding',
+                        'Additional users $19/user/month',
                       ]}
                       fullContent={
                         <>
                           <p>
-                            <strong>Enterprise</strong> (custom pricing, typically from $2,500/month) is for larger
-                            or regulated organizations that need full usage and dedicated support.
+                            <strong>Enterprise</strong> ($7,499/month, net) is for larger or regulated organizations:
+                            full utilization, SLA-backed service, dedicated support. 50 users included; additional users $19/user/month.
                           </p>
                           <ul className="list-disc list-inside mt-2 space-y-1 text-[var(--muted)]">
-                            <li>Full usage; custom limits on users, devices and events</li>
-                            <li>SLA-backed availability and response times</li>
-                            <li>Dedicated support and optional success manager</li>
+                            <li>Full utilization; SLA-backed availability and response</li>
+                            <li>Dedicated support; optional success manager</li>
                             <li>Custom integrations, onboarding and training; optional on-prem or hybrid</li>
+                            <li>Onboarding: one-time (Enterprise tier) – see price list</li>
                           </ul>
                         </>
                       }
                     />
                   </span>
                 </td>
-                <td className="py-2 pr-4">Custom (from $2,500)</td>
+                <td className="py-2 pr-4">$7,499</td>
                 <td className="py-2 text-sm">
-                  Full usage, SLA, dedicated support.
+                  50 users · Full utilization · SLA · Dedicated support.
+                </td>
+                <td className="py-2 text-sm">
+                  <HapticButton
+                    label="Add to cart"
+                    onClick={() =>
+                      addToCart({
+                        id: 'platform-enterprise',
+                        name: 'Mahoney Control Platform – Enterprise',
+                        description: '$7,499 / month',
+                      })
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Security OS
+                    <InfoIconWithPopover
+                      size="sm"
+                      tooltipPosition="bottom"
+                      title="Security OS – included"
+                      bullets={[
+                        'Unlimited users',
+                        'Platform + SOC + MIT-AI at single fixed monthly price',
+                        'All-inclusive bundle',
+                        'No per-user add-on',
+                      ]}
+                      fullContent={
+                        <>
+                          <p>
+                            <strong>Security OS</strong> ($22,999/month, net) is the all-inclusive bundle: platform,
+                            SOC monitoring, and MIT-AI capability at a single fixed monthly price with unlimited users.
+                          </p>
+                          <ul className="list-disc list-inside mt-2 space-y-1 text-[var(--muted)]">
+                            <li>Unlimited users (additional users included)</li>
+                            <li>Platform, SOC, and MIT-AI in one bundle</li>
+                            <li>Ideal for enterprises and regulated organizations</li>
+                          </ul>
+                        </>
+                      }
+                    />
+                  </span>
+                </td>
+                <td className="py-2 pr-4">$22,999</td>
+                <td className="py-2 text-sm">
+                  Unlimited users · Platform + SOC + MIT-AI · single fixed price.
                 </td>
                 <td className="py-2 text-sm">
                   <HapticButton
@@ -474,9 +517,9 @@ export default function MarketplacePage() {
                     variant="surface"
                     onClick={() =>
                       addToCart({
-                        id: 'platform-enterprise',
-                        name: 'Mahoney Control Platform – Enterprise',
-                        description: 'Custom pricing – from $2,500 / month',
+                        id: 'platform-security-os',
+                        name: 'Mahoney Control Platform – Security OS',
+                        description: '$22,999 / month (unlimited users)',
                       })
                     }
                   />
@@ -496,13 +539,13 @@ export default function MarketplacePage() {
           SOC (Security Operations)
           <span
             className="inline-flex items-center justify-center"
-            title="SOC tiers from Core Monitoring up to Enterprise Threat Operations, aligned with the SOC section of the price list."
+            title="SOC tiers: Core Shield, Advanced Guard, Enterprise Threat Operations, Board-Level. Aligned with the price list."
           >
             <Info className="w-4 h-4 text-[var(--muted)]" />
           </span>
         </h2>
         <p className="text-sm text-[var(--muted)]">
-          Security Operations Center as a Service. Pricing per MIT-AI price list ($).
+          Security Operations Center as a Service. Pricing per Mahoney Control App price list ($, net).
         </p>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
@@ -517,35 +560,21 @@ export default function MarketplacePage() {
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
-                    Core Monitoring
-                    <span
-                      className="inline-flex items-center justify-center"
-                      title="Baseline 24/7 monitoring with alert triage and monthly reporting."
-                    >
+                    Core Shield
+                    <span className="inline-flex items-center justify-center" title="Baseline 24/7 monitoring with alert triage and monthly reporting.">
                       <Info className="w-3 h-3 text-[var(--muted)]" />
                     </span>
                   </span>
                 </td>
+                <td className="py-2 text-sm">$3,500 / month</td>
                 <td className="py-2 text-sm">
-                  $85 per user / month (minimum $3,000 / month)
-                </td>
-                <td className="py-2 text-sm">
-                  <HapticButton
-                    label="Add to cart"
-                    onClick={() =>
-                      addToCart({
-                        id: 'soc-core',
-                        name: 'SOC – Core Monitoring',
-                        description: '$85 / user / month (min. $3,000)',
-                      })
-                    }
-                  />
+                  <HapticButton label="Add to cart" onClick={() => addToCart({ id: 'soc-core', name: 'SOC – Core Shield', description: '$3,500 / month' })} />
                 </td>
               </tr>
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
-                    Advanced SOC
+                    Advanced Guard
                     <span
                       className="inline-flex items-center justify-center"
                       title="24/7 monitoring with incident prioritization, threat intelligence and compliance-aligned reporting."
@@ -554,55 +583,44 @@ export default function MarketplacePage() {
                     </span>
                   </span>
                 </td>
+                <td className="py-2 text-sm">$8,500 / month</td>
                 <td className="py-2 text-sm">
-                  $135 per user / month (minimum $7,500 / month)
+                  <HapticButton label="Add to cart" onClick={() => addToCart({ id: 'soc-advanced', name: 'SOC – Advanced Guard', description: '$8,500 / month' })} />
                 </td>
+              </tr>
+              <tr className="border-b border-[var(--border)]">
+                <td className="py-2 pr-4 font-medium">
+                  <span className="inline-flex items-center gap-1">
+                    Enterprise Threat Operations
+                    <span className="inline-flex items-center justify-center" title="Dedicated SOC pod, advanced threat hunting, war-room support and executive reporting.">
+                      <Info className="w-3 h-3 text-[var(--muted)]" />
+                    </span>
+                  </span>
+                </td>
+                <td className="py-2 text-sm">$22,000 / month</td>
                 <td className="py-2 text-sm">
-                  <HapticButton
-                    label="Add to cart"
-                    onClick={() =>
-                      addToCart({
-                        id: 'soc-advanced',
-                        name: 'SOC – Advanced',
-                        description: '$135 / user / month (min. $7,500)',
-                      })
-                    }
-                  />
+                  <HapticButton label="Add to cart" onClick={() => addToCart({ id: 'soc-enterprise', name: 'SOC – Enterprise Threat Operations', description: '$22,000 / month' })} />
                 </td>
               </tr>
               <tr>
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
-                    Enterprise Threat Operations
-                    <span
-                      className="inline-flex items-center justify-center"
-                      title="Dedicated SOC pod, advanced threat hunting, war-room support and executive reporting for regulated/enterprise customers."
-                    >
+                    Board-Level
+                    <span className="inline-flex items-center justify-center" title="Executive-grade SOC and board reporting for regulated / KRITIS-like customers.">
                       <Info className="w-3 h-3 text-[var(--muted)]" />
                     </span>
                   </span>
                 </td>
-                <td className="py-2 text-sm">from $45,000 / month</td>
+                <td className="py-2 text-sm">from $85,000 / month</td>
                 <td className="py-2 text-sm">
-                  <HapticButton
-                    label="Request quote"
-                    variant="surface"
-                    onClick={() =>
-                      addToCart({
-                        id: 'soc-enterprise',
-                        name: 'SOC – Enterprise Threat Operations',
-                        description: 'from $45,000 / month',
-                      })
-                    }
-                  />
+                  <HapticButton label="Request quote" variant="surface" onClick={() => addToCart({ id: 'soc-board', name: 'SOC – Board-Level', description: 'from $85,000 / month' })} />
                 </td>
               </tr>
             </tbody>
           </table>
         </Card>
         <p className="text-xs text-[var(--muted)]">
-          Upsell: Core → Advanced as incident/compliance volume increases; Enterprise as anchor offer for regulated /
-          KRITIS-like customers.
+          Upsell: Core Shield → Advanced Guard as volume increases; Enterprise Threat Ops and Board-Level for regulated / KRITIS-like customers.
         </p>
       </section>
 
@@ -935,17 +953,21 @@ export default function MarketplacePage() {
         <ul className="space-y-2 text-sm text-[var(--text)]">
           <li>
             <span className="font-semibold">SMB / entry bundle:</span>{' '}
-            Mahoney Control <span className="text-[var(--muted)]">(Starter)</span> + Mahoney One Essential +
-            SOC Core Monitoring.
+            Mahoney Control <span className="text-[var(--muted)]">(Essential)</span> + Mahoney One Essential +
+            SOC Core Shield.
           </li>
           <li>
             <span className="font-semibold">Mid-market:</span>{' '}
-            Mahoney Control Professional + Mahoney One Standard + SOC Advanced + MIT-AI Standard/Pro.
+            Mahoney Control Professional + Mahoney One Standard + SOC Advanced Guard + MIT-AI Insight/Intelligence.
           </li>
           <li>
             <span className="font-semibold">Enterprise / regulated:</span>{' '}
             Mahoney Control Enterprise + Mahoney One Elite + SOC Enterprise Threat Operations +
-            MIT-AI Pro/Premium + MDU volume tiers.
+            MIT-AI Intelligence/Command + MDU volume tiers.
+          </li>
+          <li>
+            <span className="font-semibold">Full platform (SOC + MIT-AI):</span>{' '}
+            Mahoney Control Security OS (all-in-one) or Board-Level SOC for regulated / KRITIS.
           </li>
         </ul>
       </section>
