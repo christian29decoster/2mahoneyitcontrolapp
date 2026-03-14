@@ -31,8 +31,8 @@ function InfoIconWithPopover({
   const iconSize = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'
   const tooltipClass =
     tooltipPosition === 'bottom'
-      ? 'absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 min-w-[200px] max-w-[280px] py-2 px-3 rounded-xl bg-[var(--surface-elev)] border border-[var(--border)] shadow-lg text-left pointer-events-none z-30'
-      : 'absolute z-30 left-full ml-1.5 top-1/2 -translate-y-1/2 min-w-[200px] max-w-[280px] py-2 px-3 rounded-xl bg-[var(--surface-elev)] border border-[var(--border)] shadow-lg text-left pointer-events-none'
+      ? 'absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 w-[min(320px,90vw)] max-h-[min(280px,60vh)] overflow-y-auto py-3 px-4 rounded-xl bg-[var(--surface-elev)] border border-[var(--border)] shadow-lg text-left pointer-events-none z-30'
+      : 'absolute z-30 left-full ml-1.5 top-1/2 -translate-y-1/2 w-[min(320px,90vw)] max-h-[min(280px,60vh)] overflow-y-auto py-3 px-4 rounded-xl bg-[var(--surface-elev)] border border-[var(--border)] shadow-lg text-left pointer-events-none'
   return (
     <>
       <span
@@ -56,13 +56,13 @@ function InfoIconWithPopover({
         <Info className={`${iconSize} text-[var(--muted)] hover:text-[var(--primary)] transition-colors`} />
         {hover && (
           <div className={tooltipClass}>
-            <div className="text-xs font-semibold text-[var(--text)] mb-1.5">{title}</div>
-            <ul className="text-xs text-[var(--muted)] space-y-0.5 list-disc list-inside">
+            <div className="text-xs font-semibold text-[var(--text)] mb-2 pr-2">{title}</div>
+            <ul className="text-xs text-[var(--muted)] space-y-1 list-disc list-inside pr-1">
               {bullets.map((b, i) => (
-                <li key={i}>{b}</li>
+                <li key={i} className="leading-snug">{b}</li>
               ))}
             </ul>
-            <span className="text-[10px] text-[var(--primary)] mt-1 block">Click for full details</span>
+            <span className="text-[10px] text-[var(--primary)] mt-2 block">Click for full details</span>
           </div>
         )}
       </span>
