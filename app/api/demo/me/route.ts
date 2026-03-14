@@ -23,11 +23,13 @@ export async function GET(req: NextRequest) {
   const partnerId = getPartnerId(req)
   let partnerTier: string | undefined
   let partnerName: string | undefined
+  let partnerBranding: { appName?: string; logoDataUrl?: string } | undefined
   if (role === 'partner' && partnerId) {
     const partner = getPartnerById(partnerId)
     if (partner) {
       partnerTier = partner.tier
       partnerName = partner.name
+      if (partner.branding && (partner.branding.appName || partner.branding.logoDataUrl)) partnerBranding = partner.branding
     }
   }
   return NextResponse.json({
@@ -35,5 +37,6 @@ export async function GET(req: NextRequest) {
     partnerId,
     partnerTier,
     partnerName,
+    partnerBranding,
   })
 }

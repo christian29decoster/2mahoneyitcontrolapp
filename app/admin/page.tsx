@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Card from '@/components/ui/Card';
-import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox } from 'lucide-react';
+import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X } from 'lucide-react';
 
 type User = {
   id:string; username:string; role:string;
@@ -10,7 +10,8 @@ type User = {
 
 type AuditItem = { atISO:string; username:string; ipMasked:string; tz?:string; ua?:string };
 
-type PartnerItem = { id: string; name: string; externalId?: string; tier?: 'authorized' | 'advanced' | 'elite'; active: boolean; createdAtISO: string };
+type PartnerBranding = { appName?: string; logoDataUrl?: string };
+type PartnerItem = { id: string; name: string; externalId?: string; tier?: 'authorized' | 'advanced' | 'elite'; active: boolean; createdAtISO: string; branding?: PartnerBranding };
 type TenantConnectors = { rmm?: { apiUrl?: string; tenantId?: string; label?: string }; sophos?: { tenantId?: string; partnerId?: string; label?: string }; [k: string]: unknown };
 type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string };
 
@@ -40,6 +41,9 @@ export default function AdminPage(){
   const [partnersLoading, setPartnersLoading] = useState(false);
   const [partnerForm, setPartnerForm] = useState<{ id: string; name: string; externalId: string; tier: '' | 'authorized' | 'advanced' | 'elite'; active: boolean }>({ id: '', name: '', externalId: '', tier: '', active: true });
   const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
+  const [customizePartnerId, setCustomizePartnerId] = useState<string | null>(null);
+  const [customizeForm, setCustomizeForm] = useState<{ appName: string; logoDataUrl: string }>({ appName: '', logoDataUrl: '' });
+  const [customizeSaving, setCustomizeSaving] = useState(false);
 
   const [tenants, setTenants] = useState<TenantItem[]>([]);
   const [tenantsLoading, setTenantsLoading] = useState(false);
@@ -216,6 +220,49 @@ export default function AdminPage(){
   function startEditPartner(p: PartnerItem) {
     setEditingPartnerId(p.id);
     setPartnerForm({ id: p.id, name: p.name, externalId: p.externalId ?? '', tier: p.tier ?? '', active: p.active });
+  }
+  function startCustomizePartner(p: PartnerItem) {
+    setCustomizePartnerId(p.id);
+    setCustomizeForm({ appName: p.branding?.appName ?? '', logoDataUrl: p.branding?.logoDataUrl ?? '' });
+  }
+  async function saveCustomizeBranding() {
+    if (!customizePartnerId) return;
+    setCustomizeSaving(true);
+    try {
+      const partner = partners.find((p) => p.id === customizePartnerId);
+      if (!partner) return;
+      const res = await fetch(`/api/partners/${customizePartnerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: partner.name,
+          externalId: partner.externalId ?? undefined,
+          tier: partner.tier ?? undefined,
+          active: partner.active,
+          branding: {
+            appName: customizeForm.appName.trim() || undefined,
+            logoDataUrl: customizeForm.logoDataUrl.trim() || undefined,
+          },
+        }),
+      });
+      if (!res.ok) {
+        const e = await res.json();
+        alert(e.error || 'Error saving');
+        return;
+      }
+      setCustomizePartnerId(null);
+      await loadPartners();
+    } catch (err) {
+      console.error(err);
+      alert('Error saving');
+    } finally {
+      setCustomizeSaving(false);
+    }
+  }
+  function handleCustomizeLogoFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => setCustomizeForm((s) => ({ ...s, logoDataUrl: (reader.result as string) ?? '' }));
+    reader.readAsDataURL(file);
   }
 
   async function saveTenant() {
@@ -640,7 +687,12 @@ export default function AdminPage(){
                           <span className={`inline-flex px-2 py-1 rounded-lg text-xs font-medium ${p.active?'bg-emerald-500/20 text-emerald-400':'bg-zinc-500/20 text-zinc-400'}`}>{p.active?'Active':'Inactive'}</span>
                         </td>
                         <td className="py-3 px-3 text-right">
-                          <button onClick={()=>startEditPartner(p)} className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] text-xs font-medium">Edit</button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button onClick={()=>startCustomizePartner(p)} className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] text-xs font-medium inline-flex items-center gap-1" title="Branding: App als eigene Marke darstellen">
+                              <Palette size={12} /> Customize
+                            </button>
+                            <button onClick={()=>startEditPartner(p)} className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] text-xs font-medium">Edit</button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -649,6 +701,54 @@ export default function AdminPage(){
               </div>
             )}
           </Card>
+        </div>
+      )}
+
+      {/* Partner Customize (Branding) modal */}
+      {customizePartnerId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={()=>!customizeSaving && setCustomizePartnerId(null)}>
+          <div className="bg-[var(--surface-elev)] border border-[var(--border)] rounded-2xl shadow-xl w-full max-w-md overflow-hidden" onClick={e=>e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+              <h3 className="font-semibold text-[var(--text)] flex items-center gap-2">
+                <Palette size={20} className="text-[var(--primary)]" />
+                Customize – {partners.find(p=>p.id===customizePartnerId)?.name ?? customizePartnerId}
+              </h3>
+              <button type="button" onClick={()=>!customizeSaving && setCustomizePartnerId(null)} className="p-1.5 rounded-lg hover:bg-[var(--surface-2)] text-[var(--muted)]" aria-label="Close">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <p className="text-xs text-[var(--muted)]">Let this partner present the app as their own (white-label): custom app name and logo for login and shell.</p>
+              <div>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">App name (e.g. &quot;Acme Control&quot;)</label>
+                <input value={customizeForm.appName} onChange={e=>setCustomizeForm(s=>({...s, appName:e.target.value}))}
+                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="Leave empty to use default"/>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Logo</label>
+                <div className="flex items-center gap-3">
+                  {customizeForm.logoDataUrl ? (
+                    <img src={customizeForm.logoDataUrl} alt="Logo" className="h-12 w-auto object-contain rounded border border-[var(--border)]" />
+                  ) : (
+                    <div className="h-12 w-20 rounded border border-dashed border-[var(--border)] flex items-center justify-center text-[var(--muted)] text-xs">No logo</div>
+                  )}
+                  <label className="px-3 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] text-sm font-medium cursor-pointer">
+                    Upload
+                    <input type="file" accept="image/*" className="hidden" onChange={e=>{ const f = e.target.files?.[0]; if(f) handleCustomizeLogoFile(f); }} />
+                  </label>
+                  {customizeForm.logoDataUrl && (
+                    <button type="button" onClick={()=>setCustomizeForm(s=>({...s, logoDataUrl:''}))} className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface-2)] text-xs">Remove</button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 p-4 border-t border-[var(--border)]">
+              <button type="button" onClick={()=>!customizeSaving && setCustomizePartnerId(null)} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
+              <button type="button" onClick={saveCustomizeBranding} disabled={customizeSaving} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90 disabled:opacity-50">
+                {customizeSaving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

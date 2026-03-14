@@ -25,6 +25,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     externalId: body.externalId,
     tier: body.tier,
     active: body.active,
+    branding: body.branding,
   })
   return NextResponse.json({ item: updated })
 }

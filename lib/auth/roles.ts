@@ -68,6 +68,14 @@ export interface TenantConnectors {
 /** Partner-Tier für Margen (Authorized 20 %, Advanced 30 %, Elite 40 %). */
 export type PartnerTierId = 'authorized' | 'advanced' | 'elite'
 
+/** Partner-Branding: App als eigene Marke darstellen (White-Label). */
+export interface PartnerBranding {
+  /** Anzeigename der App für diesen Partner (z. B. "Acme Control"). */
+  appName?: string
+  /** Logo als Data-URL (z. B. für Login/Header). */
+  logoDataUrl?: string
+}
+
 /** Partner – hat mehrere Tenants (Kunden). */
 export interface Partner {
   id: string
@@ -78,6 +86,8 @@ export interface Partner {
   tier?: PartnerTierId
   active: boolean
   createdAtISO: string
+  /** White-Label: Partner kann die App unter eigenem Namen/Logo darstellen. */
+  branding?: PartnerBranding
 }
 
 /** Governance-Dokument (Handbuch, Richtlinie) – von Admin gepflegt, von KI prüfbar. */

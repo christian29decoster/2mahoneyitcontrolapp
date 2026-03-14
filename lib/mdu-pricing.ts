@@ -47,8 +47,11 @@ export function mduPriceDisplay(_perThousandUsd: number): string {
   return PRICE_PLACEHOLDER
 }
 
-/** Default Events pro Gerät pro Tag für Schätzung. */
+/** Default Events pro Gerät pro Tag für Schätzung (Basis). */
 export const DEFAULT_EVENTS_PER_DEVICE_PER_DAY = 10
+
+/** Für Kunden mit SIEM, XDR, System-Events: deutlich mehr Events pro Gerät. */
+export const EVENTS_PER_DEVICE_PER_DAY_SECURITY = 100
 
 /** Monatliche Events aus Geräteanzahl schätzen. */
 export function estimateMonthlyEvents(

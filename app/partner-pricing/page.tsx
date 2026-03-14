@@ -27,7 +27,7 @@ import {
   type PartnerTierId,
   type CustomerSize,
 } from '@/lib/partner-pricing'
-import { estimateMonthlyEvents } from '@/lib/mdu-pricing'
+import { estimateMonthlyEvents, EVENTS_PER_DEVICE_PER_DAY_SECURITY } from '@/lib/mdu-pricing'
 import { stagger, fadeUp } from '@/lib/ui/motion'
 import { Calculator, TrendingUp, MessageSquare } from 'lucide-react'
 
@@ -118,6 +118,9 @@ const ALLOWED_ROLES = ['partner', 'admin', 'superadmin']
 function formatUsd(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
+function formatUsdCents(n: number) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+}
 
 type PlatformKey = keyof typeof PLATFORM_LIST_PRICES
 
@@ -203,7 +206,7 @@ export default function PartnerPricingPage() {
   const customerArgs = CUSTOMER_FACING_ARGUMENTS[customerSize]
   const hasCalculation = calcListTotal > 0
 
-  const estimatedEventsMdu = estimateMonthlyEvents(calcDevices)
+  const estimatedEventsMdu = estimateMonthlyEvents(calcDevices, EVENTS_PER_DEVICE_PER_DAY_SECURITY)
   const mduMarginUsd = Math.round((estimatedEventsMdu / 1000) * PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD * 100) / 100
 
   return (
@@ -329,7 +332,7 @@ export default function PartnerPricingPage() {
               <div className="pt-4 pb-2 border-t border-[var(--border)]">
                 <h3 className="text-sm font-semibold text-[var(--text)] mb-2">Monthly potential from data (MDU / Datenveredelung)</h3>
                 <p className="text-xs text-[var(--muted)] mb-3">
-                  The customer&apos;s data flows through the platform; you earn this margin without extra work. Based on {calcDevices} devices and estimated events per device.
+                  The customer&apos;s data flows through the platform; you earn this margin without extra work. Estimate assumes SIEM, XDR and system events ({EVENTS_PER_DEVICE_PER_DAY_SECURITY} events/device/day).
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
@@ -346,7 +349,7 @@ export default function PartnerPricingPage() {
                   </div>
                   <div>
                     <div className="text-xs text-[var(--muted)]">Rate</div>
-                    <div className="text-sm font-medium text-[var(--text)]">{formatUsd(PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD)}/1k events</div>
+                    <div className="text-sm font-medium text-[var(--text)]">{formatUsdCents(PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD)}/1k events</div>
                   </div>
                 </div>
                 <p className="text-xs font-medium text-[var(--primary)] mt-3 bg-[var(--primary)]/10 rounded-xl px-4 py-2">

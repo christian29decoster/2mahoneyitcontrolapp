@@ -29,6 +29,8 @@ export function createPartner(data: Omit<Partner, 'createdAtISO'>): Partner {
 export function updatePartner(id: string, data: Partial<Omit<Partner, 'id' | 'createdAtISO'>>): Partner | undefined {
   const i = store.findIndex((p) => p.id === id)
   if (i < 0) return undefined
-  Object.assign(store[i], data)
+  const updates = { ...data }
+  if (updates.branding && Object.keys(updates.branding).length === 0) updates.branding = undefined
+  Object.assign(store[i], updates)
   return store[i]
 }
