@@ -26,12 +26,12 @@ import KpiGrid from '@/components/dashboard/KpiGrid'
 import CloudTiles from '@/components/dashboard/CloudTiles'
 import { GROW_DEMO_BASELINE, growAiScore } from '@/lib/mahoney-grow-demo'
 import { LineChart } from 'lucide-react'
-import { partnerCustomers, partnerSummary, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
+import { partnerCustomers, partnerSummary, partnerMRRTrendMonths, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
 import { useViewModeStore } from '@/lib/viewMode.store'
 import { AlertsChart, MttrChart } from '@/components/dashboard/DesktopDashboardCharts'
 import KpiTile from '@/components/dashboard/KpiTile'
 import { computeMduCost } from '@/lib/mdu-pricing'
-import { Database, DollarSign } from 'lucide-react'
+import { Database, DollarSign, AlertTriangle, Shield, CalendarClock } from 'lucide-react'
 import { KEY_METRIC_TOOLTIPS, GROW_SCORE_TOOLTIP } from '@/lib/dashboard-metric-tooltips'
 import MetricDeltaTooltip from '@/components/ui/MetricDeltaTooltip'
 
@@ -361,24 +361,149 @@ export default function DashboardPage() {
             </>
           ) : (
             <>
+              {/* Partner KPI strip */}
               <Card className="card-desktop p-5">
-                <h2 className="text-base font-semibold text-[var(--text)]">Partner overview</h2>
-                <div className="grid grid-cols-3 gap-6 mt-4">
-                  <div><div className="text-xs text-[var(--muted)]">Managed customers</div><div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.totalCustomers}</div></div>
-                  <div><div className="text-xs text-[var(--muted)]">Total MRR</div><div className="text-xl font-semibold text-[var(--text)]">${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })}</div></div>
-                  <div><div className="text-xs text-[var(--muted)]">Avg Grow score</div><div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.avgGrowScore}/100</div></div>
+                <h2 className="text-base font-semibold text-[var(--text)] mb-4">Partner overview</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                  <div>
+                    <div className="text-xs text-[var(--muted)]">Managed customers</div>
+                    <div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.totalCustomers}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--muted)]">Total MRR</div>
+                    <div className="text-xl font-semibold text-[var(--text)]">${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })}</div>
+                    {partnerSummary.mrrGrowthPct !== 0 && (
+                      <span className={`text-xs font-medium ${partnerSummary.mrrGrowthPct >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
+                        {partnerSummary.mrrGrowthPct >= 0 ? '+' : ''}{partnerSummary.mrrGrowthPct}% vs last month
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--muted)]">Avg Grow score</div>
+                    <div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.avgGrowScore}/100</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--muted)]">Open alerts</div>
+                    <div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.totalOpenAlerts}</div>
+                    <span className="text-xs text-[var(--muted)]">across portfolio</span>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--muted)]">At-risk customers</div>
+                    <div className={`text-xl font-semibold ${partnerSummary.atRiskCount > 0 ? 'text-[var(--warning)]' : 'text-[var(--text)]'}`}>
+                      {partnerSummary.atRiskCount}
+                    </div>
+                    <span className="text-xs text-[var(--muted)]">churn risk ≥4%</span>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--muted)]">Renewals (30d)</div>
+                    <div className="text-xl font-semibold text-[var(--text)]">{partnerSummary.renewalsThisMonth}</div>
+                    <span className="text-xs text-[var(--muted)]">due this month</span>
+                  </div>
                 </div>
               </Card>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Revenue trend */}
+                <Card className="card-desktop p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <DollarSign className="w-5 h-5 text-[var(--primary)]" />
+                    <h3 className="text-base font-semibold text-[var(--text)]">MRR trend (portfolio)</h3>
+                  </div>
+                  <div className="flex items-end justify-between gap-2 h-24">
+                    {partnerMRRTrendMonths.map((m) => (
+                      <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
+                        <div
+                          className="w-full rounded-t bg-[var(--primary)]/30 min-h-[4px] transition-all"
+                          style={{ height: `${(m.mrr / Math.max(...partnerMRRTrendMonths.map((x) => x.mrr))) * 80}%` }}
+                        />
+                        <span className="text-[10px] text-[var(--muted)]">{m.month}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-[var(--muted)] mt-2">
+                    Last 6 months · Total MRR ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })} (+{partnerSummary.mrrGrowthPct}% MoM)
+                  </p>
+                </Card>
+
+                {/* Alerts & at-risk */}
+                <Card className="card-desktop p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <AlertTriangle className="w-5 h-5 text-[var(--warning)]" />
+                    <h3 className="text-base font-semibold text-[var(--text)]">Alerts & risk</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                      <span className="text-sm text-[var(--text)]">Total open alerts</span>
+                      <span className="font-semibold text-[var(--text)]">{partnerSummary.totalOpenAlerts}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                      <span className="text-sm text-[var(--text)]">Avg MTTR (portfolio)</span>
+                      <span className="font-semibold text-[var(--text)]">{partnerSummary.avgMttr}h</span>
+                    </div>
+                    {partnerSummary.atRiskCount > 0 && (
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--warning)]/10 border border-[var(--warning)]/30">
+                        <span className="text-sm text-[var(--text)] flex items-center gap-2">
+                          <Shield className="w-4 h-4 text-[var(--warning)]" />
+                          Customers with churn risk ≥4%
+                        </span>
+                        <span className="font-semibold text-[var(--warning)]">{partnerSummary.atRiskCount}</span>
+                      </div>
+                    )}
+                    {partnerSummary.renewalsThisMonth > 0 && (
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+                        <span className="text-sm text-[var(--text)] flex items-center gap-2">
+                          <CalendarClock className="w-4 h-4 text-[var(--primary)]" />
+                          Renewals in next 30 days
+                        </span>
+                        <span className="font-semibold text-[var(--primary)]">{partnerSummary.renewalsThisMonth}</span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </div>
+
+              {/* Customers table */}
               <Card className="card-desktop p-5">
-                <h3 className="text-base font-semibold text-[var(--text)] mb-4">Customers</h3>
-                <div className="space-y-2">
-                  {partnerCustomers.map((c) => (
-                    <button key={c.id} onClick={() => { h.impact('light'); setSelectedPartnerCustomer(c) }} className="w-full text-left flex items-center justify-between px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] hover:border-[var(--primary)]/40 transition-colors">
-                      <div><span className="font-medium text-[var(--text)]">{c.name}</span> <Badge variant="secondary" className="ml-2">{c.segment}</Badge></div>
-                      <div className="text-sm text-[var(--muted)]">MRR ${c.monthlyRecurringRevenueUSD.toLocaleString()} · Grow {c.growScore}/100</div>
-                    </button>
-                  ))}
+                <h3 className="text-base font-semibold text-[var(--text)] mb-4">Customers – security, growth & commercial</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[var(--border)]">
+                        <th className="text-left py-3 px-3 text-[var(--muted)] font-medium">Customer</th>
+                        <th className="text-left py-3 px-3 text-[var(--muted)] font-medium">Segment</th>
+                        <th className="text-right py-3 px-3 text-[var(--muted)] font-medium">MRR</th>
+                        <th className="text-right py-3 px-3 text-[var(--muted)] font-medium">Grow</th>
+                        <th className="text-right py-3 px-3 text-[var(--muted)] font-medium">Alerts</th>
+                        <th className="text-right py-3 px-3 text-[var(--muted)] font-medium">MTTR</th>
+                        <th className="text-right py-3 px-3 text-[var(--muted)] font-medium">Churn risk</th>
+                        <th className="text-right py-3 px-3 text-[var(--muted)] font-medium">Renewal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--border)]">
+                      {partnerCustomers.map((c) => (
+                        <tr
+                          key={c.id}
+                          onClick={() => { h.impact('light'); setSelectedPartnerCustomer(c) }}
+                          className="hover:bg-[var(--surface-2)] cursor-pointer transition-colors"
+                        >
+                          <td className="py-3 px-3 font-medium text-[var(--text)]">{c.name}</td>
+                          <td className="py-3 px-3"><Badge variant="secondary">{c.segment}</Badge></td>
+                          <td className="py-3 px-3 text-right text-[var(--text)]">${c.monthlyRecurringRevenueUSD.toLocaleString()}</td>
+                          <td className="py-3 px-3 text-right text-[var(--text)]">{c.growScore}/100</td>
+                          <td className="py-3 px-3 text-right">{c.activeAlerts}</td>
+                          <td className="py-3 px-3 text-right text-[var(--muted)]">{c.mttrHours.toFixed(1)}h</td>
+                          <td className={`py-3 px-3 text-right ${c.churnRiskPct >= 4 ? 'text-[var(--warning)] font-medium' : 'text-[var(--muted)]'}`}>
+                            {c.churnRiskPct.toFixed(1)}%
+                          </td>
+                          <td className="py-3 px-3 text-right text-[var(--muted)]">
+                            {c.renewalInDays != null ? `in ${c.renewalInDays}d` : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
+                <p className="text-xs text-[var(--muted)] mt-3">Click a row to open customer context (tenant, Grow, alerts).</p>
               </Card>
             </>
           )}
@@ -540,41 +665,101 @@ export default function DashboardPage() {
           <>
             {/* Partner overview */}
             <Card className="p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-base font-semibold text-[var(--text)]">Partner overview (demo)</h2>
-                  <p className="text-xs text-[var(--muted)] mt-1">
-                    Aggregated view across all managed customers – combining security posture with
-                    commercial metrics.
-                  </p>
+              <h2 className="text-base font-semibold text-[var(--text)] mb-1">Partner overview</h2>
+              <p className="text-xs text-[var(--muted)] mb-4">
+                Portfolio view: security posture, revenue, and risk across all managed customers.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                  <div className="text-[var(--muted)]">Customers</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">{partnerSummary.totalCustomers}</div>
                 </div>
-                <div className="grid grid-cols-3 gap-3 text-xs">
-                  <div>
-                    <div className="text-[var(--muted)]">Managed customers</div>
-                    <div className="text-lg font-semibold text-[var(--text)]">
-                      {partnerSummary.totalCustomers}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[var(--muted)]">Total MRR</div>
-                    <div className="text-lg font-semibold text-[var(--text)]">
-                      ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[var(--muted)]">Avg Grow score</div>
-                    <div className="text-lg font-semibold text-[var(--text)]">
-                      {partnerSummary.avgGrowScore}/100
-                    </div>
+                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                  <div className="text-[var(--muted)]">Total MRR</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">${(partnerSummary.totalMRR / 1000).toFixed(0)}k</div>
+                  {partnerSummary.mrrGrowthPct !== 0 && (
+                    <span className={`text-[10px] ${partnerSummary.mrrGrowthPct >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
+                      {partnerSummary.mrrGrowthPct >= 0 ? '+' : ''}{partnerSummary.mrrGrowthPct}% MoM
+                    </span>
+                  )}
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                  <div className="text-[var(--muted)]">Avg Grow</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">{partnerSummary.avgGrowScore}/100</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                  <div className="text-[var(--muted)]">Open alerts</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">{partnerSummary.totalOpenAlerts}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                  <div className="text-[var(--muted)]">At-risk</div>
+                  <div className={`text-lg font-semibold ${partnerSummary.atRiskCount > 0 ? 'text-[var(--warning)]' : 'text-[var(--text)]'}`}>
+                    {partnerSummary.atRiskCount}
                   </div>
                 </div>
+                <div className="p-3 rounded-xl bg-[var(--surface-2)]">
+                  <div className="text-[var(--muted)]">Renewals (30d)</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">{partnerSummary.renewalsThisMonth}</div>
+                </div>
+              </div>
+            </Card>
+
+            {/* MRR trend (compact) */}
+            <Card className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className="w-4 h-4 text-[var(--primary)]" />
+                <h3 className="text-sm font-semibold text-[var(--text)]">MRR trend (last 6 months)</h3>
+              </div>
+              <div className="flex items-end gap-1 h-16">
+                {partnerMRRTrendMonths.map((m) => (
+                  <div key={m.month} className="flex-1 flex flex-col items-center gap-0.5">
+                    <div
+                      className="w-full rounded-t bg-[var(--primary)]/40 min-h-[2px]"
+                      style={{ height: `${(m.mrr / Math.max(...partnerMRRTrendMonths.map((x) => x.mrr))) * 100}%` }}
+                    />
+                    <span className="text-[9px] text-[var(--muted)]">{m.month}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-[var(--muted)] mt-2">
+                Portfolio MRR ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })} (+{partnerSummary.mrrGrowthPct}% vs last month)
+              </p>
+            </Card>
+
+            {/* Alerts & risk */}
+            <Card className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="w-4 h-4 text-[var(--warning)]" />
+                <h3 className="text-sm font-semibold text-[var(--text)]">Alerts & risk</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-[var(--muted)]">Total open alerts</span>
+                  <span className="font-medium text-[var(--text)]">{partnerSummary.totalOpenAlerts}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-[var(--muted)]">Avg MTTR</span>
+                  <span className="font-medium text-[var(--text)]">{partnerSummary.avgMttr}h</span>
+                </div>
+                {partnerSummary.atRiskCount > 0 && (
+                  <div className="flex justify-between text-sm p-2 rounded-lg bg-[var(--warning)]/10">
+                    <span className="text-[var(--text)]">Customers at risk (churn ≥4%)</span>
+                    <span className="font-semibold text-[var(--warning)]">{partnerSummary.atRiskCount}</span>
+                  </div>
+                )}
+                {partnerSummary.renewalsThisMonth > 0 && (
+                  <div className="flex justify-between text-sm p-2 rounded-lg bg-[var(--primary)]/10">
+                    <span className="text-[var(--text)]">Renewals in 30 days</span>
+                    <span className="font-semibold text-[var(--primary)]">{partnerSummary.renewalsThisMonth}</span>
+                  </div>
+                )}
               </div>
             </Card>
 
             {/* Partner customer list */}
             <Card className="p-4">
               <h3 className="text-base font-semibold text-[var(--text)] mb-3">
-                Customers – security &amp; growth signals
+                Customers – security, growth & commercial
               </h3>
               <div className="space-y-2">
                 {partnerCustomers.map(c => (
@@ -586,31 +771,29 @@ export default function DashboardPage() {
                     }}
                     className="w-full text-left"
                   >
-                    <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] hover:border-[rgba(59,130,246,.45)] transition-colors">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-[var(--text)] truncate">
-                            {c.name}
-                          </span>
-                          <Badge variant="secondary" className="text-[10px]">
-                            {c.segment}
-                          </Badge>
+                    <div className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] hover:border-[var(--primary)]/40 transition-colors">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-[var(--text)] truncate">{c.name}</span>
+                          <Badge variant="secondary" className="text-[10px]">{c.segment}</Badge>
+                          {c.churnRiskPct >= 4 && (
+                            <Badge variant="destructive" className="text-[10px]">Risk</Badge>
+                          )}
                         </div>
-                        <div className="text-[11px] text-[var(--muted)]">
-                          {c.country} • Grow score {c.growScore}/100 • MTTR {c.mttrHours.toFixed(1)}h
+                        <div className="text-[11px] text-[var(--muted)] mt-0.5">
+                          MRR ${c.monthlyRecurringRevenueUSD.toLocaleString('en-US')} · Grow {c.growScore}/100 · Alerts {c.activeAlerts} · MTTR {c.mttrHours.toFixed(1)}h
                         </div>
                       </div>
-                      <div className="text-right text-[11px] text-[var(--muted)]">
-                        <div>MRR ${c.monthlyRecurringRevenueUSD.toLocaleString('en-US')}</div>
-                        <div>Churn risk {c.churnRiskPct.toFixed(1)}%</div>
+                      <div className="text-right text-[11px] text-[var(--muted)] shrink-0">
+                        <div>Churn {c.churnRiskPct.toFixed(1)}%</div>
+                        <div>{c.renewalInDays != null ? `Renewal in ${c.renewalInDays}d` : '—'}</div>
                       </div>
                     </div>
                   </button>
                 ))}
               </div>
               <p className="mt-3 text-[11px] text-[var(--muted)]">
-                In the full product you would jump from here directly into each customer&apos;s
-                tenant and open Mahoney Grow in that context.
+                Tap a customer to open their tenant context (Grow, alerts, billing).
               </p>
             </Card>
           </>
