@@ -19,9 +19,15 @@ import {
   PARTNER_ONBOARDING_INCLUDES,
   REVENUE_SHARE_MODELS,
   MAX_PARTNER_CUSTOMER_DISCOUNT_PCT,
+  TIER_MIN_CUSTOMERS,
+  PLATFORM_TO_CUSTOMER_SIZE,
+  PARTNER_CLOSE_ARGUMENTS,
+  CUSTOMER_FACING_ARGUMENTS,
   type PartnerTierId,
+  type CustomerSize,
 } from '@/lib/partner-pricing'
 import { stagger, fadeUp } from '@/lib/ui/motion'
+import { Calculator, TrendingUp, MessageSquare } from 'lucide-react'
 
 type Session = { role: string | null; partnerId: string | null; partnerTier?: string; partnerName?: string }
 
@@ -155,6 +161,40 @@ export default function PartnerPricingPage() {
   const myDiscountPct = myTierId ? PARTNER_TIERS[myTierId].discountPct : PARTNER_TIERS.elite.discountPct
   const tableDiscountPct = myTierId ? PARTNER_TIERS[myTierId].discountPct : PARTNER_TIERS.elite.discountPct
 
+  // Deal calculator state
+  type PlatformKey = keyof typeof PLATFORM_LIST_PRICES
+  const [calcPartnerTier, setCalcPartnerTier] = useState<PartnerTierId>(myTierId ?? 'authorized')
+  const [calcCurrentCustomers, setCalcCurrentCustomers] = useState(2)
+  const [calcPlatform, setCalcPlatform] = useState<PlatformKey>('essential')
+  const [calcSoc, setCalcSoc] = useState<string>('')
+  const [calcMitai, setCalcMitai] = useState<string>('')
+
+  const calcDiscountPct = PARTNER_TIERS[calcPartnerTier].discountPct
+  const listPlatform = PLATFORM_LIST_PRICES[calcPlatform]
+  const costPlatform = platformPartnerCost(listPlatform, calcDiscountPct)
+  const listSoc = calcSoc ? (SOC_LIST_PRICES[calcSoc] ?? 0) : 0
+  const marginSoc = calcSoc ? (SOC_PARTNER_MARGIN_PCT[calcSoc] ?? 20) : 0
+  const costSoc = listSoc ? socPartnerCost(listSoc, marginSoc) : 0
+  const listMitai = calcMitai ? (MITAI_LIST_PRICES[calcMitai] ?? 0) : 0
+  const costMitai = listMitai ? mitaiPartnerCost(listMitai) : 0
+
+  const calcListTotal = listPlatform + listSoc + listMitai
+  const calcCostTotal = costPlatform + costSoc + costMitai
+  const calcMarginTotal = calcListTotal - calcCostTotal
+  const customersAfter = calcCurrentCustomers + 1
+
+  const nextTier = (tierIds as PartnerTierId[]).find((t) => TIER_MIN_CUSTOMERS[t] > calcCurrentCustomers && TIER_MIN_CUSTOMERS[t] <= customersAfter)
+  const tierImpactMessage = nextTier
+    ? `With ${customersAfter} customer${customersAfter > 1 ? 's' : ''} you'd meet ${PARTNER_TIERS[nextTier].label} (${PARTNER_TIERS[nextTier].requirements}).`
+    : calcCurrentCustomers + 1 >= TIER_MIN_CUSTOMERS.elite
+      ? 'You keep or strengthen Elite tier.'
+      : null
+
+  const customerSize: CustomerSize = PLATFORM_TO_CUSTOMER_SIZE[calcPlatform] ?? 'medium'
+  const partnerArgs = PARTNER_CLOSE_ARGUMENTS[customerSize]
+  const customerArgs = CUSTOMER_FACING_ARGUMENTS[customerSize]
+  const hasCalculation = calcListTotal > 0
+
   return (
     <motion.div className="max-w-4xl mx-auto py-8 px-4 space-y-10" variants={stagger} initial="initial" animate="animate">
       <motion.div variants={fadeUp}>
@@ -167,6 +207,149 @@ export default function PartnerPricingPage() {
           Confidential – for partners only. You always sell at list price; your profit is the difference to your cost. Direct sales from Mahoney = list price; partners may give end customers up to {MAX_PARTNER_CUSTOMER_DISCOUNT_PCT}% discount.
         </p>
       </motion.div>
+
+      {/* Deal calculator */}
+      <motion.section className="space-y-4" variants={fadeUp}>
+        <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
+          <Calculator className="w-5 h-5 text-[var(--primary)]" />
+          Deal calculator
+        </h2>
+        <p className="text-sm text-[var(--muted)]">
+          Enter a potential deal to see revenue, your cost, margin, tier impact, and arguments for closing (for you and for your customer).
+        </p>
+        <Card className="p-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1">Your partner tier</label>
+              <select
+                value={calcPartnerTier}
+                onChange={(e) => setCalcPartnerTier(e.target.value as PartnerTierId)}
+                className="w-full text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)]"
+              >
+                {tierIds.map((id) => (
+                  <option key={id} value={id}>{PARTNER_TIERS[id].label} ({PARTNER_TIERS[id].discountPct}%)</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1">Current # of customers</label>
+              <input
+                type="number"
+                min={0}
+                value={calcCurrentCustomers}
+                onChange={(e) => setCalcCurrentCustomers(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                className="w-full text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1">Platform tier (deal)</label>
+              <select
+                value={calcPlatform}
+                onChange={(e) => setCalcPlatform(e.target.value as PlatformKey)}
+                className="w-full text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)]"
+              >
+                <option value="essential">Essential ($799/mo)</option>
+                <option value="professional">Professional ($2,999/mo)</option>
+                <option value="enterprise">Enterprise ($7,499/mo)</option>
+                <option value="securityOs">Security OS ($22,999/mo)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1">SOC add-on (optional)</label>
+              <select
+                value={calcSoc}
+                onChange={(e) => setCalcSoc(e.target.value)}
+                className="w-full text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)]"
+              >
+                <option value="">None</option>
+                {Object.keys(SOC_LIST_PRICES).map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="sm:col-span-2 lg:col-span-1">
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1">MIT-AI add-on (optional)</label>
+              <select
+                value={calcMitai}
+                onChange={(e) => setCalcMitai(e.target.value)}
+                className="w-full text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)]"
+              >
+                <option value="">None</option>
+                {Object.keys(MITAI_LIST_PRICES).map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {hasCalculation && (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 border-t border-[var(--border)]">
+                <div>
+                  <div className="text-xs text-[var(--muted)]">What the customer pays (list)</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">{formatUsd(calcListTotal)}/mo</div>
+                </div>
+                <div>
+                  <div className="text-xs text-[var(--muted)]">Your cost</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">{formatUsd(calcCostTotal)}/mo</div>
+                </div>
+                <div>
+                  <div className="text-xs text-[var(--muted)]">Your margin</div>
+                  <div className="text-lg font-semibold text-[var(--primary)]">{formatUsd(calcMarginTotal)}/mo</div>
+                </div>
+                <div>
+                  <div className="text-xs text-[var(--muted)]">Customers after deal</div>
+                  <div className="text-lg font-semibold text-[var(--text)]">{customersAfter}</div>
+                </div>
+              </div>
+              {tierImpactMessage && (
+                <p className="text-sm font-medium text-[var(--primary)] bg-[var(--primary)]/10 rounded-xl px-4 py-2">
+                  {tierImpactMessage}
+                </p>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <h3 className="text-sm font-semibold text-[var(--text)] flex items-center gap-1.5 mb-2">
+                    <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+                    Why you should close this deal
+                  </h3>
+                  <p className="text-xs text-[var(--muted)] mb-2">Economic-psychological arguments for you (customer segment: {customerSize})</p>
+                  <ul className="space-y-1.5">
+                    {partnerArgs.map((arg, i) => (
+                      <li key={i} className="text-sm text-[var(--text)] flex items-start gap-2">
+                        <span className="text-[var(--primary)] shrink-0">•</span>
+                        <span>{arg}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-[var(--text)] flex items-center gap-1.5 mb-2">
+                    <MessageSquare className="w-4 h-4 text-[var(--primary)]" />
+                    Arguments for your customer
+                  </h3>
+                  <p className="text-xs text-[var(--muted)] mb-2">Copy or use in the conversation (by segment)</p>
+                  <div className="flex flex-wrap gap-2">
+                    {customerArgs.map((a, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => navigator.clipboard?.writeText(a.text)}
+                        className="text-left px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] hover:bg-[var(--surface-elev)] hover:border-[var(--primary)]/30 text-sm text-[var(--text)] transition-colors"
+                        title="Click to copy"
+                      >
+                        <span className="font-medium block mb-0.5">{a.label}</span>
+                        <span className="text-xs text-[var(--muted)]">{a.text}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </Card>
+      </motion.section>
 
       {/* Partner Tiers */}
       <motion.section className="space-y-3" variants={fadeUp}>

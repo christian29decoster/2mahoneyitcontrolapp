@@ -110,3 +110,58 @@ export const REVENUE_SHARE_MODELS: Array<{ id: string; label: string; partnerSha
 
 /** Direct sales = list price. Partner may give end customer max 10% discount. */
 export const MAX_PARTNER_CUSTOMER_DISCOUNT_PCT = 10
+
+/** Min number of customers to qualify for tier (for calculator tier-impact). */
+export const TIER_MIN_CUSTOMERS: Record<PartnerTierId, number> = {
+  authorized: 0,
+  advanced: 3,
+  elite: 10,
+}
+
+/** Customer size for argument variation: small (budget-critical), medium (growth), large (enterprise). */
+export type CustomerSize = 'small' | 'medium' | 'large'
+
+export const PLATFORM_TO_CUSTOMER_SIZE: Record<string, CustomerSize> = {
+  essential: 'small',
+  professional: 'medium',
+  enterprise: 'large',
+  securityOs: 'large',
+}
+
+/** Arguments for the partner (why close this deal) – shown after calculation. */
+export const PARTNER_CLOSE_ARGUMENTS: Record<CustomerSize, string[]> = {
+  small: [
+    'Low effort, clear margin – ideal to fill your pipeline.',
+    'Entry customer: upsell to Professional/Enterprise later.',
+    'Every customer counts toward your next tier (e.g. Advanced at 3).',
+  ],
+  medium: [
+    'Strong margin and growth potential for your portfolio.',
+    'Typical upsell path: add SOC or MIT-AI in year 2.',
+    'Moves you toward Elite (10 customers) with solid ARR.',
+  ],
+  large: [
+    'High margin per deal – one contract, strong recurring revenue.',
+    'Position as strategic partner, not just reseller.',
+    'Enterprise customers drive volume bonus ($100k / $500k / $1M ARR).',
+  ],
+}
+
+/** Arguments toward the customer (by size) – copy/buttons for the partner to use in sales. */
+export const CUSTOMER_FACING_ARGUMENTS: Record<CustomerSize, { label: string; text: string }[]> = {
+  small: [
+    { label: 'Predictable cost', text: 'Fixed monthly price – no surprises, easy to budget.' },
+    { label: 'Start small', text: 'Begin with Essential; scale to Professional or Enterprise when you grow.' },
+    { label: 'Low risk', text: 'Standard terms, clear scope. You stay in control.' },
+  ],
+  medium: [
+    { label: 'Grow with you', text: 'Platform and modules that scale with your operations and compliance needs.' },
+    { label: 'Optimize operations', text: 'Single control surface for risk, operations, and growth – less tool sprawl.' },
+    { label: 'Clear upgrade path', text: 'Add SOC or AI when ready; no big-bang migration.' },
+  ],
+  large: [
+    { label: 'Enterprise-grade', text: 'Full platform, SLA, and dedicated support for regulated or critical environments.' },
+    { label: 'Strategic partnership', text: 'We align with your roadmap – security, governance, and growth in one place.' },
+    { label: 'One platform', text: 'Consolidate risk, operations, and compliance instead of multiple point tools.' },
+  ],
+}
