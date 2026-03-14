@@ -26,7 +26,7 @@ import KpiGrid from '@/components/dashboard/KpiGrid'
 import CloudTiles from '@/components/dashboard/CloudTiles'
 import { GROW_DEMO_BASELINE, growAiScore } from '@/lib/mahoney-grow-demo'
 import { LineChart } from 'lucide-react'
-import { partnerCustomers, partnerSummary, partnerMRRTrendMonths, partnerAppUpsells, partnerUpsellSummary, partnerAutomationImpacts, partnerAutomationSummary, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
+import { partnerCustomers, partnerSummary, partnerMRRTrendMonths, partnerAppUpsells, partnerUpsellSummary, partnerAutomationImpacts, partnerAutomationSummary, PARTNER_PRICING, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
 import { useViewModeStore } from '@/lib/viewMode.store'
 import { AlertsChart, MttrChart } from '@/components/dashboard/DesktopDashboardCharts'
 import KpiTile from '@/components/dashboard/KpiTile'
@@ -60,6 +60,8 @@ export default function DashboardPage() {
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const [usage, setUsage] = useState<UsageData | null>(null)
   const [mrrChartHovered, setMrrChartHovered] = useState<number | null>(null)
+  /** Which customer we're viewing in single-tenant view (partner's customer list) */
+  const [selectedTenantId, setSelectedTenantId] = useState<string | null>(partnerCustomers[0]?.id ?? null)
   const h = useHaptics()
 
   useEffect(() => {
@@ -94,7 +96,7 @@ export default function DashboardPage() {
   
   const handleSendMessage = (message: string) => {
     h.success()
-    addActivity({ type: 'changed', title: 'Nachricht an SOC gesendet', message: 'Alert-Konversation' })
+    addActivity({ type: 'changed', title: 'Message sent to SOC', message: 'Alert conversation' })
     addToast('success', 'Message sent to Mahoney SOC')
     setSelectedAlert(null)
   }
@@ -126,19 +128,46 @@ export default function DashboardPage() {
               <h1 className="text-2xl font-bold tracking-tight text-[var(--text)]">
                 Control Dashboard
               </h1>
-              <p className="text-sm text-[var(--muted)] mt-0.5">
-                {view === 'customer' ? 'Single-tenant view' : 'Partner overview'}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-sm text-[var(--muted)]">
+                  {view === 'customer' ? 'Single-tenant view' : 'Partner overview'}
+                </p>
+                {view === 'customer' && partnerCustomers.length > 0 && (
+                  <select
+                    value={selectedTenantId ?? ''}
+                    onChange={(e) => setSelectedTenantId(e.target.value || null)}
+                    className="text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                    aria-label="Select customer"
+                  >
+                    {partnerCustomers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-4">
-              <p className="text-sm text-[var(--muted)]">
-                <strong className="text-[var(--text)]">{demoTenant.currentPlan.tier}</strong>
-                {' '}({formatCurrency(planMonthlyUSD('Essential', 5, 25))}/mo)
-                {' · '}
-                <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-[var(--primary)] hover:underline">
-                  Upgrade
-                </button>
-              </p>
+              {view === 'partner' ? (
+                <p className="text-sm text-[var(--muted)]">
+                  <strong className="text-[var(--text)]">Partner pricing:</strong>
+                  {' '}{PARTNER_PRICING.appDiscountPct}% off app · {PARTNER_PRICING.partnerSharePerCustomerPct}% per customer · MDU +{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)} margin
+                  {' · '}
+                  <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-[var(--primary)] hover:underline">
+                    Details
+                  </button>
+                </p>
+              ) : (
+                <p className="text-sm text-[var(--muted)]">
+                  <strong className="text-[var(--text)]">{demoTenant.currentPlan.tier}</strong>
+                  {' '}({formatCurrency(planMonthlyUSD('Essential', 5, 25))}/mo)
+                  {' · '}
+                  <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-[var(--primary)] hover:underline">
+                    Upgrade
+                  </button>
+                </p>
+              )}
               <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-2)] overflow-hidden">
                 <button
                   className={`px-4 py-2 text-sm font-medium ${view === 'customer' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
@@ -161,6 +190,12 @@ export default function DashboardPage() {
               {/* Executive summary – one line for C-level */}
               <Card className="card-desktop px-5 py-3 bg-[var(--surface-2)]/50 border-[var(--border)]">
                 <p className="text-sm text-[var(--muted)]">
+                  {selectedTenantId && (
+                    <span className="text-[var(--primary)] font-medium">
+                      Viewing: {partnerCustomers.find((c) => c.id === selectedTenantId)?.name ?? selectedTenantId}
+                      {' · '}
+                    </span>
+                  )}
                   <span className="text-[var(--text)] font-semibold">At a glance:</span>
                   {' '}{stats.activeAlerts} active alerts · {stats.offlineDevices} offline devices · MTTR {stats.mttrHours}h · Coverage {stats.coveragePct}% · 2 open incidents · Compliance 78%
                 </p>
@@ -403,6 +438,36 @@ export default function DashboardPage() {
                 </div>
               </Card>
 
+              {/* Partner pricing & margin (from marketplace) */}
+              <Card className="card-desktop p-5">
+                <h2 className="text-base font-semibold text-[var(--text)] mb-3">Partner pricing & margin</h2>
+                <p className="text-xs text-[var(--muted)] mb-4">
+                  Your terms from the Marketplace. Prices in single-tenant view are from your catalog; you receive the margins below.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                    <div className="text-xs text-[var(--muted)]">App (your access)</div>
+                    <div className="text-sm font-semibold text-[var(--success)]">{PARTNER_PRICING.appDiscountPct}% discount</div>
+                    <p className="text-[10px] text-[var(--muted)] mt-0.5">You pay 80% of list</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                    <div className="text-xs text-[var(--muted)]">Per customer (Control Platform)</div>
+                    <div className="text-sm font-semibold text-[var(--success)]">{PARTNER_PRICING.partnerSharePerCustomerPct}% to you</div>
+                    <p className="text-[10px] text-[var(--muted)] mt-0.5">70% of platform revenue per customer</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                    <div className="text-xs text-[var(--muted)]">Sell your MSP in app</div>
+                    <div className="text-sm font-semibold text-[var(--text)]">You keep 80%</div>
+                    <p className="text-[10px] text-[var(--muted)] mt-0.5">e.g. Mahoney One with your brand · we take {PARTNER_PRICING.mahoneyShareOnMspSellPct}%</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                    <div className="text-xs text-[var(--muted)]">MDU (data/events)</div>
+                    <div className="text-sm font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)}/unit your margin</div>
+                    <p className="text-[10px] text-[var(--muted)] mt-0.5">On top of base MDU</p>
+                  </div>
+                </div>
+              </Card>
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 {/* Revenue trend */}
                 <Card className="card-desktop p-5">
@@ -626,19 +691,24 @@ export default function DashboardPage() {
         </motion.div>
       ) : (
       <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
-        {/* Upgrade hint (subtle) */}
+        {/* Upgrade / pricing hint */}
         <motion.div variants={stagger} className="text-center">
-          <p className="text-sm text-[var(--muted)]">
-            You&apos;re on <strong className="text-[var(--text)]">{demoTenant.currentPlan.tier}</strong> ({formatCurrency(planMonthlyUSD('Essential', 5, 25))}/mo).
-            {' '}
-            <button
-              type="button"
-              onClick={() => setIsUpgradeSheetOpen(true)}
-              className="underline underline-offset-2 text-[var(--primary)] hover:opacity-90"
-            >
-              Upgrade to {demoTenant.upgradeOffer.target.tier} (+${demoTenant.upgradeOffer.deltaMonthly}/mo)
-            </button>
-          </p>
+          {view === 'partner' ? (
+            <p className="text-sm text-[var(--muted)]">
+              <strong className="text-[var(--text)]">Partner pricing:</strong>
+              {' '}{PARTNER_PRICING.appDiscountPct}% off app · {PARTNER_PRICING.partnerSharePerCustomerPct}% per customer · MDU +{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)} margin
+              {' · '}
+              <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-[var(--primary)] underline underline-offset-2">Details</button>
+            </p>
+          ) : (
+            <p className="text-sm text-[var(--muted)]">
+              You&apos;re on <strong className="text-[var(--text)]">{demoTenant.currentPlan.tier}</strong> ({formatCurrency(planMonthlyUSD('Essential', 5, 25))}/mo).
+              {' '}
+              <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="underline underline-offset-2 text-[var(--primary)] hover:opacity-90">
+                Upgrade to {demoTenant.upgradeOffer.target.tier} (+${demoTenant.upgradeOffer.deltaMonthly}/mo)
+              </button>
+            </p>
+          )}
         </motion.div>
 
         {/* Hero Section */}
@@ -648,11 +718,10 @@ export default function DashboardPage() {
               Your Mahoney Control Dashboard.
             </h1>
             <p className="text-sm text-[var(--muted)]">
-              Switch between a single-customer view and a partner view across all of your
-              customers.
+              Switch between a single-customer view and a partner view across all of your customers.
             </p>
           </div>
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-3">
             <div className="inline-flex rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
               <button
                 className={`px-4 py-2 text-xs font-medium ${
@@ -675,11 +744,31 @@ export default function DashboardPage() {
                 Partner view (MSSP/MSP)
               </button>
             </div>
+            {view === 'customer' && partnerCustomers.length > 0 && (
+              <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
+                Viewing:
+                <select
+                  value={selectedTenantId ?? ''}
+                  onChange={(e) => setSelectedTenantId(e.target.value || null)}
+                  className="text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  aria-label="Select customer"
+                >
+                  {partnerCustomers.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
         </motion.div>
 
         {view === 'customer' ? (
           <>
+            {selectedTenantId && (
+              <p className="text-sm text-[var(--muted)] text-center">
+                Viewing: <span className="text-[var(--primary)] font-medium">{partnerCustomers.find((c) => c.id === selectedTenantId)?.name ?? selectedTenantId}</span>
+              </p>
+            )}
             {/* KPI Grid */}
             <div className="mt-4">
               <KpiGrid />
@@ -816,6 +905,32 @@ export default function DashboardPage() {
                 <div className="p-3 rounded-xl bg-[var(--surface-2)]">
                   <div className="text-[var(--muted)]">Renewals (30d)</div>
                   <div className="text-lg font-semibold text-[var(--text)]">{partnerSummary.renewalsThisMonth}</div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Partner pricing & margin (mobile) */}
+            <Card className="p-4">
+              <h3 className="text-sm font-semibold text-[var(--text)] mb-2">Partner pricing & margin</h3>
+              <p className="text-[11px] text-[var(--muted)] mb-3">
+                Your Marketplace terms. Single-tenant prices come from your catalog; you keep the margins below.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
+                  <div className="text-[10px] text-[var(--muted)]">App</div>
+                  <div className="text-xs font-semibold text-[var(--success)]">{PARTNER_PRICING.appDiscountPct}% off</div>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
+                  <div className="text-[10px] text-[var(--muted)]">Per customer</div>
+                  <div className="text-xs font-semibold text-[var(--success)]">{PARTNER_PRICING.partnerSharePerCustomerPct}% to you</div>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
+                  <div className="text-[10px] text-[var(--muted)]">Sell your MSP</div>
+                  <div className="text-xs font-semibold text-[var(--text)]">You keep 80%</div>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
+                  <div className="text-[10px] text-[var(--muted)]">MDU</div>
+                  <div className="text-xs font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)}/unit</div>
                 </div>
               </div>
             </Card>

@@ -251,3 +251,15 @@ export const partnerSummary = (() => {
   }
 })()
 
+/** Partner pricing & margin (from marketplace; partner sees this in dashboard) */
+export const PARTNER_PRICING = {
+  /** Partner gets 20% discount on the Control app (pays 80% of list) */
+  appDiscountPct: 20,
+  /** For each customer of the partner: partner receives 70% of Mahoney Control Platform revenue */
+  partnerSharePerCustomerPct: 70,
+  /** When partner sells their MSP in the app (e.g. Mahoney One with partner branding): Mahoney takes 20% */
+  mahoneyShareOnMspSellPct: 20,
+  /** MDU: partner margin per unit (e.g. per GB or per 1k events), on top of base MDU */
+  mduMarginPerUnitUSD: 0.05,
+} as const
+
