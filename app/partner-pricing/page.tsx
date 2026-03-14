@@ -23,9 +23,11 @@ import {
   PLATFORM_TO_CUSTOMER_SIZE,
   PARTNER_CLOSE_ARGUMENTS,
   CUSTOMER_FACING_ARGUMENTS,
+  PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD,
   type PartnerTierId,
   type CustomerSize,
 } from '@/lib/partner-pricing'
+import { estimateMonthlyEvents } from '@/lib/mdu-pricing'
 import { stagger, fadeUp } from '@/lib/ui/motion'
 import { Calculator, TrendingUp, MessageSquare } from 'lucide-react'
 
@@ -129,6 +131,7 @@ export default function PartnerPricingPage() {
   const [calcPlatform, setCalcPlatform] = useState<PlatformKey>('essential')
   const [calcSoc, setCalcSoc] = useState<string>('')
   const [calcMitai, setCalcMitai] = useState<string>('')
+  const [calcDevices, setCalcDevices] = useState(50)
 
   const myTierId = (session?.partnerTier && tierIds.includes(session.partnerTier as PartnerTierId)) ? (session.partnerTier as PartnerTierId) : null
 
@@ -200,6 +203,9 @@ export default function PartnerPricingPage() {
   const customerArgs = CUSTOMER_FACING_ARGUMENTS[customerSize]
   const hasCalculation = calcListTotal > 0
 
+  const estimatedEventsMdu = estimateMonthlyEvents(calcDevices)
+  const mduMarginUsd = Math.round((estimatedEventsMdu / 1000) * PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD * 100) / 100
+
   return (
     <motion.div className="max-w-4xl mx-auto py-8 px-4 space-y-10" variants={stagger} initial="initial" animate="animate">
       <motion.div variants={fadeUp}>
@@ -220,7 +226,7 @@ export default function PartnerPricingPage() {
           Deal calculator
         </h2>
         <p className="text-sm text-[var(--muted)]">
-          Enter a potential deal to see revenue, your cost, margin, tier impact, and arguments for closing (for you and for your customer).
+          Enter a potential deal to see revenue, your cost, margin, tier impact, MDU (data) earning potential, and arguments for closing (for you and for your customer).
         </p>
         <Card className="p-4 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -285,6 +291,17 @@ export default function PartnerPricingPage() {
                 ))}
               </select>
             </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1">Customer size – devices</label>
+              <input
+                type="number"
+                min={0}
+                value={calcDevices}
+                onChange={(e) => setCalcDevices(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                className="w-full text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)]"
+              />
+              <p className="text-[10px] text-[var(--muted)] mt-0.5">For MDU: estimated events → your margin</p>
+            </div>
           </div>
 
           {hasCalculation && (
@@ -307,6 +324,36 @@ export default function PartnerPricingPage() {
                   <div className="text-lg font-semibold text-[var(--text)]">{customersAfter}</div>
                 </div>
               </div>
+
+              {/* Monthly potential from data (MDU) – passive revenue */}
+              <div className="pt-4 pb-2 border-t border-[var(--border)]">
+                <h3 className="text-sm font-semibold text-[var(--text)] mb-2">Monthly potential from data (MDU / Datenveredelung)</h3>
+                <p className="text-xs text-[var(--muted)] mb-3">
+                  The customer&apos;s data flows through the platform; you earn this margin without extra work. Based on {calcDevices} devices and estimated events per device.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div>
+                    <div className="text-xs text-[var(--muted)]">Devices (deal)</div>
+                    <div className="text-lg font-semibold text-[var(--text)]">{calcDevices}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--muted)]">Est. events/mo</div>
+                    <div className="text-lg font-semibold text-[var(--text)]">{(estimatedEventsMdu / 1000).toFixed(1)}k</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--muted)]">Your margin</div>
+                    <div className="text-lg font-semibold text-[var(--primary)]">{formatUsd(mduMarginUsd)}/mo</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--muted)]">Rate</div>
+                    <div className="text-sm font-medium text-[var(--text)]">{formatUsd(PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD)}/1k events</div>
+                  </div>
+                </div>
+                <p className="text-xs font-medium text-[var(--primary)] mt-3 bg-[var(--primary)]/10 rounded-xl px-4 py-2">
+                  Passive income: you earn this margin every month from data processing as long as the customer is live – no extra effort required.
+                </p>
+              </div>
+
               {tierImpactMessage && (
                 <p className="text-sm font-medium text-[var(--primary)] bg-[var(--primary)]/10 rounded-xl px-4 py-2">
                   {tierImpactMessage}

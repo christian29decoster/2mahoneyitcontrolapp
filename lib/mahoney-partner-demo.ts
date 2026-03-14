@@ -1,4 +1,4 @@
-import { PLATFORM_LIST_PRICES, PARTNER_TIERS } from '@/lib/partner-pricing'
+import { PLATFORM_LIST_PRICES, PARTNER_TIERS, PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD } from '@/lib/partner-pricing'
 
 export type PartnerCustomer = {
   id: string
@@ -268,8 +268,8 @@ export const PARTNER_PRICING = {
   tierDiscountRangePct: '20–40',
   /** Demo: discount used for P/L (Advanced tier) */
   demoDiscountPct: DEMO_PARTNER_TIER_DISCOUNT_PCT,
-  /** MDU: partner margin per 1k events (dashboard only; not in partner-pricing) */
-  mduMarginPerUnitUSD: 0.05,
+  /** MDU: partner margin per 1k events (from partner-pricing) */
+  mduMarginPerUnitUSD: PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD,
 } as const
 
 /** Partner cost for Essential at demo tier (list × (1 − discount)). */

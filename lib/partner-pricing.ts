@@ -111,6 +111,9 @@ export const REVENUE_SHARE_MODELS: Array<{ id: string; label: string; partnerSha
 /** Direct sales = list price. Partner may give end customer max 10% discount. */
 export const MAX_PARTNER_CUSTOMER_DISCOUNT_PCT = 10
 
+/** Partner margin per 1,000 events (MDU / data processing). Passive revenue from customer data flowing through the platform. */
+export const PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD = 0.05
+
 /** Min number of customers to qualify for tier (for calculator tier-impact). */
 export const TIER_MIN_CUSTOMERS: Record<PartnerTierId, number> = {
   authorized: 0,
