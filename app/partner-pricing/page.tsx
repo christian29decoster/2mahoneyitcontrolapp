@@ -135,6 +135,8 @@ export default function PartnerPricingPage() {
   const [calcSoc, setCalcSoc] = useState<string>('')
   const [calcMitai, setCalcMitai] = useState<string>('')
   const [calcDevices, setCalcDevices] = useState(50)
+  /** Optional: override estimated events (e.g. 80_000_000–150_000_000 for 250 devices). If 0, use estimate from devices. */
+  const [calcEventsOverride, setCalcEventsOverride] = useState(0)
 
   const myTierId = (session?.partnerTier && tierIds.includes(session.partnerTier as PartnerTierId)) ? (session.partnerTier as PartnerTierId) : null
 
@@ -207,7 +209,9 @@ export default function PartnerPricingPage() {
   const hasCalculation = calcListTotal > 0
 
   const estimatedEventsMdu = estimateMonthlyEvents(calcDevices, EVENTS_PER_DEVICE_PER_DAY_SECURITY)
-  const mduMarginUsd = Math.round((estimatedEventsMdu / 1000) * PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD * 100) / 100
+  const eventsMdu = calcEventsOverride > 0 ? calcEventsOverride : estimatedEventsMdu
+  const mduMarginUsd = Math.round((eventsMdu / 1000) * PARTNER_MDU_MARGIN_PER_1K_EVENTS_USD * 100) / 100
+  const mduEventsDisplay = eventsMdu >= 1_000_000 ? `${(eventsMdu / 1_000_000).toFixed(1)}M` : `${(eventsMdu / 1000).toFixed(1)}k`
 
   return (
     <motion.div className="max-w-4xl mx-auto py-8 px-4 space-y-10" variants={stagger} initial="initial" animate="animate">
@@ -303,7 +307,19 @@ export default function PartnerPricingPage() {
                 onChange={(e) => setCalcDevices(Math.max(0, parseInt(e.target.value, 10) || 0))}
                 className="w-full text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)]"
               />
-              <p className="text-[10px] text-[var(--muted)] mt-0.5">For MDU: estimated events → your margin</p>
+              <p className="text-[10px] text-[var(--muted)] mt-0.5">For MDU: estimate or enter events below</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--muted)] mb-1">Events/mo (optional override)</label>
+              <input
+                type="number"
+                min={0}
+                placeholder="e.g. 80000000 or 150000000"
+                value={calcEventsOverride > 0 ? calcEventsOverride : ''}
+                onChange={(e) => setCalcEventsOverride(Math.max(0, parseInt(e.target.value.replace(/\D/g, ''), 10) || 0))}
+                className="w-full text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text)] placeholder-[var(--muted)]"
+              />
+              <p className="text-[10px] text-[var(--muted)] mt-0.5">Real volumes: e.g. 80–150M for ~250 devices</p>
             </div>
           </div>
 
@@ -332,7 +348,10 @@ export default function PartnerPricingPage() {
               <div className="pt-4 pb-2 border-t border-[var(--border)]">
                 <h3 className="text-sm font-semibold text-[var(--text)] mb-2">Monthly potential from data (MDU / Datenveredelung)</h3>
                 <p className="text-xs text-[var(--muted)] mb-3">
-                  The customer&apos;s data flows through the platform; you earn this margin without extra work. Estimate assumes SIEM, XDR and system events ({EVENTS_PER_DEVICE_PER_DAY_SECURITY} events/device/day).
+                  The customer&apos;s data flows through the platform; you earn this margin without extra work.
+                  {calcEventsOverride > 0
+                    ? ' Using your entered events/mo. Many customers with ~250 devices generate 80–150M events/month.'
+                    : ` Estimate: ${EVENTS_PER_DEVICE_PER_DAY_SECURITY} events/device/day. For real volumes (e.g. 80–150M), enter Events/mo above.`}
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
@@ -340,8 +359,8 @@ export default function PartnerPricingPage() {
                     <div className="text-lg font-semibold text-[var(--text)]">{calcDevices}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-[var(--muted)]">Est. events/mo</div>
-                    <div className="text-lg font-semibold text-[var(--text)]">{(estimatedEventsMdu / 1000).toFixed(1)}k</div>
+                    <div className="text-xs text-[var(--muted)]">{calcEventsOverride > 0 ? 'Events/mo' : 'Est. events/mo'}</div>
+                    <div className="text-lg font-semibold text-[var(--text)]">{mduEventsDisplay}</div>
                   </div>
                   <div>
                     <div className="text-xs text-[var(--muted)]">Your margin</div>
