@@ -314,7 +314,7 @@ export default function MarketplacePage() {
                   billing. Optional add-on: Mahoney Grow for business growth insights from security data.
                 </p>
                 <p className="text-[var(--muted)] mt-2">
-                  Pricing as per MIT-AI price list. Partners receive 20% discount; see Control Dashboard for partner P/L.
+                  Pricing as per Mahoney Control App price list (net). Partners receive 20% discount; see Control Dashboard for partner P/L.
                 </p>
               </>
             }
@@ -630,13 +630,13 @@ export default function MarketplacePage() {
           Platform &amp; Data (MDU) – Events
           <span
             className="inline-flex items-center justify-center"
-            title="Volume-based billing for events per month (from RMM, EDR, SIEM); 0–1M events are included with the platform."
+            title="Usage-based billing from 1M events/month (RMM, EDR, SIEM). 0–1M included with platform."
           >
             <Info className="w-4 h-4 text-[var(--muted)]" />
           </span>
         </h2>
         <p className="text-sm text-[var(--muted)]">
-          Event-based billing per month (RMM, EDR, SIEM). RMM/EDR alert counts alone do not increase MDU cost.
+          Usage-based billing from 1M events per month (RMM, EDR, SIEM). 0–1M events included with platform. RMM/EDR alert counts alone do not increase MDU cost.
         </p>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
@@ -667,32 +667,30 @@ export default function MarketplacePage() {
           </table>
         </Card>
         <p className="text-xs text-[var(--muted)]">
-          Cross-sell: MDU as required building block for high-volume Mahoney One and SOC customers; entry via 0–1M
-          included.
+          Cross-sell: MDU as required building block for high-volume Mahoney One and SOC customers; billing from 1M events, 0–1M included with platform.
         </p>
       </section>
 
-      {/* MIT-AI – AI analytics & Co-Pilot */}
+      {/* MIT-AI – AI analytics & Co-Pilot (Action Packs) */}
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--text)] flex items-center gap-2">
-          MIT-AI – AI Analytics &amp; Co-Pilot
+          MIT-AI – AI Analytics &amp; Co-Pilot (Action Packs)
           <span
             className="inline-flex items-center justify-center"
-            title="AI-powered analytics and Co-Pilot usage, billed by input/output tokens across Standard, Pro and Premium plans."
+            title="Fixed-price Action Packs for AI analytics and Co-Pilot. Included in Security OS."
           >
             <Info className="w-4 h-4 text-[var(--muted)]" />
           </span>
         </h2>
         <p className="text-sm text-[var(--muted)]">
-          AI-supported analytics and Co-Pilot, billed by tokens used (input / output).
+          AI-supported analytics and Co-Pilot as monthly Action Packs. Pricing per Mahoney Control App price list ($, net). Included in Security OS.
         </p>
         <Card className="overflow-x-auto p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[var(--muted)] border-b border-[var(--border)]">
                 <th className="py-2 pr-4 text-left">Plan</th>
-                <th className="py-2 pr-4 text-left">Input (per 1M tokens)</th>
-                <th className="py-2 pr-4 text-left">Output (per 1M tokens)</th>
+                <th className="py-2 pr-4 text-left">Price (monthly, net)</th>
                 <th className="py-2 text-left">Use case</th>
                 <th className="py-2 text-left">Action</th>
               </tr>
@@ -701,97 +699,53 @@ export default function MarketplacePage() {
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
-                    Standard
-                    <span
-                      className="inline-flex items-center justify-center"
-                      title="Standard AI usage tier for short queries and basic evaluations."
-                    >
+                    Insight
+                    <span className="inline-flex items-center justify-center" title="Entry-level AI analytics and short evaluations.">
                       <Info className="w-3 h-3 text-[var(--muted)]" />
                     </span>
                   </span>
                 </td>
-                <td className="py-2 pr-4">$1.50</td>
-                <td className="py-2 pr-4">$7.50</td>
-                <td className="py-2 text-sm">Short queries, standard evaluations.</td>
+                <td className="py-2 pr-4">$290 / month</td>
+                <td className="py-2 text-sm">Short queries, standard evaluations, basic Co-Pilot.</td>
                 <td className="py-2 text-sm">
-                  <HapticButton
-                    label="Add to cart"
-                    onClick={() =>
-                      addToCart({
-                        id: 'mitai-standard',
-                        name: 'MIT-AI – Standard',
-                        description: '$1.50 input / $7.50 output per 1M tokens',
-                      })
-                    }
-                  />
+                  <HapticButton label="Add to cart" onClick={() => addToCart({ id: 'mitai-insight', name: 'MIT-AI – Insight', description: '$290 / month' })} />
                 </td>
               </tr>
               <tr className="border-b border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
-                    Pro
-                    <span
-                      className="inline-flex items-center justify-center"
-                      title="Pro tier for Co-Pilot, analytics and recommendations in day-to-day operations."
-                    >
+                    Intelligence
+                    <span className="inline-flex items-center justify-center" title="Co-Pilot, analytics and recommendations for day-to-day operations.">
                       <Info className="w-3 h-3 text-[var(--muted)]" />
                     </span>
                   </span>
                 </td>
-                <td className="py-2 pr-4">$4.50</td>
-                <td className="py-2 pr-4">$22.50</td>
+                <td className="py-2 pr-4">$990 / month</td>
+                <td className="py-2 text-sm">Co-Pilot, analysis, recommendations, governance reports.</td>
                 <td className="py-2 text-sm">
-                  Co-Pilot, analysis, recommendations (standard use).
-                </td>
-                <td className="py-2 text-sm">
-                  <HapticButton
-                    label="Add to cart"
-                    onClick={() =>
-                      addToCart({
-                        id: 'mitai-pro',
-                        name: 'MIT-AI – Pro',
-                        description: '$4.50 input / $22.50 output per 1M tokens',
-                      })
-                    }
-                  />
+                  <HapticButton label="Add to cart" onClick={() => addToCart({ id: 'mitai-intelligence', name: 'MIT-AI – Intelligence', description: '$990 / month' })} />
                 </td>
               </tr>
               <tr>
                 <td className="py-2 pr-4 font-medium">
                   <span className="inline-flex items-center gap-1">
-                    Premium
-                    <span
-                      className="inline-flex items-center justify-center"
-                      title="Premium AI tier for complex analyses, long contexts and executive-grade outputs."
-                    >
+                    Command
+                    <span className="inline-flex items-center justify-center" title="Complex analyses, large context, executive-grade outputs.">
                       <Info className="w-3 h-3 text-[var(--muted)]" />
                     </span>
                   </span>
                 </td>
-                <td className="py-2 pr-4">$7.50</td>
-                <td className="py-2 pr-4">$37.50</td>
+                <td className="py-2 pr-4">$2,490 / month</td>
+                <td className="py-2 text-sm">Complex analytics, full context, executive dashboards.</td>
                 <td className="py-2 text-sm">
-                  Complex analytics, large context windows.
-                </td>
-                <td className="py-2 text-sm">
-                  <HapticButton
-                    label="Add to cart"
-                    onClick={() =>
-                      addToCart({
-                        id: 'mitai-premium',
-                        name: 'MIT-AI – Premium',
-                        description: '$7.50 input / $37.50 output per 1M tokens',
-                      })
-                    }
-                  />
+                  <HapticButton label="Add to cart" onClick={() => addToCart({ id: 'mitai-command', name: 'MIT-AI – Command', description: '$2,490 / month' })} />
                 </td>
               </tr>
             </tbody>
           </table>
         </Card>
         <p className="text-xs text-[var(--muted)]">
-          Upsell: MIT-AI Pro/Premium as add-on to Mahoney One + SOC for governance reports, risk analysis, and
-          executive dashboards.
+          Upsell: Insight → Intelligence → Command as add-on to Platform + SOC. Security OS includes MIT-AI at a single fixed price.
         </p>
       </section>
 
