@@ -165,7 +165,7 @@ export default function DashboardPage() {
                       <div className="text-sm font-semibold text-[var(--text)]">
                         {MARKETPLACE_PLAN.name} {formatCurrency(MARKETPLACE_PLAN.priceUsdPerMonth)}/mo
                         <span className="ml-1.5 text-[var(--success)] font-medium">→ {formatCurrency(PARTNER_APP_PRICE_USD)}/mo</span>
-                        <span className="text-[10px] text-[var(--muted)] font-normal ml-1">(20% off)</span>
+                        <span className="text-[10px] text-[var(--muted)] font-normal ml-1">({PARTNER_PRICING.demoDiscountPct}% tier discount)</span>
                       </div>
                     </div>
                     <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-xs font-medium text-[var(--primary)] hover:underline shrink-0">Details</button>
@@ -454,31 +454,31 @@ export default function DashboardPage() {
                 </div>
               </Card>
 
-              {/* Partner pricing & margin (from marketplace) */}
+              {/* Partner pricing & margin (aligned with Partner Pricing page) */}
               <Card className="card-desktop p-5">
                 <h2 className="text-base font-semibold text-[var(--text)] mb-3">Partner pricing & margin</h2>
                 <p className="text-xs text-[var(--muted)] mb-4">
-                  Your terms from the Marketplace. Prices in single-tenant view are from your catalog; you receive the margins below.
+                  You sell at list price. Your margin = tier discount (Authorized / Advanced / Elite). See Partner Pricing for full list prices and deal calculator.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
-                    <div className="text-xs text-[var(--muted)]">App (your access)</div>
-                    <div className="text-sm font-semibold text-[var(--success)]">{PARTNER_PRICING.appDiscountPct}% discount</div>
-                    <p className="text-[10px] text-[var(--muted)] mt-0.5">You pay 80% of list</p>
+                    <div className="text-xs text-[var(--muted)]">Tier discount (platform)</div>
+                    <div className="text-sm font-semibold text-[var(--success)]">{PARTNER_PRICING.tierDiscountRangePct}%</div>
+                    <p className="text-[10px] text-[var(--muted)] mt-0.5">Authorized 20% · Advanced 30% · Elite 40%</p>
                   </div>
                   <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
-                    <div className="text-xs text-[var(--muted)]">Per customer (Control Platform)</div>
-                    <div className="text-sm font-semibold text-[var(--success)]">{PARTNER_PRICING.partnerSharePerCustomerPct}% to you</div>
-                    <p className="text-[10px] text-[var(--muted)] mt-0.5">70% of platform revenue per customer</p>
+                    <div className="text-xs text-[var(--muted)]">Essential (list)</div>
+                    <div className="text-sm font-semibold text-[var(--text)]">{formatCurrency(MARKETPLACE_PLAN.priceUsdPerMonth)}/mo</div>
+                    <p className="text-[10px] text-[var(--muted)] mt-0.5">Pro / Enterprise / Security OS on Partner Pricing</p>
                   </div>
                   <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
-                    <div className="text-xs text-[var(--muted)]">Sell your MSP in app</div>
-                    <div className="text-sm font-semibold text-[var(--text)]">You keep 80%</div>
-                    <p className="text-[10px] text-[var(--muted)] mt-0.5">e.g. Mahoney One with your brand · we take {PARTNER_PRICING.mahoneyShareOnMspSellPct}%</p>
+                    <div className="text-xs text-[var(--muted)]">Demo tier (P/L below)</div>
+                    <div className="text-sm font-semibold text-[var(--primary)]">{PARTNER_PRICING.demoDiscountPct}%</div>
+                    <p className="text-[10px] text-[var(--muted)] mt-0.5">Advanced · your tier from session on Partner Pricing</p>
                   </div>
                   <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
                     <div className="text-xs text-[var(--muted)]">MDU (data/events)</div>
-                    <div className="text-sm font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)}/unit your margin</div>
+                    <div className="text-sm font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)}/1k events</div>
                     <p className="text-[10px] text-[var(--muted)] mt-0.5">On top of base MDU</p>
                   </div>
                 </div>
@@ -487,19 +487,19 @@ export default function DashboardPage() {
               {/* P/L with the app + MDU */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 <Card className="card-desktop p-5">
-                  <h2 className="text-base font-semibold text-[var(--text)] mb-1">P/L · App (platform)</h2>
-                  <p className="text-xs text-[var(--muted)] mb-4">Revenue share from customers minus your app fee.</p>
+                  <h2 className="text-base font-semibold text-[var(--text)] mb-1">P/L · Platform (portfolio)</h2>
+                  <p className="text-xs text-[var(--muted)] mb-4">You sell at list; your margin = tier discount on portfolio MRR (demo: {PARTNER_PRICING.demoDiscountPct}%).</p>
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--muted)]">Revenue (70% platform share × {partnerSummary.totalCustomers} customers)</span>
+                      <span className="text-[var(--muted)]">Your margin ({PARTNER_PRICING.demoDiscountPct}% × {partnerSummary.totalCustomers} customers)</span>
                       <span className="font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PL_APP_DEMO.revenueFromPlatformShareUsd)}/mo</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--muted)]">App cost (Essential −20%)</span>
+                      <span className="text-[var(--muted)]">Your cost (list − margin)</span>
                       <span className="font-semibold text-[var(--danger)]">−{formatCurrency(PARTNER_PL_APP_DEMO.appCostUsd)}/mo</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-[var(--border)]">
-                      <span className="text-sm font-medium text-[var(--text)]">Net (app P/L)</span>
+                      <span className="text-sm font-medium text-[var(--text)]">Net (platform P/L)</span>
                       <span className={`font-semibold ${PARTNER_PL_APP_DEMO.netUsd >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
                         {PARTNER_PL_APP_DEMO.netUsd >= 0 ? '+' : ''}{formatCurrency(PARTNER_PL_APP_DEMO.netUsd)}/mo
                       </span>
@@ -762,7 +762,7 @@ export default function DashboardPage() {
           {view === 'partner' ? (
             <p className="text-sm text-[var(--muted)]">
               <strong className="text-[var(--text)]">{MARKETPLACE_PLAN.name}</strong> {formatCurrency(MARKETPLACE_PLAN.priceUsdPerMonth)}/mo
-              <span className="text-[var(--success)]"> → {formatCurrency(PARTNER_APP_PRICE_USD)}/mo</span> (20% off)
+              <span className="text-[var(--success)]"> → {formatCurrency(PARTNER_APP_PRICE_USD)}/mo</span> ({PARTNER_PRICING.demoDiscountPct}% tier discount)
               {' · '}
               <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-[var(--primary)] underline underline-offset-2">Details</button>
             </p>
@@ -979,36 +979,36 @@ export default function DashboardPage() {
             <Card className="p-4">
               <h3 className="text-sm font-semibold text-[var(--text)] mb-2">Partner pricing & margin</h3>
               <p className="text-[11px] text-[var(--muted)] mb-3">
-                Your Marketplace terms. Single-tenant prices come from your catalog; you keep the margins below.
+                Sell at list; margin = tier discount ({PARTNER_PRICING.tierDiscountRangePct}%). Partner Pricing for full list.
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
-                  <div className="text-[10px] text-[var(--muted)]">App</div>
-                  <div className="text-xs font-semibold text-[var(--success)]">{PARTNER_PRICING.appDiscountPct}% off</div>
+                  <div className="text-[10px] text-[var(--muted)]">Tier discount</div>
+                  <div className="text-xs font-semibold text-[var(--success)]">{PARTNER_PRICING.tierDiscountRangePct}%</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
-                  <div className="text-[10px] text-[var(--muted)]">Per customer</div>
-                  <div className="text-xs font-semibold text-[var(--success)]">{PARTNER_PRICING.partnerSharePerCustomerPct}% to you</div>
+                  <div className="text-[10px] text-[var(--muted)]">Essential list</div>
+                  <div className="text-xs font-semibold text-[var(--text)]">{formatCurrency(MARKETPLACE_PLAN.priceUsdPerMonth)}/mo</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
-                  <div className="text-[10px] text-[var(--muted)]">Sell your MSP</div>
-                  <div className="text-xs font-semibold text-[var(--text)]">You keep 80%</div>
+                  <div className="text-[10px] text-[var(--muted)]">Demo tier</div>
+                  <div className="text-xs font-semibold text-[var(--primary)]">{PARTNER_PRICING.demoDiscountPct}%</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
                   <div className="text-[10px] text-[var(--muted)]">MDU</div>
-                  <div className="text-xs font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)}/unit</div>
+                  <div className="text-xs font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)}/1k</div>
                 </div>
               </div>
             </Card>
 
             {/* P/L App + MDU (mobile) */}
             <Card className="p-4">
-              <h3 className="text-sm font-semibold text-[var(--text)] mb-2">P/L · App & MDU</h3>
+              <h3 className="text-sm font-semibold text-[var(--text)] mb-2">P/L · Platform & MDU</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-2.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
-                  <div className="text-[10px] text-[var(--muted)] uppercase">App</div>
+                  <div className="text-[10px] text-[var(--muted)] uppercase">Platform margin</div>
                   <div className="text-xs font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PL_APP_DEMO.netUsd)}/mo</div>
-                  <div className="text-[10px] text-[var(--muted)]">Share − fee</div>
+                  <div className="text-[10px] text-[var(--muted)]">{PARTNER_PRICING.demoDiscountPct}% tier</div>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
                   <div className="text-[10px] text-[var(--muted)] uppercase">MDU</div>

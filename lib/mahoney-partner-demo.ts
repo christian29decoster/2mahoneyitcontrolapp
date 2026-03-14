@@ -1,3 +1,5 @@
+import { PLATFORM_LIST_PRICES, PARTNER_TIERS } from '@/lib/partner-pricing'
+
 export type PartnerCustomer = {
   id: string
   name: string
@@ -251,36 +253,37 @@ export const partnerSummary = (() => {
   }
 })()
 
-/** Marketplace plan (shown in Single-tenant and as list for Partner). Aligned with price list v2: Essential $799. */
+/** Marketplace plan (Essential = $799). Aligned with Partner Pricing page. */
 export const MARKETPLACE_PLAN = {
   name: 'Essential',
-  priceUsdPerMonth: 799,
+  priceUsdPerMonth: PLATFORM_LIST_PRICES.essential,
 } as const
 
-/** Partner pricing & margin (from marketplace; partner sees this in dashboard) */
+/** Demo tier for dashboard (Advanced = 30%). Real tier comes from session on Partner Pricing page. */
+const DEMO_PARTNER_TIER_DISCOUNT_PCT = PARTNER_TIERS.advanced.discountPct
+
+/** Partner pricing & margin for dashboard. You sell at list; margin = tier discount (20–40%). */
 export const PARTNER_PRICING = {
-  /** Partner gets 20% discount on the Control app (pays 80% of list) */
-  appDiscountPct: 20,
-  /** For each customer of the partner: partner receives 70% of Mahoney Control Platform revenue */
-  partnerSharePerCustomerPct: 70,
-  /** When partner sells their MSP in the app (e.g. Mahoney One with partner branding): Mahoney takes 20% */
-  mahoneyShareOnMspSellPct: 20,
-  /** MDU: partner margin per unit (per 1k events), on top of base MDU */
+  /** Tier discount range (Authorized / Advanced / Elite) */
+  tierDiscountRangePct: '20–40',
+  /** Demo: discount used for P/L (Advanced tier) */
+  demoDiscountPct: DEMO_PARTNER_TIER_DISCOUNT_PCT,
+  /** MDU: partner margin per 1k events (dashboard only; not in partner-pricing) */
   mduMarginPerUnitUSD: 0.05,
 } as const
 
-/** Partner's app fee per month (Essential list minus 20%) */
-export const PARTNER_APP_PRICE_USD = Math.round(MARKETPLACE_PLAN.priceUsdPerMonth * (1 - PARTNER_PRICING.appDiscountPct / 100) * 100) / 100
+/** Partner cost for Essential at demo tier (list × (1 − discount)). */
+export const PARTNER_APP_PRICE_USD = Math.round(PLATFORM_LIST_PRICES.essential * (1 - DEMO_PARTNER_TIER_DISCOUNT_PCT / 100) * 100) / 100
 
-/** Demo: P/L with the app (platform revenue share minus partner app cost) */
+/** Demo: P/L from platform (you sell at list; margin = tier discount on portfolio MRR). */
 export const PARTNER_PL_APP_DEMO = (() => {
-  const platformRevenuePerCustomer = MARKETPLACE_PLAN.priceUsdPerMonth
-  const partnerShare = (PARTNER_PRICING.partnerSharePerCustomerPct / 100) * platformRevenuePerCustomer * partnerSummary.totalCustomers
-  const appCost = PARTNER_APP_PRICE_USD
+  const listTotalUsd = partnerSummary.totalMRR
+  const marginUsd = Math.round((listTotalUsd * DEMO_PARTNER_TIER_DISCOUNT_PCT) / 100 * 100) / 100
+  const costUsd = Math.round((listTotalUsd * (100 - DEMO_PARTNER_TIER_DISCOUNT_PCT)) / 100 * 100) / 100
   return {
-    revenueFromPlatformShareUsd: Math.round(partnerShare * 100) / 100,
-    appCostUsd: appCost,
-    netUsd: Math.round((partnerShare - appCost) * 100) / 100,
+    revenueFromPlatformShareUsd: marginUsd,
+    appCostUsd: costUsd,
+    netUsd: marginUsd,
   }
 })()
 
