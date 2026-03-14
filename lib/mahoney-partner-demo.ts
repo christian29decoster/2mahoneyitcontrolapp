@@ -251,6 +251,12 @@ export const partnerSummary = (() => {
   }
 })()
 
+/** Marketplace plan (shown in Single-tenant and as list for Partner) */
+export const MARKETPLACE_PLAN = {
+  name: 'Starter',
+  priceUsdPerMonth: 499,
+} as const
+
 /** Partner pricing & margin (from marketplace; partner sees this in dashboard) */
 export const PARTNER_PRICING = {
   /** Partner gets 20% discount on the Control app (pays 80% of list) */
@@ -259,7 +265,47 @@ export const PARTNER_PRICING = {
   partnerSharePerCustomerPct: 70,
   /** When partner sells their MSP in the app (e.g. Mahoney One with partner branding): Mahoney takes 20% */
   mahoneyShareOnMspSellPct: 20,
-  /** MDU: partner margin per unit (e.g. per GB or per 1k events), on top of base MDU */
+  /** MDU: partner margin per unit (per 1k events), on top of base MDU */
   mduMarginPerUnitUSD: 0.05,
 } as const
+
+/** Partner's app fee per month (Starter list minus 20%) */
+export const PARTNER_APP_PRICE_USD = Math.round(MARKETPLACE_PLAN.priceUsdPerMonth * (1 - PARTNER_PRICING.appDiscountPct / 100) * 100) / 100
+
+/** Demo: P/L with the app (platform revenue share minus partner app cost) */
+export const PARTNER_PL_APP_DEMO = (() => {
+  const platformRevenuePerCustomer = MARKETPLACE_PLAN.priceUsdPerMonth
+  const partnerShare = (PARTNER_PRICING.partnerSharePerCustomerPct / 100) * platformRevenuePerCustomer * partnerSummary.totalCustomers
+  const appCost = PARTNER_APP_PRICE_USD
+  return {
+    revenueFromPlatformShareUsd: Math.round(partnerShare * 100) / 100,
+    appCostUsd: appCost,
+    netUsd: Math.round((partnerShare - appCost) * 100) / 100,
+  }
+})()
+
+/** Demo: MDU volume and P/L for partner (enough events so partner makes profit from margin) */
+export const PARTNER_MDU_DEMO = (() => {
+  const eventsPerDay = 85_000
+  const eventsPerMonth = eventsPerDay * 30
+  const unitsThousand = eventsPerMonth / 1_000
+  const baseCostPerThousandUsd = 0.03
+  const partnerMarginPerThousandUsd = PARTNER_PRICING.mduMarginPerUnitUSD
+  const costToPartnerUsd = Math.round(unitsThousand * baseCostPerThousandUsd * 100) / 100
+  const partnerMarginRevenueUsd = Math.round(unitsThousand * partnerMarginPerThousandUsd * 100) / 100
+  const customerChargePerThousandUsd = baseCostPerThousandUsd + partnerMarginPerThousandUsd
+  const revenueFromCustomersUsd = Math.round(unitsThousand * customerChargePerThousandUsd * 100) / 100
+  return {
+    eventsPerDay,
+    eventsPerMonth,
+    unitsThousand: Math.round(unitsThousand * 10) / 10,
+    baseCostPerThousandUsd,
+    partnerMarginPerThousandUsd,
+    costToPartnerUsd,
+    partnerMarginRevenueUsd,
+    customerChargePerThousandUsd,
+    revenueFromCustomersUsd,
+    netMduUsd: partnerMarginRevenueUsd,
+  }
+})()
 

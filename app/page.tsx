@@ -26,7 +26,7 @@ import KpiGrid from '@/components/dashboard/KpiGrid'
 import CloudTiles from '@/components/dashboard/CloudTiles'
 import { GROW_DEMO_BASELINE, growAiScore } from '@/lib/mahoney-grow-demo'
 import { LineChart } from 'lucide-react'
-import { partnerCustomers, partnerSummary, partnerMRRTrendMonths, partnerAppUpsells, partnerUpsellSummary, partnerAutomationImpacts, partnerAutomationSummary, PARTNER_PRICING, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
+import { partnerCustomers, partnerSummary, partnerMRRTrendMonths, partnerAppUpsells, partnerUpsellSummary, partnerAutomationImpacts, partnerAutomationSummary, PARTNER_PRICING, MARKETPLACE_PLAN, PARTNER_APP_PRICE_USD, PARTNER_PL_APP_DEMO, PARTNER_MDU_DEMO, type PartnerCustomer } from '@/lib/mahoney-partner-demo'
 import { useViewModeStore } from '@/lib/viewMode.store'
 import { AlertsChart, MttrChart } from '@/components/dashboard/DesktopDashboardCharts'
 import KpiTile from '@/components/dashboard/KpiTile'
@@ -122,61 +122,63 @@ export default function DashboardPage() {
     <>
       {viewMode === 'desktop' ? (
         <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
-          {/* Desktop: Header + Executive summary */}
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
+          {/* Desktop: Header – modern layout */}
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="flex items-baseline gap-4">
               <h1 className="text-2xl font-bold tracking-tight text-[var(--text)]">
                 Control Dashboard
               </h1>
-              <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-sm text-[var(--muted)]">
-                  {view === 'customer' ? 'Single-tenant view' : 'Partner overview'}
-                </p>
-                {view === 'customer' && partnerCustomers.length > 0 && (
-                  <select
-                    value={selectedTenantId ?? ''}
-                    onChange={(e) => setSelectedTenantId(e.target.value || null)}
-                    className="text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                    aria-label="Select customer"
-                  >
-                    {partnerCustomers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+              <span className="text-sm text-[var(--muted)] font-medium">
+                {view === 'customer' ? 'Single-tenant view' : 'Partner overview'}
+              </span>
+              {view === 'customer' && partnerCustomers.length > 0 && (
+                <select
+                  value={selectedTenantId ?? ''}
+                  onChange={(e) => setSelectedTenantId(e.target.value || null)}
+                  className="text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                  aria-label="Select customer"
+                >
+                  {partnerCustomers.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)]/80 px-4 py-2.5">
+                {view === 'partner' ? (
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--muted)]">Marketplace · Partner</div>
+                      <div className="text-sm font-semibold text-[var(--text)]">
+                        {MARKETPLACE_PLAN.name} {formatCurrency(MARKETPLACE_PLAN.priceUsdPerMonth)}/mo
+                        <span className="ml-1.5 text-[var(--success)] font-medium">→ {formatCurrency(PARTNER_APP_PRICE_USD)}/mo</span>
+                        <span className="text-[10px] text-[var(--muted)] font-normal ml-1">(20% off)</span>
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-xs font-medium text-[var(--primary)] hover:underline shrink-0">Details</button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--muted)]">Plan · Marketplace</div>
+                      <div className="text-sm font-semibold text-[var(--text)]">
+                        {MARKETPLACE_PLAN.name} {formatCurrency(MARKETPLACE_PLAN.priceUsdPerMonth)}/mo
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-xs font-medium text-[var(--primary)] hover:underline shrink-0">Upgrade</button>
+                  </div>
                 )}
               </div>
-            </div>
-            <div className="flex items-center gap-4">
-              {view === 'partner' ? (
-                <p className="text-sm text-[var(--muted)]">
-                  <strong className="text-[var(--text)]">Partner pricing:</strong>
-                  {' '}{PARTNER_PRICING.appDiscountPct}% off app · {PARTNER_PRICING.partnerSharePerCustomerPct}% per customer · MDU +{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)} margin
-                  {' · '}
-                  <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-[var(--primary)] hover:underline">
-                    Details
-                  </button>
-                </p>
-              ) : (
-                <p className="text-sm text-[var(--muted)]">
-                  <strong className="text-[var(--text)]">{demoTenant.currentPlan.tier}</strong>
-                  {' '}({formatCurrency(planMonthlyUSD('Essential', 5, 25))}/mo)
-                  {' · '}
-                  <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-[var(--primary)] hover:underline">
-                    Upgrade
-                  </button>
-                </p>
-              )}
-              <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-2)] overflow-hidden">
+              <div className="inline-flex rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-1">
                 <button
-                  className={`px-4 py-2 text-sm font-medium ${view === 'customer' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
+                  className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${view === 'customer' ? 'bg-[var(--primary)] text-white shadow-sm' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
                   onClick={() => setView('customer')}
                 >
                   Customer
                 </button>
                 <button
-                  className={`px-4 py-2 text-sm font-medium border-l border-[var(--border)] ${view === 'partner' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
+                  className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${view === 'partner' ? 'bg-[var(--primary)] text-white shadow-sm' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
                   onClick={() => setView('partner')}
                 >
                   Partner
@@ -468,6 +470,56 @@ export default function DashboardPage() {
                 </div>
               </Card>
 
+              {/* P/L with the app + MDU */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <Card className="card-desktop p-5">
+                  <h2 className="text-base font-semibold text-[var(--text)] mb-1">P/L · App (platform)</h2>
+                  <p className="text-xs text-[var(--muted)] mb-4">Revenue share from customers minus your app fee.</p>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">Revenue (70% platform share × {partnerSummary.totalCustomers} customers)</span>
+                      <span className="font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PL_APP_DEMO.revenueFromPlatformShareUsd)}/mo</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">App cost (Starter −20%)</span>
+                      <span className="font-semibold text-[var(--danger)]">−{formatCurrency(PARTNER_PL_APP_DEMO.appCostUsd)}/mo</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-[var(--border)]">
+                      <span className="text-sm font-medium text-[var(--text)]">Net (app P/L)</span>
+                      <span className={`font-semibold ${PARTNER_PL_APP_DEMO.netUsd >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
+                        {PARTNER_PL_APP_DEMO.netUsd >= 0 ? '+' : ''}{formatCurrency(PARTNER_PL_APP_DEMO.netUsd)}/mo
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+                <Card className="card-desktop p-5">
+                  <h2 className="text-base font-semibold text-[var(--text)] mb-1">P/L · MDU (data)</h2>
+                  <p className="text-xs text-[var(--muted)] mb-4">Portfolio events · your margin {formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)}/1k events.</p>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">Events (portfolio)</span>
+                      <span className="font-medium text-[var(--text)]">{(PARTNER_MDU_DEMO.eventsPerMonth / 1_000_000).toFixed(2)}M/mo</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">≈ per day</span>
+                      <span className="font-medium text-[var(--text)]">{(PARTNER_MDU_DEMO.eventsPerDay / 1000).toFixed(0)}k</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">Base cost (to platform)</span>
+                      <span className="font-semibold text-[var(--danger)]">−{formatCurrency(PARTNER_MDU_DEMO.costToPartnerUsd)}/mo</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[var(--muted)]">Your margin (+{formatCurrency(PARTNER_MDU_DEMO.partnerMarginPerThousandUsd)}/1k)</span>
+                      <span className="font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_MDU_DEMO.partnerMarginRevenueUsd)}/mo</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-[var(--border)]">
+                      <span className="text-sm font-medium text-[var(--text)]">Net (MDU P/L)</span>
+                      <span className="font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_MDU_DEMO.netMduUsd)}/mo</span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 {/* Revenue trend */}
                 <Card className="card-desktop p-5">
@@ -695,18 +747,16 @@ export default function DashboardPage() {
         <motion.div variants={stagger} className="text-center">
           {view === 'partner' ? (
             <p className="text-sm text-[var(--muted)]">
-              <strong className="text-[var(--text)]">Partner pricing:</strong>
-              {' '}{PARTNER_PRICING.appDiscountPct}% off app · {PARTNER_PRICING.partnerSharePerCustomerPct}% per customer · MDU +{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)} margin
+              <strong className="text-[var(--text)]">{MARKETPLACE_PLAN.name}</strong> {formatCurrency(MARKETPLACE_PLAN.priceUsdPerMonth)}/mo
+              <span className="text-[var(--success)]"> → {formatCurrency(PARTNER_APP_PRICE_USD)}/mo</span> (20% off)
               {' · '}
               <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="text-[var(--primary)] underline underline-offset-2">Details</button>
             </p>
           ) : (
             <p className="text-sm text-[var(--muted)]">
-              You&apos;re on <strong className="text-[var(--text)]">{demoTenant.currentPlan.tier}</strong> ({formatCurrency(planMonthlyUSD('Essential', 5, 25))}/mo).
-              {' '}
-              <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="underline underline-offset-2 text-[var(--primary)] hover:opacity-90">
-                Upgrade to {demoTenant.upgradeOffer.target.tier} (+${demoTenant.upgradeOffer.deltaMonthly}/mo)
-              </button>
+              Plan: <strong className="text-[var(--text)]">{MARKETPLACE_PLAN.name}</strong> {formatCurrency(MARKETPLACE_PLAN.priceUsdPerMonth)}/mo
+              {' · '}
+              <button type="button" onClick={() => setIsUpgradeSheetOpen(true)} className="underline underline-offset-2 text-[var(--primary)] hover:opacity-90">Upgrade</button>
             </p>
           )}
         </motion.div>
@@ -931,6 +981,23 @@ export default function DashboardPage() {
                 <div className="p-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)]">
                   <div className="text-[10px] text-[var(--muted)]">MDU</div>
                   <div className="text-xs font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PRICING.mduMarginPerUnitUSD)}/unit</div>
+                </div>
+              </div>
+            </Card>
+
+            {/* P/L App + MDU (mobile) */}
+            <Card className="p-4">
+              <h3 className="text-sm font-semibold text-[var(--text)] mb-2">P/L · App & MDU</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-2.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                  <div className="text-[10px] text-[var(--muted)] uppercase">App</div>
+                  <div className="text-xs font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PL_APP_DEMO.netUsd)}/mo</div>
+                  <div className="text-[10px] text-[var(--muted)]">Share − fee</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                  <div className="text-[10px] text-[var(--muted)] uppercase">MDU</div>
+                  <div className="text-xs font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_MDU_DEMO.netMduUsd)}/mo</div>
+                  <div className="text-[10px] text-[var(--muted)]">{(PARTNER_MDU_DEMO.eventsPerMonth / 1_000_000).toFixed(1)}M events</div>
                 </div>
               </div>
             </Card>
