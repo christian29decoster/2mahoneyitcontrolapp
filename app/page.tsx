@@ -65,6 +65,12 @@ export default function DashboardPage() {
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(partnerCustomers[0]?.id ?? null)
   const h = useHaptics()
 
+  const setAuditCounts = useAuditStore(s => s.setAuditCounts)
+  const addActivity = useActivityStore((s) => s.addActivity)
+  const viewMode = useViewModeStore((s) => s.viewMode)
+  const demoViewRole = useDemoViewRoleStore((s) => s.demoViewRole)
+  const showPartnerView = demoViewRole !== 'client_wit' && demoViewRole !== 'client_woit'
+
   useEffect(() => {
     fetch('/api/usage')
       .then((r) => r.json())
@@ -76,11 +82,6 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!showPartnerView && view === 'partner') setView('customer')
   }, [showPartnerView, view])
-  const setAuditCounts = useAuditStore(s => s.setAuditCounts)
-  const addActivity = useActivityStore((s) => s.addActivity)
-  const viewMode = useViewModeStore((s) => s.viewMode)
-  const demoViewRole = useDemoViewRoleStore((s) => s.demoViewRole)
-  const showPartnerView = demoViewRole !== 'client_wit' && demoViewRole !== 'client_woit'
   
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
