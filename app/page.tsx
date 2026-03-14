@@ -409,26 +409,47 @@ export default function DashboardPage() {
                     <DollarSign className="w-5 h-5 text-[var(--primary)]" />
                     <h3 className="text-base font-semibold text-[var(--text)]">MRR trend (portfolio)</h3>
                   </div>
-                  <div className="flex items-end justify-between gap-2 h-28">
-                    {partnerMRRTrendMonths.map((m) => {
-                      const maxMrr = Math.max(...partnerMRRTrendMonths.map((x) => x.mrr))
-                      const barHeightPx = maxMrr > 0 ? Math.max(4, (m.mrr / maxMrr) * 88) : 4
-                      return (
-                        <div key={m.month} className="flex-1 flex flex-col items-center gap-1.5">
-                          <div className="w-full flex flex-col justify-end" style={{ height: 96 }}>
-                            <div
-                              className="w-full rounded-t bg-[var(--primary)] transition-all"
-                              style={{ height: barHeightPx }}
+                  {(() => {
+                    const maxMrr = Math.max(...partnerMRRTrendMonths.map((x) => x.mrr))
+                    const minMrr = Math.min(...partnerMRRTrendMonths.map((x) => x.mrr))
+                    const range = maxMrr - minMrr || 1
+                    const pad = 12
+                    const w = 500
+                    const h = 96
+                    const points = partnerMRRTrendMonths.map((m, i) => {
+                      const x = pad + (i / Math.max(1, partnerMRRTrendMonths.length - 1)) * (w - 2 * pad)
+                      const y = h - pad - ((m.mrr - minMrr) / range) * (h - 2 * pad)
+                      return { x, y, month: m.month }
+                    })
+                    const linePoints = points.map((p) => `${p.x},${p.y}`).join(' ')
+                    return (
+                      <>
+                        <div className="w-full" style={{ height: 96 }}>
+                          <svg width="100%" height={96} viewBox={`0 0 ${w} ${h}`} className="overflow-visible" preserveAspectRatio="xMidYMid meet">
+                            <polyline
+                              fill="none"
+                              stroke="var(--primary)"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              points={linePoints}
                             />
-                          </div>
-                          <span className="text-[10px] text-[var(--muted)]">{m.month}</span>
+                            {points.map((p, i) => (
+                              <circle key={i} cx={p.x} cy={p.y} r="5" fill="var(--primary)" stroke="var(--bg)" strokeWidth="2" />
+                            ))}
+                          </svg>
                         </div>
-                      )
-                    })}
-                  </div>
-                  <p className="text-xs text-[var(--muted)] mt-2">
-                    Last 6 months · Total MRR ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })} (+{partnerSummary.mrrGrowthPct}% MoM)
-                  </p>
+                        <div className="flex justify-between mt-1 px-0.5">
+                          {partnerMRRTrendMonths.map((m) => (
+                            <span key={m.month} className="text-[10px] text-[var(--muted)]">{m.month}</span>
+                          ))}
+                        </div>
+                        <p className="text-xs text-[var(--muted)] mt-2">
+                          Last 6 months · Total MRR ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })} (+{partnerSummary.mrrGrowthPct}% MoM)
+                        </p>
+                      </>
+                    )
+                  })()}
                 </Card>
 
                 {/* Alerts & at-risk */}
@@ -783,26 +804,40 @@ export default function DashboardPage() {
                 <DollarSign className="w-4 h-4 text-[var(--primary)]" />
                 <h3 className="text-sm font-semibold text-[var(--text)]">MRR trend (last 6 months)</h3>
               </div>
-              <div className="flex items-end gap-1 h-20">
-                {partnerMRRTrendMonths.map((m) => {
-                  const maxMrr = Math.max(...partnerMRRTrendMonths.map((x) => x.mrr))
-                  const barHeightPx = maxMrr > 0 ? Math.max(3, (m.mrr / maxMrr) * 56) : 3
-                  return (
-                    <div key={m.month} className="flex-1 flex flex-col items-center gap-0.5">
-                      <div className="w-full flex flex-col justify-end" style={{ height: 60 }}>
-                        <div
-                          className="w-full rounded-t bg-[var(--primary)]"
-                          style={{ height: barHeightPx }}
-                        />
-                      </div>
-                      <span className="text-[9px] text-[var(--muted)]">{m.month}</span>
+              {(() => {
+                const maxMrr = Math.max(...partnerMRRTrendMonths.map((x) => x.mrr))
+                const minMrr = Math.min(...partnerMRRTrendMonths.map((x) => x.mrr))
+                const range = maxMrr - minMrr || 1
+                const pad = 10
+                const w = 400
+                const chartH = 56
+                const points = partnerMRRTrendMonths.map((m, i) => {
+                  const x = pad + (i / Math.max(1, partnerMRRTrendMonths.length - 1)) * (w - 2 * pad)
+                  const y = chartH - pad - ((m.mrr - minMrr) / range) * (chartH - 2 * pad)
+                  return { x, y, month: m.month }
+                })
+                const linePoints = points.map((p) => `${p.x},${p.y}`).join(' ')
+                return (
+                  <>
+                    <div className="w-full" style={{ height: 56 }}>
+                      <svg width="100%" height={56} viewBox={`0 0 ${w} ${chartH}`} className="overflow-visible" preserveAspectRatio="xMidYMid meet">
+                        <polyline fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" points={linePoints} />
+                        {points.map((p, i) => (
+                          <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="var(--primary)" stroke="var(--bg)" strokeWidth="1.5" />
+                        ))}
+                      </svg>
                     </div>
-                  )
-                })}
-              </div>
-              <p className="text-[10px] text-[var(--muted)] mt-2">
-                Portfolio MRR ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })} (+{partnerSummary.mrrGrowthPct}% vs last month)
-              </p>
+                    <div className="flex justify-between mt-0.5 px-0.5">
+                      {partnerMRRTrendMonths.map((m) => (
+                        <span key={m.month} className="text-[9px] text-[var(--muted)]">{m.month}</span>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-[var(--muted)] mt-2">
+                      Portfolio MRR ${partnerSummary.totalMRR.toLocaleString('en-US', { maximumFractionDigits: 0 })} (+{partnerSummary.mrrGrowthPct}% vs last month)
+                    </p>
+                  </>
+                )
+              })()}
             </Card>
 
             {/* Alerts & risk */}
