@@ -10,7 +10,7 @@ type User = {
 
 type AuditItem = { atISO:string; username:string; ipMasked:string; tz?:string; ua?:string };
 
-type PartnerItem = { id: string; name: string; externalId?: string; active: boolean; createdAtISO: string };
+type PartnerItem = { id: string; name: string; externalId?: string; tier?: 'authorized' | 'advanced' | 'elite'; active: boolean; createdAtISO: string };
 type TenantConnectors = { rmm?: { apiUrl?: string; tenantId?: string; label?: string }; sophos?: { tenantId?: string; partnerId?: string; label?: string }; [k: string]: unknown };
 type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string };
 
@@ -38,7 +38,7 @@ export default function AdminPage(){
 
   const [partners, setPartners] = useState<PartnerItem[]>([]);
   const [partnersLoading, setPartnersLoading] = useState(false);
-  const [partnerForm, setPartnerForm] = useState<{ id: string; name: string; externalId: string; active: boolean }>({ id: '', name: '', externalId: '', active: true });
+  const [partnerForm, setPartnerForm] = useState<{ id: string; name: string; externalId: string; tier: '' | 'authorized' | 'advanced' | 'elite'; active: boolean }>({ id: '', name: '', externalId: '', tier: '', active: true });
   const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
 
   const [tenants, setTenants] = useState<TenantItem[]>([]);
@@ -202,20 +202,20 @@ export default function AdminPage(){
     if (!partnerForm.name.trim()) { alert('Name erforderlich'); return; }
     try {
       if (editingPartnerId) {
-        const res = await fetch(`/api/partners/${editingPartnerId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: partnerForm.name, externalId: partnerForm.externalId || undefined, active: partnerForm.active }) });
+        const res = await fetch(`/api/partners/${editingPartnerId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: partnerForm.name, externalId: partnerForm.externalId || undefined, tier: partnerForm.tier || undefined, active: partnerForm.active }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
         setEditingPartnerId(null);
       } else {
-        const res = await fetch('/api/partners', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: partnerForm.id || undefined, name: partnerForm.name, externalId: partnerForm.externalId || undefined, active: partnerForm.active }) });
+        const res = await fetch('/api/partners', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: partnerForm.id || undefined, name: partnerForm.name, externalId: partnerForm.externalId || undefined, tier: partnerForm.tier || undefined, active: partnerForm.active }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
       }
-      setPartnerForm({ id: '', name: '', externalId: '', active: true });
+      setPartnerForm({ id: '', name: '', externalId: '', tier: '', active: true });
       await loadPartners();
     } catch (err) { console.error(err); alert('Error saving'); }
   }
   function startEditPartner(p: PartnerItem) {
     setEditingPartnerId(p.id);
-    setPartnerForm({ id: p.id, name: p.name, externalId: p.externalId ?? '', active: p.active });
+    setPartnerForm({ id: p.id, name: p.name, externalId: p.externalId ?? '', tier: p.tier ?? '', active: p.active });
   }
 
   async function saveTenant() {
@@ -581,6 +581,16 @@ export default function AdminPage(){
                 <input value={partnerForm.externalId} onChange={e=>setPartnerForm(s=>({...s, externalId:e.target.value}))}
                        className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]"/>
               </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Partner Tier (für Einkaufspreise)</label>
+                <select value={partnerForm.tier} onChange={e=>setPartnerForm(s=>({...s, tier: e.target.value as typeof partnerForm.tier }))}
+                        className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]">
+                  <option value="">—</option>
+                  <option value="authorized">Authorized (20 %)</option>
+                  <option value="advanced">Advanced (30 %)</option>
+                  <option value="elite">Elite (40 %)</option>
+                </select>
+              </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={partnerForm.active} onChange={e=>setPartnerForm(s=>({...s, active:e.target.checked}))} className="rounded border-[var(--border)]"/>
                 <span className="text-sm text-[var(--text)]">Active</span>
@@ -590,7 +600,7 @@ export default function AdminPage(){
                   {editingPartnerId ? 'Save' : 'Add partner'}
                 </button>
                 {editingPartnerId && (
-                  <button onClick={()=>{ setEditingPartnerId(null); setPartnerForm({ id: '', name: '', externalId: '', active: true }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
+                  <button onClick={()=>{ setEditingPartnerId(null); setPartnerForm({ id: '', name: '', externalId: '', tier: '', active: true }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
                 )}
               </div>
             </div>
@@ -613,6 +623,7 @@ export default function AdminPage(){
                     <tr>
                       <th className="text-left py-3 px-3 font-medium text-[var(--muted)]">ID</th>
                       <th className="py-3 px-3 font-medium text-[var(--muted)]">Name</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Tier</th>
                       <th className="py-3 px-3 font-medium text-[var(--muted)]">External ID</th>
                       <th className="py-3 px-3 font-medium text-[var(--muted)]">Status</th>
                       <th className="text-right py-3 px-3 font-medium text-[var(--muted)]">Actions</th>
@@ -623,6 +634,7 @@ export default function AdminPage(){
                       <tr key={p.id} className="hover:bg-[var(--surface-2)]/50 transition-colors">
                         <td className="py-3 px-3 font-medium text-[var(--text)]">{p.id}</td>
                         <td className="py-3 px-3 text-[var(--text)]">{p.name}</td>
+                        <td className="py-3 px-3 text-[var(--muted)]">{p.tier ? p.tier.charAt(0).toUpperCase() + p.tier.slice(1) : '—'}</td>
                         <td className="py-3 px-3 text-[var(--muted)]">{p.externalId ?? '—'}</td>
                         <td className="py-3 px-3">
                           <span className={`inline-flex px-2 py-1 rounded-lg text-xs font-medium ${p.active?'bg-emerald-500/20 text-emerald-400':'bg-zinc-500/20 text-zinc-400'}`}>{p.active?'Active':'Inactive'}</span>

@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     id,
     name: body.name ?? 'New partner',
     externalId: body.externalId,
+    tier: body.tier,
     active: body.active ?? true,
   })
   return NextResponse.json({ item: partner })

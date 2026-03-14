@@ -65,12 +65,17 @@ export interface TenantConnectors {
   [key: string]: { tenantId?: string; partnerId?: string; apiUrl?: string; label?: string; companyId?: string } | undefined
 }
 
+/** Partner-Tier für Margen (Authorized 20 %, Advanced 30 %, Elite 40 %). */
+export type PartnerTierId = 'authorized' | 'advanced' | 'elite'
+
 /** Partner – hat mehrere Tenants (Kunden). */
 export interface Partner {
   id: string
   name: string
   /** Externe Partner-ID (z. B. Sophos Partner-ID) für API-Matching. */
   externalId?: string
+  /** Partner-Stufe für Einkaufspreise (Authorized / Advanced / Elite). */
+  tier?: PartnerTierId
   active: boolean
   createdAtISO: string
 }

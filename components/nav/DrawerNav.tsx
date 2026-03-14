@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   ClipboardList,
   Radio,
+  Receipt,
 } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useViewModeStore } from '@/lib/viewMode.store'
@@ -80,9 +81,11 @@ export default function DrawerNav({
   const viewModeSet = useViewModeStore((s) => s.setViewMode)
   const setCopilotOpen = useCopilotStore((s) => s.setOpen)
   const [showAdminLink, setShowAdminLink] = useState(false)
+  const [showPartnerPricingLink, setShowPartnerPricingLink] = useState(false)
   useEffect(() => {
     const role = (document.cookie.match(/(?:^|;) ?demo_role=([^;]+)/)?.[1] || '').toLowerCase()
     setShowAdminLink(role === 'admin' || role === 'superadmin')
+    setShowPartnerPricingLink(role === 'partner' || role === 'admin' || role === 'superadmin')
   }, [])
 
   const isPinnedSidebar = viewMode === 'desktop' && menuPinned
@@ -151,6 +154,9 @@ export default function DrawerNav({
 
           <SectionTitle>Marketplace (Purchase)</SectionTitle>
           <NavLink href="/marketplace" label="Marketplace" icon={ShoppingBag} onClick={handleNavClick} />
+          {showPartnerPricingLink && (
+            <NavLink href="/partner-pricing" label="Partner-Preise" icon={Receipt} onClick={handleNavClick} />
+          )}
           <NavLink href="/upselling" label="Enhance / Upgrades" icon={TrendingUp} onClick={handleNavClick} />
 
           <SectionTitle>Settings</SectionTitle>

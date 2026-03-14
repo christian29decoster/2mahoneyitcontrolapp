@@ -23,6 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const updated = updatePartner(params.id, {
     name: body.name,
     externalId: body.externalId,
+    tier: body.tier,
     active: body.active,
   })
   return NextResponse.json({ item: updated })
