@@ -1248,48 +1248,61 @@ export default function AdminPage(){
                 })()}
 
               {kundenakteSection==='framework' && (
-                <>
-                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Framework & documents</div>
-                  <p className="text-xs text-[var(--muted)] mb-3">Select compliance frameworks for this customer. Upload documents (policies, certificates) for AI evaluation.</p>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--muted)] mb-2">Frameworks (ISO, SOC 2, etc.)</label>
-                      <div className="flex flex-wrap gap-2">
-                        {KNOWN_FRAMEWORKS.map((fw) => {
-                          const selected = tenantForm.frameworks.some((f) => f.id === fw.id);
-                          return (
-                            <button
-                              key={fw.id}
-                              type="button"
-                              onClick={() => {
-                                if (selected) setTenantForm((s) => ({ ...s, frameworks: s.frameworks.filter((f) => f.id !== fw.id) }));
-                                else setTenantForm((s) => ({ ...s, frameworks: [...s.frameworks, { id: fw.id, name: fw.name }] }));
-                              }}
-                              className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${selected ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]'}`}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-sm font-semibold text-[var(--text)] mb-0.5">Compliance-Frameworks</h3>
+                    <p className="text-xs text-[var(--muted)] mb-4">Kunde kann mehrere Frameworks haben. Ausgewählte werden für die KI-Auswertung genutzt.</p>
+
+                    {tenantForm.frameworks.length > 0 && (
+                      <div className="mb-4">
+                        <span className="text-xs font-medium text-[var(--muted)] block mb-2">Ausgewählt ({tenantForm.frameworks.length})</span>
+                        <div className="flex flex-wrap gap-2">
+                          {tenantForm.frameworks.map((f) => (
+                            <span
+                              key={f.id}
+                              className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-lg bg-[var(--primary)]/15 text-[var(--primary)] border border-[var(--primary)]/30 text-sm font-medium"
                             >
-                              {fw.name}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {tenantForm.frameworks.length > 0 && <p className="text-xs text-[var(--muted)] mt-2">Selected: {tenantForm.frameworks.map((f) => f.name).join(', ')}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--muted)] mb-2">Uploaded documents (for AI evaluation)</label>
-                      {tenantForm.documentUploads.length === 0 ? (
-                        <p className="text-sm text-[var(--muted)]">No documents yet. Use &quot;Add document&quot; to record uploads (file storage can be wired later).</p>
-                      ) : (
-                        <ul className="space-y-2">
-                          {tenantForm.documentUploads.map((doc) => (
-                            <li key={doc.id} className="flex items-center justify-between rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm">
-                              <span className="text-[var(--text)]">{doc.name}</span>
-                              <span className="text-xs text-[var(--muted)]">{new Date(doc.uploadedAtISO).toLocaleDateString()}</span>
-                              <button type="button" onClick={() => setTenantForm((s) => ({ ...s, documentUploads: s.documentUploads.filter((d) => d.id !== doc.id) }))} className="p-1 rounded text-[var(--muted)] hover:bg-[var(--surface)]" aria-label="Remove"><Trash2 size={14}/></button>
-                            </li>
+                              {f.name}
+                              <button
+                                type="button"
+                                onClick={() => setTenantForm((s) => ({ ...s, frameworks: s.frameworks.filter((x) => x.id !== f.id) }))}
+                                className="p-0.5 rounded hover:bg-[var(--primary)]/20 text-[var(--primary)]"
+                                aria-label="Entfernen"
+                              >
+                                <X size={14} strokeWidth={2.5} />
+                              </button>
+                            </span>
                           ))}
-                        </ul>
-                      )}
-                      <div className="mt-2 flex items-center gap-2">
+                        </div>
+                      </div>
+                    )}
+
+                    <span className="text-xs font-medium text-[var(--muted)] block mb-2">Weitere hinzufügen</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {KNOWN_FRAMEWORKS.filter((fw) => !tenantForm.frameworks.some((f) => f.id === fw.id)).map((fw) => (
+                        <button
+                          key={fw.id}
+                          type="button"
+                          onClick={() => setTenantForm((s) => ({ ...s, frameworks: [...s.frameworks, { id: fw.id, name: fw.name }] }))}
+                          className="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] text-sm text-[var(--text)] hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/5 transition-colors text-left"
+                        >
+                          {fw.name}
+                        </button>
+                      ))}
+                    </div>
+                    {tenantForm.frameworks.length >= KNOWN_FRAMEWORKS.length && (
+                      <p className="text-xs text-[var(--muted)] mt-2">Alle Frameworks ausgewählt.</p>
+                    )}
+                  </div>
+
+                  <div className="pt-4 border-t border-[var(--border)]">
+                    <h3 className="text-sm font-semibold text-[var(--text)] mb-0.5">Dokumente (KI-Auswertung)</h3>
+                    <p className="text-xs text-[var(--muted)] mb-4">Richtlinien, Zertifikate o.&nbsp;Ä. hochladen (Metadaten werden gespeichert).</p>
+
+                    {tenantForm.documentUploads.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-2)]/50 p-6 text-center">
+                        <FileText className="w-8 h-8 mx-auto text-[var(--muted)] mb-2 opacity-70" />
+                        <p className="text-sm text-[var(--muted)] mb-3">Noch keine Dokumente</p>
                         <input
                           type="file"
                           id="framework-doc-upload"
@@ -1306,14 +1319,48 @@ export default function AdminPage(){
                             }
                           }}
                         />
-                        <label htmlFor="framework-doc-upload" className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-2)] cursor-pointer">
-                          <Plus size={14}/> Add document
+                        <label htmlFor="framework-doc-upload" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary)] text-white text-sm font-medium cursor-pointer hover:opacity-90 transition-opacity">
+                          <Plus size={16} /> Dokument hinzufügen
                         </label>
-                        <span className="text-xs text-[var(--muted)]">PDF, DOC, TXT (metadata stored; AI evaluation can be wired later)</span>
+                        <p className="text-[11px] text-[var(--muted)] mt-2">PDF, DOC, DOCX, TXT</p>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        <ul className="space-y-2 mb-4">
+                          {tenantForm.documentUploads.map((doc) => (
+                            <li key={doc.id} className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
+                              <FileText size={16} className="text-[var(--muted)] shrink-0" />
+                              <div className="min-w-0 flex-1">
+                                <span className="text-sm font-medium text-[var(--text)] truncate block">{doc.name}</span>
+                                <span className="text-[11px] text-[var(--muted)]">{new Date(doc.uploadedAtISO).toLocaleDateString('de-DE')}</span>
+                              </div>
+                              <button type="button" onClick={() => setTenantForm((s) => ({ ...s, documentUploads: s.documentUploads.filter((d) => d.id !== doc.id) }))} className="p-1.5 rounded-md text-[var(--muted)] hover:text-[var(--danger)] hover:bg-[var(--danger)]/10 transition-colors shrink-0" aria-label="Entfernen"><Trash2 size={14} /></button>
+                            </li>
+                          ))}
+                        </ul>
+                        <input
+                          type="file"
+                          id="framework-doc-upload"
+                          className="hidden"
+                          accept=".pdf,.doc,.docx,.txt"
+                          onChange={(e) => {
+                            const file = e.target.files && e.target.files[0]
+                            if (file) {
+                              setTenantForm((s) => ({
+                                ...s,
+                                documentUploads: [...s.documentUploads, { id: 'doc-' + Date.now(), name: file.name, uploadedAtISO: new Date().toISOString() }],
+                              }))
+                              e.target.value = ''
+                            }
+                          }}
+                        />
+                        <label htmlFor="framework-doc-upload" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] hover:bg-[var(--surface-2)] cursor-pointer transition-colors">
+                          <Plus size={14} /> Weiteres Dokument
+                        </label>
+                      </>
+                    )}
                   </div>
-                </>
+                </div>
               )}
 
               <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
