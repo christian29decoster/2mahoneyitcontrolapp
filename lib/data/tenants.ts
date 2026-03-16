@@ -4,8 +4,9 @@
  */
 
 import type { Tenant, TenantConnectors } from '@/lib/auth/roles'
+import { getSeedTenants } from './tenants-seed'
 
-const store: Tenant[] = [
+const baseTenants: Tenant[] = [
   {
     id: 'O-25-001',
     name: 'Acme Engineering Inc.',
@@ -66,6 +67,8 @@ const store: Tenant[] = [
     certificates: [],
   },
 ]
+
+const store: Tenant[] = [...baseTenants, ...getSeedTenants()]
 
 export function listTenants(partnerId?: string): Tenant[] {
   let list = store.slice()
