@@ -8,6 +8,7 @@ import {
   SOC_PARTNER_MARGIN_PCT,
   MITAI_LIST_PRICES,
   PARTNER_BUNDLES,
+  PARTNER_ONBOARDING_FEE,
   platformPartnerCost,
   socPartnerCost,
   mitaiPartnerCost,
@@ -247,7 +248,7 @@ export default function AdminPage(){
   }
 
   async function savePartner() {
-    if (!partnerForm.name.trim()) { alert('Name erforderlich'); return; }
+    if (!partnerForm.name.trim()) { alert('Name is required'); return; }
     try {
       if (editingPartnerId) {
         const res = await fetch(`/api/partners/${editingPartnerId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: partnerForm.name, externalId: partnerForm.externalId || undefined, tier: partnerForm.tier || undefined, active: partnerForm.active }) });
@@ -310,7 +311,7 @@ export default function AdminPage(){
   }
 
   async function saveTenant() {
-    if (!tenantForm.name.trim()) { alert('Name erforderlich'); return; }
+    if (!tenantForm.name.trim()) { alert('Name is required'); return; }
     const customLines = tenantForm.billing.customBundleLines.map((l) => ({
       type: l.type,
       productId: l.productId || undefined,
@@ -325,7 +326,7 @@ export default function AdminPage(){
       mitAiTierId: tenantForm.billing.mitAiTierId || undefined,
       bundleId: tenantForm.billing.bundleId || undefined,
       bundleIncludes: tenantForm.billing.bundleIncludes || undefined,
-      onboardingFee: tenantForm.billing.onboardingFee ? Number(tenantForm.billing.onboardingFee) : undefined,
+      onboardingFee: (()=>{ const pt = tenantForm.partnerId ? (partners.find(p=>p.id===tenantForm.partnerId)?.tier as PartnerTierId) : null; return pt && PARTNER_ONBOARDING_FEE[pt] != null ? PARTNER_ONBOARDING_FEE[pt] : (tenantForm.billing.onboardingFee ? Number(tenantForm.billing.onboardingFee) : undefined); })(),
       revenueSharePercent: tenantForm.billing.revenueSharePercent ? Number(tenantForm.billing.revenueSharePercent) : undefined,
       salePriceAppTier: tenantForm.billing.salePriceAppTier ? Number(tenantForm.billing.salePriceAppTier) : undefined,
       salePriceSocTier: tenantForm.billing.salePriceSocTier ? Number(tenantForm.billing.salePriceSocTier) : undefined,
@@ -397,7 +398,7 @@ export default function AdminPage(){
       setAutotaskCompanies(items);
       if (items.length === 0) setAutotaskCompaniesError('No companies loaded. In Autotask: check API user permission for Companies (View); check zone (webservices3 vs. webservices4) and env vars in Vercel.');
     } catch (err) {
-      setAutotaskCompaniesError('Netzwerkfehler');
+      setAutotaskCompaniesError('Network error');
       setAutotaskCompanies([]);
     } finally {
       setAutotaskCompaniesLoading(false);
@@ -418,7 +419,7 @@ export default function AdminPage(){
       await loadTenants();
     } catch (err) {
       console.error(err);
-      alert('Import fehlgeschlagen');
+      alert('Import failed');
     } finally {
       setImportAutotaskLoading(false);
     }
@@ -759,7 +760,7 @@ export default function AdminPage(){
                        className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]"/>
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Partner Tier (für Einkaufspreise)</label>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Partner Tier (for cost pricing)</label>
                 <select value={partnerForm.tier} onChange={e=>setPartnerForm(s=>({...s, tier: e.target.value as typeof partnerForm.tier }))}
                         className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]">
                   <option value="">—</option>
@@ -826,7 +827,7 @@ export default function AdminPage(){
                         </td>
                         <td className="py-3 px-3 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <button onClick={()=>startCustomizePartner(p)} className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] text-xs font-medium inline-flex items-center gap-1" title="Branding: App als eigene Marke darstellen">
+                            <button onClick={()=>startCustomizePartner(p)} className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] text-xs font-medium inline-flex items-center gap-1" title="Branding: present app under your own brand">
                               <Palette size={12} /> Customize
                             </button>
                             <button onClick={()=>startEditPartner(p)} className="px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] text-xs font-medium">Edit</button>
@@ -863,7 +864,7 @@ export default function AdminPage(){
               <div>
                 <label className="block text-xs font-medium text-[var(--muted)] mb-1">App name (e.g. &quot;Acme Control&quot;)</label>
                 <input value={customizeForm.appName} onChange={e=>setCustomizeForm(s=>({...s, appName:e.target.value}))}
-                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="Leave empty to use default"/>
+                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="Leave empty for default"/>
               </div>
               <div>
                 <label className="block text-xs font-medium text-[var(--muted)] mb-1">Logo</label>
@@ -898,7 +899,7 @@ export default function AdminPage(){
           <Card className="p-5 overflow-auto">
             <div className="flex items-center gap-2 mb-2">
               <Layers size={20} className="text-[var(--primary)]" />
-              <h2 className="font-semibold text-[var(--text)]">Kundenakte · {editingTenantId ? 'Edit' : 'Add tenant'}</h2>
+              <h2 className="font-semibold text-[var(--text)]">Customer file · {editingTenantId ? 'Edit' : 'Add tenant'}</h2>
             </div>
             <p className="text-xs text-[var(--muted)] mb-4">Tenants are customers or organizations. Structured by Company, Locations, Partner, and Billing.</p>
 
@@ -966,8 +967,8 @@ export default function AdminPage(){
 
               {kundenakteSection==='locations' && (
                 <>
-                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Local attribute (Standorte)</div>
-                  <p className="text-xs text-[var(--muted)]">Standorte für Company-Seite. Name, Adresse, Lat/Lng.</p>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Local attribute (sites)</div>
+                  <p className="text-xs text-[var(--muted)]">Sites for the Company page. Name, address, Lat/Lng.</p>
                   {tenantForm.locations.length === 0 ? (
                     <p className="text-sm text-[var(--muted)]">No locations yet.</p>
                   ) : (
@@ -976,7 +977,7 @@ export default function AdminPage(){
                         <li key={idx} className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
                           <div className="grid grid-cols-2 gap-2">
                             <input value={loc.name} onChange={e=>{ const l = [...tenantForm.locations]; l[idx]={...l[idx], name:e.target.value}; setTenantForm(s=>({...s, locations: l })); }} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Name"/>
-                            <input value={loc.address} onChange={e=>{ const l = [...tenantForm.locations]; l[idx]={...l[idx], address:e.target.value}; setTenantForm(s=>({...s, locations: l })); }} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm col-span-2" placeholder="Adresse"/>
+                            <input value={loc.address} onChange={e=>{ const l = [...tenantForm.locations]; l[idx]={...l[idx], address:e.target.value}; setTenantForm(s=>({...s, locations: l })); }} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm col-span-2" placeholder="Address"/>
                             <input type="number" step="any" value={loc.lat || ''} onChange={e=>{ const l = [...tenantForm.locations]; l[idx]={...l[idx], lat: Number(e.target.value) || 0}; setTenantForm(s=>({...s, locations: l })); }} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Lat"/>
                             <input type="number" step="any" value={loc.lng || ''} onChange={e=>{ const l = [...tenantForm.locations]; l[idx]={...l[idx], lng: Number(e.target.value) || 0}; setTenantForm(s=>({...s, locations: l })); }} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Lng"/>
                           </div>
@@ -996,7 +997,7 @@ export default function AdminPage(){
                     <label className="block text-xs font-medium text-[var(--muted)] mb-1">Partner ID</label>
                     <input value={tenantForm.partnerId} onChange={e=>setTenantForm(s=>({...s, partnerId:e.target.value}))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="Empty = Mahoney"/>
                   </div>
-                  <p className="text-xs text-[var(--muted)]">Leer = Direktkunde Mahoney. Setzen Sie die Partner-ID, wenn der Kunde einem Partner zugeordnet ist.</p>
+                  <p className="text-xs text-[var(--muted)]">Empty = direct Mahoney customer. Set Partner ID when the customer is assigned to a partner.</p>
                 </>
               )}
 
@@ -1015,14 +1016,14 @@ export default function AdminPage(){
                   const bundleDef = tenantForm.billing.bundleId ? PARTNER_BUNDLES.find(b=>b.id===tenantForm.billing.bundleId) : null;
                   return (
                 <>
-                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Abrechnungsattribute</div>
-                  <p className="text-xs text-[var(--muted)] mb-3">Partner müssen Zusatzleistung aktivieren und Produkte/Tiers wählen. Listenpreise = unsere Preise (vorausgefüllt als Verkaufspreis); Partner kann eigene Verkaufspreise setzen.</p>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Billing attributes</div>
+                  <p className="text-xs text-[var(--muted)] mb-3">Partners must enable additional services and select products/tiers. List prices = our prices (pre-filled as sale price); partner can set their own sale prices.</p>
 
                   <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-4 mb-4">
-                    <p className="text-xs text-[var(--muted)] mb-2">Service ein- oder ausschalten (nur An/Aus).</p>
+                    <p className="text-xs text-[var(--muted)] mb-2">Turn additional services on or off. Required to build a custom bundle.</p>
                     <label className="flex items-center justify-between gap-4 cursor-pointer">
-                      <span className="text-sm font-medium text-[var(--text)]">Zusatzleistung</span>
-                      <span className={`text-sm font-semibold ${tenantForm.billing.zusatzleistungEnabled ? 'text-emerald-500' : 'text-[var(--muted)]'}`}>{tenantForm.billing.zusatzleistungEnabled ? 'An' : 'Aus'}</span>
+                      <span className="text-sm font-medium text-[var(--text)]">Additional services</span>
+                      <span className={`text-sm font-semibold ${tenantForm.billing.zusatzleistungEnabled ? 'text-emerald-500' : 'text-[var(--muted)]'}`}>{tenantForm.billing.zusatzleistungEnabled ? 'On' : 'Off'}</span>
                       <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-[var(--surface)] border border-[var(--border)] transition-colors focus-within:ring-2 focus-within:ring-[var(--primary)]/30">
                         <input type="checkbox" checked={tenantForm.billing.zusatzleistungEnabled} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, zusatzleistungEnabled: e.target.checked } }))} className="sr-only peer" />
                         <span className="pointer-events-none inline-block h-5 w-5 rounded-full bg-[var(--muted)] shadow ring-0 transition translate-x-0.5 peer-checked:translate-x-6 peer-checked:bg-[var(--primary)] rtl:peer-checked:-translate-x-6" />
@@ -1042,9 +1043,9 @@ export default function AdminPage(){
                       </select>
                       {appList != null && (
                         <div className="flex flex-wrap gap-3 text-xs">
-                          <span className="text-[var(--muted)]">Listenpreis: <strong className="text-[var(--text)]">{appList} USD/mo</strong></span>
-                          {appCost != null && <span className="text-[var(--muted)]">Ihre Kosten (Einkauf): <strong className="text-emerald-600">{appCost} USD/mo</strong></span>}
-                          <span className="text-[var(--muted)]">Ihr Verkaufspreis: <input type="number" min={0} value={tenantForm.billing.salePriceAppTier} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceAppTier: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
+                          <span className="text-[var(--muted)]">List price: <strong className="text-[var(--text)]">{appList} USD/mo</strong></span>
+                          {appCost != null && <span className="text-[var(--muted)]">Your cost: <strong className="text-emerald-600">{appCost} USD/mo</strong></span>}
+                          <span className="text-[var(--muted)]">Your sale price: <input type="number" min={0} value={tenantForm.billing.salePriceAppTier} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceAppTier: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
                         </div>
                       )}
                     </div>
@@ -1058,9 +1059,9 @@ export default function AdminPage(){
                       </select>
                       {socList != null && (
                         <div className="flex flex-wrap gap-3 text-xs">
-                          <span className="text-[var(--muted)]">Listenpreis: <strong className="text-[var(--text)]">{socList} USD/mo</strong></span>
-                          {socCost != null && <span className="text-[var(--muted)]">Ihre Kosten: <strong className="text-emerald-600">{socCost} USD/mo</strong></span>}
-                          <span className="text-[var(--muted)]">Ihr Verkaufspreis: <input type="number" min={0} value={tenantForm.billing.salePriceSocTier} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceSocTier: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
+                          <span className="text-[var(--muted)]">List price: <strong className="text-[var(--text)]">{socList} USD/mo</strong></span>
+                          {socCost != null && <span className="text-[var(--muted)]">Your cost: <strong className="text-emerald-600">{socCost} USD/mo</strong></span>}
+                          <span className="text-[var(--muted)]">Your sale price: <input type="number" min={0} value={tenantForm.billing.salePriceSocTier} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceSocTier: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
                         </div>
                       )}
                     </div>
@@ -1074,9 +1075,9 @@ export default function AdminPage(){
                       </select>
                       {mitaiList != null && (
                         <div className="flex flex-wrap gap-3 text-xs">
-                          <span className="text-[var(--muted)]">Listenpreis: <strong className="text-[var(--text)]">{mitaiList} USD/mo</strong></span>
-                          {mitaiCost != null && <span className="text-[var(--muted)]">Ihre Kosten: <strong className="text-emerald-600">{mitaiCost} USD/mo</strong></span>}
-                          <span className="text-[var(--muted)]">Ihr Verkaufspreis: <input type="number" min={0} value={tenantForm.billing.salePriceMitAiTier} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceMitAiTier: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
+                          <span className="text-[var(--muted)]">List price: <strong className="text-[var(--text)]">{mitaiList} USD/mo</strong></span>
+                          {mitaiCost != null && <span className="text-[var(--muted)]">Your cost: <strong className="text-emerald-600">{mitaiCost} USD/mo</strong></span>}
+                          <span className="text-[var(--muted)]">Your sale price: <input type="number" min={0} value={tenantForm.billing.salePriceMitAiTier} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceMitAiTier: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
                         </div>
                       )}
                     </div>
@@ -1088,34 +1089,50 @@ export default function AdminPage(){
                       </select>
                       {bundleDef != null && (
                         <div className="flex flex-wrap gap-3 text-xs">
-                          <span className="text-[var(--muted)]">Listenpreis: <strong className="text-[var(--text)]">{bundleDef.listPrice} USD/mo</strong></span>
-                          <span className="text-[var(--muted)]">Ihre Kosten: <strong className="text-emerald-600">{bundleDef.partnerCost} USD/mo</strong></span>
-                          <span className="text-[var(--muted)]">Ihr Verkaufspreis: <input type="number" min={0} value={tenantForm.billing.salePriceBundle} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceBundle: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
+                          <span className="text-[var(--muted)]">List price: <strong className="text-[var(--text)]">{bundleDef.listPrice} USD/mo</strong></span>
+                          <span className="text-[var(--muted)]">Your cost: <strong className="text-emerald-600">{bundleDef.partnerCost} USD/mo</strong></span>
+                          <span className="text-[var(--muted)]">Your sale price: <input type="number" min={0} value={tenantForm.billing.salePriceBundle} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceBundle: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
                         </div>
                       )}
                     </div>
                   </div>
                   <div className="mt-2">
-                    <label className="block text-xs font-medium text-[var(--muted)] mb-1">Bundle – was ist enthalten?</label>
-                    <input value={tenantForm.billing.bundleIncludes} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, bundleIncludes: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="z. B. Platform + SOC Core + MIT-AI Insight"/>
+                    <label className="block text-xs font-medium text-[var(--muted)] mb-1">Bundle – what is included?</label>
+                    <input value={tenantForm.billing.bundleIncludes} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, bundleIncludes: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="e.g. Platform + SOC Core + MIT-AI Insight"/>
                   </div>
 
                   <div className="mt-4 p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                    {!tenantForm.billing.zusatzleistungEnabled ? (
+                      <p className="text-sm text-[var(--muted)]">Enable <strong>Additional services</strong> above to build a custom bundle (your tiers + your own services, e.g. Helpdesk).</p>
+                    ) : (
+                    <>
                     <label className="flex items-center gap-2 cursor-pointer mb-2">
                       <input type="checkbox" checked={tenantForm.billing.useCustomBundle} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, useCustomBundle: e.target.checked } }))} className="rounded border-[var(--border)]"/>
-                      <span className="text-sm font-medium text-[var(--text)]">Eigenes Bundle (inkl. eigene Leistungen, z. B. Helpdesk)</span>
+                      <span className="text-sm font-medium text-[var(--text)]">Custom bundle (your tiers + your own services, e.g. Helpdesk)</span>
                     </label>
-                    <p className="text-xs text-[var(--muted)] mb-3">Partner können ein eigenes Bundle aus Mahoney-Produkten und eigenen Leistungen (z. B. Helpdesk) zusammenstellen.</p>
+                    <p className="text-xs text-[var(--muted)] mb-3">Add your selected App/SOC/MIT-AI tiers and your own line items (e.g. Helpdesk) into one bundle.</p>
                     {tenantForm.billing.useCustomBundle && (
                       <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {tenantForm.billing.appTierId && (
+                            <button type="button" onClick={()=>{ const list = (PLATFORM_LIST_PRICES as Record<string, number>)[tenantForm.billing.appTierId]; const cost = partnerTier ? platformPartnerCost(list, discountPct) : list; const sale = tenantForm.billing.salePriceAppTier ? Number(tenantForm.billing.salePriceAppTier) : list; const label = tenantForm.billing.appTierId.charAt(0).toUpperCase() + tenantForm.billing.appTierId.slice(1); setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: [...s.billing.customBundleLines, { type: 'mahoney', productId: 'app-'+s.billing.appTierId, label: 'Platform '+label, partnerCost: String(cost), salePrice: String(sale) }] } })); }} className="px-2 py-1 rounded-lg border border-[var(--border)] text-xs text-[var(--text)] hover:bg-[var(--surface-2)]">Add selected App Tier</button>
+                          )}
+                          {tenantForm.billing.socTierId && (
+                            <button type="button" onClick={()=>{ const key = socKeyMap[tenantForm.billing.socTierId]; const list = key ? SOC_LIST_PRICES[key] : 0; const cost = list ? socPartnerCost(list, SOC_PARTNER_MARGIN_PCT[key] ?? 15) : 0; const sale = tenantForm.billing.salePriceSocTier ? Number(tenantForm.billing.salePriceSocTier) : list; const label = key || tenantForm.billing.socTierId; setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: [...s.billing.customBundleLines, { type: 'mahoney', productId: tenantForm.billing.socTierId, label: 'SOC '+label, partnerCost: String(cost), salePrice: String(sale) }] } })); }} className="px-2 py-1 rounded-lg border border-[var(--border)] text-xs text-[var(--text)] hover:bg-[var(--surface-2)]">Add selected SOC Tier</button>
+                          )}
+                          {tenantForm.billing.mitAiTierId && (
+                            <button type="button" onClick={()=>{ const list = MITAI_LIST_PRICES[tenantForm.billing.mitAiTierId as keyof typeof MITAI_LIST_PRICES] ?? 0; const cost = list ? mitaiPartnerCost(list) : 0; const sale = tenantForm.billing.salePriceMitAiTier ? Number(tenantForm.billing.salePriceMitAiTier) : list; setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: [...s.billing.customBundleLines, { type: 'mahoney', productId: 'mitai-'+s.billing.mitAiTierId, label: 'MIT-AI '+s.billing.mitAiTierId, partnerCost: String(cost), salePrice: String(sale) }] } })); }} className="px-2 py-1 rounded-lg border border-[var(--border)] text-xs text-[var(--text)] hover:bg-[var(--surface-2)]">Add selected MIT-AI Tier</button>
+                          )}
+                          <button type="button" onClick={()=>setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: [...s.billing.customBundleLines, { type: 'own', productId: '', label: '', partnerCost: '', salePrice: '' }] } }))} className="px-2 py-1 rounded-lg border border-[var(--primary)]/50 text-xs text-[var(--primary)] hover:bg-[var(--primary)]/10">Add own service (e.g. Helpdesk)</button>
+                        </div>
                         {tenantForm.billing.customBundleLines.map((line, idx)=>(
                           <div key={idx} className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] p-2 bg-[var(--surface)]">
                             <select value={line.type} onChange={e=>{ const t = e.target.value as 'mahoney'|'own'; const arr = [...tenantForm.billing.customBundleLines]; arr[idx] = { type: t, productId: t==='mahoney' ? 'app-essential' : '', label: t==='own' ? arr[idx].label : 'Platform Essential', partnerCost: t==='mahoney' ? String(partnerTier ? platformPartnerCost(PLATFORM_LIST_PRICES.essential, discountPct) : PLATFORM_LIST_PRICES.essential) : '', salePrice: t==='mahoney' ? String(PLATFORM_LIST_PRICES.essential) : arr[idx].salePrice }; setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: arr } })); }} className="rounded border border-[var(--border)] px-2 py-1 text-sm">
                               <option value="mahoney">Mahoney</option>
-                              <option value="own">Eigene Leistung (z. B. Helpdesk)</option>
+                              <option value="own">Own service (e.g. Helpdesk)</option>
                             </select>
                             {line.type==='own' ? (
-                              <input value={line.label} onChange={e=>{ const arr = [...tenantForm.billing.customBundleLines]; arr[idx] = { ...arr[idx], label: e.target.value }; setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: arr } })); }} className="flex-1 min-w-[120px] rounded border border-[var(--border)] px-2 py-1 text-sm" placeholder="z. B. Helpdesk pauschal"/>
+                              <input value={line.label} onChange={e=>{ const arr = [...tenantForm.billing.customBundleLines]; arr[idx] = { ...arr[idx], label: e.target.value }; setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: arr } })); }} className="flex-1 min-w-[120px] rounded border border-[var(--border)] px-2 py-1 text-sm" placeholder="e.g. Helpdesk flat rate"/>
                             ) : (
                               (()=>{
                                 const opts = [
@@ -1132,38 +1149,44 @@ export default function AdminPage(){
                                 );
                               })()
                             )}
-                            <span className="text-xs text-[var(--muted)]">Verkaufspreis:</span>
+                            <span className="text-xs text-[var(--muted)]">Sale price:</span>
                             <input type="number" min={0} value={line.salePrice} onChange={e=>{ const arr = [...tenantForm.billing.customBundleLines]; arr[idx] = { ...arr[idx], salePrice: e.target.value }; setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: arr } })); }} className="w-20 rounded border border-[var(--border)] px-2 py-1 text-sm" placeholder="USD"/>
-                            {line.type==='mahoney' && line.partnerCost && <span className="text-xs text-[var(--muted)]">Ihre Kosten: {line.partnerCost} USD</span>}
-                            <button type="button" onClick={()=>setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: s.billing.customBundleLines.filter((_,i)=>i!==idx) } }))} className="p-1 rounded text-[var(--muted)] hover:bg-[var(--surface-2)]" aria-label="Entfernen"><Trash2 size={14}/></button>
+                            {line.type==='mahoney' && line.partnerCost && <span className="text-xs text-[var(--muted)]">Your cost: {line.partnerCost} USD</span>}
+                            <button type="button" onClick={()=>setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: s.billing.customBundleLines.filter((_,i)=>i!==idx) } }))} className="p-1 rounded text-[var(--muted)] hover:bg-[var(--surface-2)]" aria-label="Remove"><Trash2 size={14}/></button>
                           </div>
                         ))}
-                        <button type="button" onClick={()=>setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: [...s.billing.customBundleLines, { type: 'own', productId: '', label: '', partnerCost: '', salePrice: '' }] } }))} className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] hover:bg-[var(--surface-2)]"><Plus size={14}/> Zeile hinzufügen</button>
+                        <button type="button" onClick={()=>setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: [...s.billing.customBundleLines, { type: 'own', productId: '', label: '', partnerCost: '', salePrice: '' }] } }))} className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] hover:bg-[var(--surface-2)]"><Plus size={14}/> Add line</button>
                         {tenantForm.billing.customBundleLines.length > 0 && (
-                          <p className="text-xs text-[var(--muted)]">Summe Verkauf: <strong className="text-[var(--text)]">{tenantForm.billing.customBundleLines.reduce((sum, l)=> sum + (Number(l.salePrice) || 0), 0)} USD/mo</strong></p>
+                          <p className="text-xs text-[var(--muted)]">Total sale: <strong className="text-[var(--text)]">{tenantForm.billing.customBundleLines.reduce((sum, l)=> sum + (Number(l.salePrice) || 0), 0)} USD/mo</strong></p>
                         )}
                       </div>
+                    )}
+                    </>
                     )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">Onboarding-Gebühr (USD)</label>
-                      <input type="number" min={0} step={1} value={tenantForm.billing.onboardingFee} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, onboardingFee: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="0"/>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">Onboarding fee (USD)</label>
+                      {partnerTier && PARTNER_ONBOARDING_FEE[partnerTier] != null ? (
+                        <p className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">{PARTNER_ONBOARDING_FEE[partnerTier]} USD <span className="text-[var(--muted)]">(from price list, not editable)</span></p>
+                      ) : (
+                        <p className="text-sm text-[var(--muted)]">Set Partner above to see onboarding fee from price list.</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[var(--muted)] mb-1">Revenue-Share (%)</label>
-                      <input type="number" min={0} max={100} step={0.5} value={tenantForm.billing.revenueSharePercent} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, revenueSharePercent: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="z. B. 20"/>
+                      <input type="number" min={0} max={100} step={0.5} value={tenantForm.billing.revenueSharePercent} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, revenueSharePercent: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="e.g. 20"/>
                     </div>
                   </div>
 
                   <div className="mt-4 p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
                     <div className="flex items-center gap-2 mb-2">
                       <FileText size={16} className="text-[var(--muted)]" />
-                      <span className="text-sm font-semibold text-[var(--text)]">MDU-Verbrauch (Kunde)</span>
+                      <span className="text-sm font-semibold text-[var(--text)]">MDU consumption (customer)</span>
                     </div>
-                    <p className="text-xs text-[var(--muted)]">Welcher Kunde welche MDU verbraucht hat: wird aus Billing/Usage pro Tenant ausgewiesen (sobald pro Tenant verfügbar).</p>
-                    <p className="text-sm text-[var(--muted)] mt-2">Dieser Monat: — (Daten aus Admin → Billing / Usage)</p>
+                    <p className="text-xs text-[var(--muted)]">Which customer consumed how much MDU: shown from Billing/Usage per tenant when available.</p>
+                    <p className="text-sm text-[var(--muted)] mt-2">This month: — (Data from Admin → Billing / Usage)</p>
                   </div>
                 </>
                   );
