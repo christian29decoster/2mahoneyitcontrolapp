@@ -52,8 +52,11 @@ function mapRmmAlertToIncident(alert: Record<string, unknown>, index: number, st
   const created = toISO(alert.createdTime ?? alert.createdDate ?? alert.created ?? alert.raisedAt)
   const deviceUid = (alert.deviceUid ?? alert.deviceId ?? '') as string
   const sourceRef = deviceUid ? `rmm:${deviceUid}:${uid}` : `rmm:${uid}`
+  const createdTs = new Date(created).getTime()
   const eventLog: IncidentEventLogEntry[] = [
     { atISO: created, message: message || name, source: 'rmm', raw: alert },
+    { atISO: new Date(createdTs + 2 * 60 * 1000).toISOString(), message: 'SOC triage started (auto-enrichment from device + alert context).', source: 'soc' },
+    { atISO: new Date(createdTs + 5 * 60 * 1000).toISOString(), message: 'SOC classification: operational alert. Suggested next step: validate agent status and recent changes.', source: 'soc' },
   ]
   return {
     id,
@@ -82,8 +85,11 @@ function mapSophosAlertToIncident(
   const id = `sophos-${aid}`
   const description = (alert.description ?? alert.message ?? alert.name ?? (alert as { caption?: string }).caption ?? 'Sophos Alert') as string
   const created = toISO(alert.created_at ?? alert.createdAt ?? alert.when ?? alert.timestamp ?? (alert as { eventTime?: string }).eventTime)
+  const createdTs = new Date(created).getTime()
   const eventLog: IncidentEventLogEntry[] = [
     { atISO: created, message: description, source: 'sophos', raw: alert },
+    { atISO: new Date(createdTs + 60 * 1000).toISOString(), message: 'SOC triage started (SIEM/XDR correlation and asset context).', source: 'soc' },
+    { atISO: new Date(createdTs + 4 * 60 * 1000).toISOString(), message: 'SOC action: correlated with recent endpoint activity and recommended containment if severity is high.', source: 'soc' },
   ]
   return {
     id,

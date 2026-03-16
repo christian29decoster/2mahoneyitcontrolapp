@@ -165,11 +165,20 @@ export function getDemoIncidents(opts: { count?: number; lastDays?: number } = {
   for (let i = 0; i < count; i++) {
     const t = start + Math.random() * (end - start)
     const loggedAt = new Date(t).toISOString()
+    const loggedTs = new Date(loggedAt).getTime()
     const status = statuses[Math.floor(Math.random() * statuses.length)]
     const category = categories[Math.floor(Math.random() * categories.length)]
     const priority = priorities[Math.floor(Math.random() * priorities.length)]
     const source = sources[Math.floor(Math.random() * sources.length)]
     const title = DEMO_TITLES[Math.floor(Math.random() * DEMO_TITLES.length)]
+    const eventLog =
+      source === 'manual'
+        ? undefined
+        : [
+            { atISO: loggedAt, message: `Demo ${source.toUpperCase()} signal ingested.`, source },
+            { atISO: new Date(loggedTs + 60 * 1000).toISOString(), message: 'SOC triage started (auto-enrichment + correlation).', source: 'soc' },
+            { atISO: new Date(loggedTs + 4 * 60 * 1000).toISOString(), message: 'SOC note: prioritized and categorized; next step generated for responder.', source: 'soc' },
+          ]
     out.push({
       id: `demo-${source}-${i + 1}`,
       title: `${title} #${i + 1}`,
@@ -180,6 +189,7 @@ export function getDemoIncidents(opts: { count?: number; lastDays?: number } = {
       loggedAtISO: loggedAt,
       source,
       timeline: [{ atISO: loggedAt, text: 'Logged' }],
+      eventLog,
     })
   }
   out.sort((a, b) => new Date(b.loggedAtISO).getTime() - new Date(a.loggedAtISO).getTime())
