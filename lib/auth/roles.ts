@@ -76,6 +76,13 @@ export interface TenantBilling {
   /** Eigenes Bundle inkl. eigener Leistungen (z. B. Helpdesk). */
   useCustomBundle?: boolean
   customBundleLines?: TenantBillingCustomBundleLine[]
+  /** QuickBooks: Billing-Daten an QuickBooks übertragen (API/Sync). */
+  quickbooks?: {
+    /** Sync aktiviert: Rechnungen/Positionen können an QuickBooks gesendet werden. */
+    syncEnabled?: boolean
+    /** QuickBooks Customer ID – Zuordnung zum Kunden in QuickBooks für Rechnungen. */
+    customerId?: string
+  }
 }
 
 /** AWS/data residency region for tenant or partner. */

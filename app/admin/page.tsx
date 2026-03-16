@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
-import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X, MapPin, FileText, Plus, Trash2 } from 'lucide-react';
+import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X, MapPin, FileText, Plus, Trash2, Link2 } from 'lucide-react';
 import {
   PLATFORM_LIST_PRICES,
   SOC_LIST_PRICES,
@@ -33,6 +33,7 @@ type TenantBillingForm = {
   onboardingFee: string; revenueSharePercent: string;
   salePriceAppTier: string; salePriceSocTier: string; salePriceMitAiTier: string; salePriceBundle: string;
   useCustomBundle: boolean; customBundleLines: CustomBundleLineForm[];
+  quickbooksSyncEnabled: boolean; quickbooksCustomerId: string;
 };
 type DataResidencyRegion = 'us' | 'eu' | 'asia';
 type TenantFrameworkForm = { id: string; name: string };
@@ -89,6 +90,7 @@ export default function AdminPage(){
     onboardingFee: '', revenueSharePercent: '',
     salePriceAppTier: '', salePriceSocTier: '', salePriceMitAiTier: '', salePriceBundle: '',
     useCustomBundle: false, customBundleLines: [],
+    quickbooksSyncEnabled: false, quickbooksCustomerId: '',
   };
   const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors; locations: TenantLocation[]; billing: TenantBillingForm; region: DataResidencyRegion | ''; frameworks: TenantFrameworkForm[]; documentUploads: TenantDocumentUploadForm[] }>({
     id: '', name: '', partnerId: '', active: true,
@@ -351,6 +353,9 @@ export default function AdminPage(){
       salePriceBundle: tenantForm.billing.salePriceBundle ? Number(tenantForm.billing.salePriceBundle) : undefined,
       useCustomBundle: tenantForm.billing.useCustomBundle || undefined,
       customBundleLines: tenantForm.billing.useCustomBundle ? customLines : undefined,
+      quickbooks: tenantForm.billing.quickbooksSyncEnabled || tenantForm.billing.quickbooksCustomerId
+        ? { syncEnabled: tenantForm.billing.quickbooksSyncEnabled, customerId: tenantForm.billing.quickbooksCustomerId.trim() || undefined }
+        : undefined,
     };
     try {
       if (editingTenantId) {
@@ -388,6 +393,8 @@ export default function AdminPage(){
         salePriceBundle: b?.salePriceBundle != null ? String(b.salePriceBundle) : '',
         useCustomBundle: !!b?.useCustomBundle,
         customBundleLines: lines.map((l) => ({ type: (l.type as 'mahoney'|'own') || 'own', productId: l.productId ?? '', label: l.label, partnerCost: l.partnerCost != null ? String(l.partnerCost) : '', salePrice: l.salePrice != null ? String(l.salePrice) : '' })),
+        quickbooksSyncEnabled: !!(b?.quickbooks as { syncEnabled?: boolean } | undefined)?.syncEnabled,
+        quickbooksCustomerId: ((b?.quickbooks as { customerId?: string } | undefined)?.customerId as string) ?? '',
       },
       region: (t as TenantItem).region ?? '',
       frameworks: Array.isArray((t as TenantItem).frameworks) ? (t as TenantItem).frameworks!.map((f) => ({ ...f })) : [],
@@ -1213,6 +1220,23 @@ export default function AdminPage(){
 
                   <div className="mt-4 p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
                     <div className="flex items-center gap-2 mb-2">
+                      <Link2 size={16} className="text-[var(--muted)]" />
+                      <span className="text-sm font-semibold text-[var(--text)]">QuickBooks</span>
+                    </div>
+                    <p className="text-xs text-[var(--muted)] mb-3">Billing-Daten (Rechnungen, Positionen) können an QuickBooks übertragen werden (API/Sync).</p>
+                    <label className="flex items-center gap-2 cursor-pointer mb-2">
+                      <input type="checkbox" checked={tenantForm.billing.quickbooksSyncEnabled} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, quickbooksSyncEnabled: e.target.checked } }))} className="rounded border-[var(--border)]"/>
+                      <span className="text-sm text-[var(--text)]">Sync billing to QuickBooks</span>
+                    </label>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">QuickBooks Customer ID</label>
+                      <input value={tenantForm.billing.quickbooksCustomerId} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, quickbooksCustomerId: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="z. B. 123 (Kunden-ID in QuickBooks)"/>
+                      <p className="text-xs text-[var(--muted)] mt-1">Verknüpfung zum Kunden in QuickBooks für Rechnungsübertrag.</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                    <div className="flex items-center gap-2 mb-2">
                       <FileText size={16} className="text-[var(--muted)]" />
                       <span className="text-sm font-semibold text-[var(--text)]">MDU consumption (customer)</span>
                     </div>
@@ -1266,7 +1290,22 @@ export default function AdminPage(){
                         </ul>
                       )}
                       <div className="mt-2 flex items-center gap-2">
-                        <input type="file" id="framework-doc-upload" className="hidden" accept=".pdf,.doc,.docx,.txt" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setTenantForm((s) => ({ ...s, documentUploads: [...s.documentUploads, { id: `doc-${Date.now()}`, name: f.name, uploadedAtISO: new Date().toISOString() }] })); e.target.value = ''; }} />
+                        <input
+                          type="file"
+                          id="framework-doc-upload"
+                          className="hidden"
+                          accept=".pdf,.doc,.docx,.txt"
+                          onChange={(e) => {
+                            const file = e.target.files && e.target.files[0]
+                            if (file) {
+                              setTenantForm((s) => ({
+                                ...s,
+                                documentUploads: [...s.documentUploads, { id: 'doc-' + Date.now(), name: file.name, uploadedAtISO: new Date().toISOString() }],
+                              }))
+                              e.target.value = ''
+                            }
+                          }}
+                        />
                         <label htmlFor="framework-doc-upload" className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-2)] cursor-pointer">
                           <Plus size={14}/> Add document
                         </label>
