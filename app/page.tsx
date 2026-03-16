@@ -506,8 +506,8 @@ export default function DashboardPage() {
                       <span className="font-semibold text-[var(--success)]">+{formatCurrency(PARTNER_PL_APP_DEMO.revenueFromPlatformShareUsd)}/mo</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--muted)]">Your cost (list − margin)</span>
-                      <span className="font-semibold text-[var(--danger)]">−{formatCurrency(PARTNER_PL_APP_DEMO.appCostUsd)}/mo</span>
+                      <span className="text-[var(--muted)]">Platform cost (list − your margin)</span>
+                      <span className="font-medium text-[var(--text)]">{formatCurrency(PARTNER_PL_APP_DEMO.appCostUsd)}/mo</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-[var(--border)]">
                       <span className="text-sm font-medium text-[var(--text)]">Net (platform P/L)</span>
@@ -530,8 +530,8 @@ export default function DashboardPage() {
                       <span className="font-medium text-[var(--text)]">{(PARTNER_MDU_DEMO.eventsPerDay / 1000).toFixed(0)}k</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--muted)]">Base cost (to platform)</span>
-                      <span className="font-semibold text-[var(--danger)]">−{formatCurrency(PARTNER_MDU_DEMO.costToPartnerUsd)}/mo</span>
+                      <span className="text-[var(--muted)]">Platform cost (data)</span>
+                      <span className="font-medium text-[var(--text)]">{formatCurrency(PARTNER_MDU_DEMO.costToPartnerUsd)}/mo</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-[var(--muted)]">Your margin (+{formatCurrency(PARTNER_MDU_DEMO.partnerMarginPerThousandUsd)}/1k)</span>
