@@ -63,6 +63,8 @@ export default function DashboardPage() {
   const [mrrChartHovered, setMrrChartHovered] = useState<number | null>(null)
   /** Which customer we're viewing in single-tenant view (partner's customer list) */
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(partnerCustomers[0]?.id ?? null)
+  /** Partner's own data residency (from /api/demo/me), shown at bottom of partner dashboard */
+  const [partnerRegion, setPartnerRegion] = useState<'us' | 'eu' | 'asia' | null>(null)
   const h = useHaptics()
 
   const setAuditCounts = useAuditStore(s => s.setAuditCounts)
@@ -77,6 +79,15 @@ export default function DashboardPage() {
       .then((d: UsageData) => setUsage(d))
       .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000, eventsPerMonth: 39000 }))
   }, [])
+
+  useEffect(() => {
+    if (view === 'partner') {
+      fetch('/api/demo/me')
+        .then((r) => r.json())
+        .then((d: { partnerRegion?: 'us' | 'eu' | 'asia' }) => setPartnerRegion(d.partnerRegion ?? 'us'))
+        .catch(() => setPartnerRegion('us'))
+    }
+  }, [view])
 
   // Clients (with/without IT) must not see Partner dashboard – force customer view, hide toggle and company dropdown
   useEffect(() => {
@@ -752,6 +763,18 @@ export default function DashboardPage() {
                 </div>
                 <p className="text-xs text-[var(--muted)] mt-3">Click a row to open customer context (tenant, Grow, alerts).</p>
               </Card>
+
+              {/* Partner data residency (bottom of partner dashboard) */}
+              <Card className="card-desktop p-4">
+                <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
+                  <Database className="w-4 h-4 text-[var(--muted)]" />
+                  <span>Partner tenant data residency:</span>
+                  <span className="font-medium text-[var(--text)]">
+                    {partnerRegion === 'eu' ? 'AWS Europe (GDPR)' : partnerRegion === 'asia' ? 'AWS Asia' : 'AWS USA'}
+                  </span>
+                </div>
+                <p className="text-xs text-[var(--muted)] mt-1">Your own partner tenant runs on this AWS region.</p>
+              </Card>
             </>
           )}
         </motion.div>
@@ -1205,6 +1228,17 @@ export default function DashboardPage() {
               <p className="mt-3 text-[11px] text-[var(--muted)]">
                 Tap a customer to open their tenant context (Grow, alerts, billing).
               </p>
+            </Card>
+
+            {/* Partner data residency (bottom of partner dashboard, mobile) */}
+            <Card className="p-4">
+              <div className="flex items-center gap-2 text-[11px] text-[var(--muted)]">
+                <Database className="w-3.5 h-3.5 shrink-0" />
+                <span>Partner tenant data residency:</span>
+                <span className="font-medium text-[var(--text)]">
+                  {partnerRegion === 'eu' ? 'AWS Europe (GDPR)' : partnerRegion === 'asia' ? 'AWS Asia' : 'AWS USA'}
+                </span>
+              </div>
             </Card>
           </>
         )}

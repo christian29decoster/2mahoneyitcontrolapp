@@ -24,11 +24,13 @@ export async function GET(req: NextRequest) {
   let partnerTier: string | undefined
   let partnerName: string | undefined
   let partnerBranding: { appName?: string; logoDataUrl?: string } | undefined
+  let partnerRegion: 'us' | 'eu' | 'asia' | undefined
   if (role === 'partner' && partnerId) {
     const partner = getPartnerById(partnerId)
     if (partner) {
       partnerTier = partner.tier
       partnerName = partner.name
+      partnerRegion = partner.region ?? 'us'
       if (partner.branding && (partner.branding.appName || partner.branding.logoDataUrl)) partnerBranding = partner.branding
     }
   }
@@ -38,5 +40,6 @@ export async function GET(req: NextRequest) {
     partnerTier,
     partnerName,
     partnerBranding,
+    partnerRegion,
   })
 }

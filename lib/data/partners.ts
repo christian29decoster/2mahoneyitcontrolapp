@@ -6,7 +6,7 @@
 import type { Partner } from '@/lib/auth/roles'
 
 const store: Partner[] = [
-  { id: 'partner-1', name: 'SCC-IB-US-Team', externalId: undefined, tier: 'advanced', active: true, createdAtISO: new Date().toISOString() },
+  { id: 'partner-1', name: 'SCC-IB-US-Team', externalId: undefined, tier: 'advanced', active: true, createdAtISO: new Date().toISOString(), region: 'us' },
   { id: 'partner-2', name: 'SecureNet EMEA', externalId: undefined, tier: 'elite', active: true, createdAtISO: new Date().toISOString() },
   { id: 'partner-3', name: 'CloudGuard MSP', externalId: undefined, tier: 'authorized', active: true, createdAtISO: new Date().toISOString() },
   { id: 'partner-4', name: 'TechPartners DACH', externalId: undefined, tier: 'advanced', active: true, createdAtISO: new Date().toISOString() },

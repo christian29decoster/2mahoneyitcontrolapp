@@ -34,7 +34,21 @@ type TenantBillingForm = {
   salePriceAppTier: string; salePriceSocTier: string; salePriceMitAiTier: string; salePriceBundle: string;
   useCustomBundle: boolean; customBundleLines: CustomBundleLineForm[];
 };
-type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string; locations?: TenantLocation[]; billing?: Partial<TenantBillingForm> };
+type DataResidencyRegion = 'us' | 'eu' | 'asia';
+type TenantFrameworkForm = { id: string; name: string };
+type TenantDocumentUploadForm = { id: string; name: string; uploadedAtISO: string };
+type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string; locations?: TenantLocation[]; billing?: Partial<TenantBillingForm>; region?: DataResidencyRegion; frameworks?: TenantFrameworkForm[]; documentUploads?: TenantDocumentUploadForm[] };
+
+const KNOWN_FRAMEWORKS: TenantFrameworkForm[] = [
+  { id: 'iso27001', name: 'ISO 27001' },
+  { id: 'iso27701', name: 'ISO 27701 (Privacy)' },
+  { id: 'soc2', name: 'SOC 2' },
+  { id: 'gdpr', name: 'GDPR' },
+  { id: 'nis2', name: 'NIS2' },
+  { id: 'hipaa', name: 'HIPAA' },
+  { id: 'pci-dss', name: 'PCI-DSS' },
+  { id: 'tisax', name: 'TISAX' },
+];
 
 const TABS = [
   { id: 'users' as const, label: 'Users', icon: Users },
@@ -76,13 +90,16 @@ export default function AdminPage(){
     salePriceAppTier: '', salePriceSocTier: '', salePriceMitAiTier: '', salePriceBundle: '',
     useCustomBundle: false, customBundleLines: [],
   };
-  const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors; locations: TenantLocation[]; billing: TenantBillingForm }>({
+  const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors; locations: TenantLocation[]; billing: TenantBillingForm; region: DataResidencyRegion | ''; frameworks: TenantFrameworkForm[]; documentUploads: TenantDocumentUploadForm[] }>({
     id: '', name: '', partnerId: '', active: true,
     connectors: { rmm: {}, sophos: {}, autotask: {} },
     locations: [],
     billing: defaultBillingForm,
+    region: '',
+    frameworks: [],
+    documentUploads: [],
   });
-  const [kundenakteSection, setKundenakteSection] = useState<'company'|'locations'|'partner'|'billing'>('company');
+  const [kundenakteSection, setKundenakteSection] = useState<'company'|'locations'|'partner'|'billing'|'framework'>('company');
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
   type AutotaskCompanyItem = { id: number; companyName?: string };
   const [autotaskCompanies, setAutotaskCompanies] = useState<AutotaskCompanyItem[]>([]);
@@ -337,14 +354,14 @@ export default function AdminPage(){
     };
     try {
       if (editingTenantId) {
-        const res = await fetch(`/api/tenants/${editingTenantId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload }) });
+        const res = await fetch(`/api/tenants/${editingTenantId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload, region: tenantForm.region || undefined, frameworks: tenantForm.frameworks.length ? tenantForm.frameworks : undefined, documentUploads: tenantForm.documentUploads.length ? tenantForm.documentUploads : undefined }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
         setEditingTenantId(null);
       } else {
-        const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload }) });
+        const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload, region: tenantForm.region || undefined, frameworks: tenantForm.frameworks.length ? tenantForm.frameworks : undefined, documentUploads: tenantForm.documentUploads.length ? tenantForm.documentUploads : undefined }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
       }
-      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm });
+      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm, region: '', frameworks: [], documentUploads: [] });
       await loadTenants();
     } catch (err) { console.error(err); alert('Error saving'); }
   }
@@ -372,6 +389,9 @@ export default function AdminPage(){
         useCustomBundle: !!b?.useCustomBundle,
         customBundleLines: lines.map((l) => ({ type: (l.type as 'mahoney'|'own') || 'own', productId: l.productId ?? '', label: l.label, partnerCost: l.partnerCost != null ? String(l.partnerCost) : '', salePrice: l.salePrice != null ? String(l.salePrice) : '' })),
       },
+      region: (t as TenantItem).region ?? '',
+      frameworks: Array.isArray((t as TenantItem).frameworks) ? (t as TenantItem).frameworks!.map((f) => ({ ...f })) : [],
+      documentUploads: Array.isArray((t as TenantItem).documentUploads) ? (t as TenantItem).documentUploads!.map((d) => ({ ...d })) : [],
     });
   }
   async function deleteTenant(id: string) {
@@ -904,14 +924,15 @@ export default function AdminPage(){
             <p className="text-xs text-[var(--muted)] mb-4">Tenants are customers or organizations. Structured by Company, Locations, Partner, and Billing.</p>
 
             <nav className="flex flex-wrap gap-1 p-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] mb-4">
-              {(['company','locations','partner','billing'] as const).map((sec)=>(
+              {(['company','locations','partner','billing','framework'] as const).map((sec)=>(
                 <button key={sec} type="button" onClick={()=>setKundenakteSection(sec)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${kundenakteSection===sec?'bg-[var(--primary)] text-white':'text-[var(--muted)] hover:text-[var(--text)]'}`}>
                   {sec==='company'&&<Building2 size={14}/>}
                   {sec==='locations'&&<MapPin size={14}/>}
                   {sec==='partner'&&<Building2 size={14}/>}
                   {sec==='billing'&&<CreditCard size={14}/>}
-                  {sec==='company'?'Company':sec==='locations'?'Locations':sec==='partner'?'Partner':'Billing'}
+                  {sec==='framework'&&<Shield size={14}/>}
+                  {sec==='company'?'Company':sec==='locations'?'Locations':sec==='partner'?'Partner':sec==='billing'?'Billing':'Framework & documents'}
                 </button>
               ))}
             </nav>
@@ -934,6 +955,16 @@ export default function AdminPage(){
                     <input type="checkbox" checked={tenantForm.active} onChange={e=>setTenantForm(s=>({...s, active:e.target.checked}))} className="rounded border-[var(--border)]"/>
                     <span className="text-sm text-[var(--text)]">Active</span>
                   </label>
+                  <div className="pt-2 border-t border-[var(--border)]">
+                    <label className="block text-xs font-medium text-[var(--muted)] mb-1">Data residency (AWS region)</label>
+                    <select value={tenantForm.region || ''} onChange={e=>setTenantForm(s=>({...s, region: (e.target.value || '') as DataResidencyRegion | '' }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
+                      <option value="">— Not set —</option>
+                      <option value="us">USA</option>
+                      <option value="eu">Europe (GDPR)</option>
+                      <option value="asia">Asia</option>
+                    </select>
+                    <p className="text-xs text-[var(--muted)] mt-1">Where this customer&apos;s data runs (US, EU, or Asia).</p>
+                  </div>
                   <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide pt-2 border-t border-[var(--border)]">Connectors (RMM, Sophos, Autotask)</div>
                   <div className="space-y-3">
                     <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
@@ -1192,10 +1223,64 @@ export default function AdminPage(){
                   );
                 })()}
 
+              {kundenakteSection==='framework' && (
+                <>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Framework & documents</div>
+                  <p className="text-xs text-[var(--muted)] mb-3">Select compliance frameworks for this customer. Upload documents (policies, certificates) for AI evaluation.</p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-2">Frameworks (ISO, SOC 2, etc.)</label>
+                      <div className="flex flex-wrap gap-2">
+                        {KNOWN_FRAMEWORKS.map((fw) => {
+                          const selected = tenantForm.frameworks.some((f) => f.id === fw.id);
+                          return (
+                            <button
+                              key={fw.id}
+                              type="button"
+                              onClick={() => {
+                                if (selected) setTenantForm((s) => ({ ...s, frameworks: s.frameworks.filter((f) => f.id !== fw.id) }));
+                                else setTenantForm((s) => ({ ...s, frameworks: [...s.frameworks, { id: fw.id, name: fw.name }] }));
+                              }}
+                              className={`px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${selected ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]'}`}
+                            >
+                              {fw.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {tenantForm.frameworks.length > 0 && <p className="text-xs text-[var(--muted)] mt-2">Selected: {tenantForm.frameworks.map((f) => f.name).join(', ')}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-2">Uploaded documents (for AI evaluation)</label>
+                      {tenantForm.documentUploads.length === 0 ? (
+                        <p className="text-sm text-[var(--muted)]">No documents yet. Use &quot;Add document&quot; to record uploads (file storage can be wired later).</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {tenantForm.documentUploads.map((doc) => (
+                            <li key={doc.id} className="flex items-center justify-between rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm">
+                              <span className="text-[var(--text)]">{doc.name}</span>
+                              <span className="text-xs text-[var(--muted)]">{new Date(doc.uploadedAtISO).toLocaleDateString()}</span>
+                              <button type="button" onClick={() => setTenantForm((s) => ({ ...s, documentUploads: s.documentUploads.filter((d) => d.id !== doc.id) }))} className="p-1 rounded text-[var(--muted)] hover:bg-[var(--surface)]" aria-label="Remove"><Trash2 size={14}/></button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <div className="mt-2 flex items-center gap-2">
+                        <input type="file" id="framework-doc-upload" className="hidden" accept=".pdf,.doc,.docx,.txt" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setTenantForm((s) => ({ ...s, documentUploads: [...s.documentUploads, { id: `doc-${Date.now()}`, name: f.name, uploadedAtISO: new Date().toISOString() }] })); e.target.value = ''; }} />
+                        <label htmlFor="framework-doc-upload" className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-2)] cursor-pointer">
+                          <Plus size={14}/> Add document
+                        </label>
+                        <span className="text-xs text-[var(--muted)]">PDF, DOC, TXT (metadata stored; AI evaluation can be wired later)</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
               <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
                 <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90">{editingTenantId ? 'Save' : 'Add tenant'}</button>
                 {editingTenantId && (
-                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
+                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm, region: '', frameworks: [], documentUploads: [] }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
                 )}
               </div>
             </div>

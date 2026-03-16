@@ -78,6 +78,22 @@ export interface TenantBilling {
   customBundleLines?: TenantBillingCustomBundleLine[]
 }
 
+/** AWS/data residency region for tenant or partner. */
+export type DataResidencyRegion = 'us' | 'eu' | 'asia'
+
+/** Customer framework (ISO, SOC 2, etc.) for compliance/AI evaluation. */
+export interface TenantFramework {
+  id: string
+  name: string
+}
+
+/** Uploaded document reference for AI evaluation (e.g. policy, certificate). */
+export interface TenantDocumentUpload {
+  id: string
+  name: string
+  uploadedAtISO: string
+}
+
 /** Tenant (Mandant) – von Mahoney oder Partner verwaltet. */
 export interface Tenant {
   id: string
@@ -94,6 +110,28 @@ export interface Tenant {
   certificates?: TenantCertificate[]
   /** Billing- und Vertragsattribute (Kundenakte). */
   billing?: TenantBilling
+  /** Data residency: AWS region where this tenant's data runs (US, EU/GDPR, Asia). */
+  region?: DataResidencyRegion
+  /** Frameworks selected for this customer (ISO, SOC 2, etc.) for AI evaluation. */
+  frameworks?: TenantFramework[]
+  /** Documents uploaded for AI to evaluate (policies, certificates). */
+  documentUploads?: TenantDocumentUpload[]
+}
+
+/** Partner – hat mehrere Tenants (Kunden). */
+export interface Partner {
+  id: string
+  name: string
+  /** Externe Partner-ID (z. B. Sophos Partner-ID) für API-Matching. */
+  externalId?: string
+  /** Partner-Stufe für Einkaufspreise (Authorized / Advanced / Elite). */
+  tier?: PartnerTierId
+  active: boolean
+  createdAtISO: string
+  /** White-Label: Partner kann die App unter eigenem Namen/Logo darstellen. */
+  branding?: PartnerBranding
+  /** Data residency for partner's own org: AWS region (US, EU, Asia). */
+  region?: DataResidencyRegion
 }
 
 /** Pro Tenant: Zuordnung zu RMM, Sophos, Autotask und weiteren APIs. */
@@ -119,19 +157,6 @@ export interface PartnerBranding {
   logoDataUrl?: string
 }
 
-/** Partner – hat mehrere Tenants (Kunden). */
-export interface Partner {
-  id: string
-  name: string
-  /** Externe Partner-ID (z. B. Sophos Partner-ID) für API-Matching. */
-  externalId?: string
-  /** Partner-Stufe für Einkaufspreise (Authorized / Advanced / Elite). */
-  tier?: PartnerTierId
-  active: boolean
-  createdAtISO: string
-  /** White-Label: Partner kann die App unter eigenem Namen/Logo darstellen. */
-  branding?: PartnerBranding
-}
 
 /** Governance-Dokument (Handbuch, Richtlinie) – von Admin gepflegt, von KI prüfbar. */
 export interface GovernanceDocument {
