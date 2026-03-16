@@ -83,6 +83,14 @@ export default function IncidentsPage() {
   }
 
   function incidentSourceLabel(inc: IncidentRecord): string {
+    const sources = new Set((inc.eventLog ?? []).map((e) => (e.source ?? '').toLowerCase()).filter(Boolean))
+    const hasXdr = sources.has('xdr')
+    const hasSiem = sources.has('siem')
+    const hasSoc = sources.has('soc')
+    const hasRmm = inc.source === 'rmm' || sources.has('rmm')
+    const hasEdr = inc.source === 'edr' || sources.has('sophos') || sources.has('edr')
+    const isMixedSecurity = (hasRmm || hasEdr) && (hasXdr || hasSiem || hasSoc)
+    if (isMixedSecurity) return 'SOC (RMM+XDR+SIEM)'
     if (inc.source === 'rmm') return 'RMM'
     if (inc.source === 'edr') return 'EDR'
     if (inc.id?.startsWith('autotask-') || inc.source === 'autotask') return 'Autotask'

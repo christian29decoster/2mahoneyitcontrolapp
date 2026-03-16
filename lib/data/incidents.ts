@@ -176,6 +176,8 @@ export function getDemoIncidents(opts: { count?: number; lastDays?: number } = {
         ? undefined
         : [
             { atISO: loggedAt, message: `Demo ${source.toUpperCase()} signal ingested.`, source },
+            { atISO: new Date(loggedTs + 20 * 1000).toISOString(), message: 'XDR: endpoint telemetry attached (process + network + user context).', source: 'xdr' },
+            { atISO: new Date(loggedTs + 40 * 1000).toISOString(), message: 'SIEM: correlated identity, DNS, and firewall events.', source: 'siem' },
             { atISO: new Date(loggedTs + 60 * 1000).toISOString(), message: 'SOC triage started (auto-enrichment + correlation).', source: 'soc' },
             { atISO: new Date(loggedTs + 4 * 60 * 1000).toISOString(), message: 'SOC note: prioritized and categorized; next step generated for responder.', source: 'soc' },
           ]

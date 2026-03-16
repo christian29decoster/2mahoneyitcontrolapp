@@ -55,8 +55,10 @@ function mapRmmAlertToIncident(alert: Record<string, unknown>, index: number, st
   const createdTs = new Date(created).getTime()
   const eventLog: IncidentEventLogEntry[] = [
     { atISO: created, message: message || name, source: 'rmm', raw: alert },
+    { atISO: new Date(createdTs + 30 * 1000).toISOString(), message: 'XDR context: endpoint telemetry attached (process + network + user activity).', source: 'xdr' },
+    { atISO: new Date(createdTs + 45 * 1000).toISOString(), message: 'SIEM correlation: matched related events (auth, DNS, firewall) within ±10 min window.', source: 'siem' },
     { atISO: new Date(createdTs + 2 * 60 * 1000).toISOString(), message: 'SOC triage started (auto-enrichment from device + alert context).', source: 'soc' },
-    { atISO: new Date(createdTs + 5 * 60 * 1000).toISOString(), message: 'SOC classification: operational alert. Suggested next step: validate agent status and recent changes.', source: 'soc' },
+    { atISO: new Date(createdTs + 5 * 60 * 1000).toISOString(), message: 'SOC classification: operational alert (RMM + XDR + SIEM). Suggested next step: validate agent status and recent changes.', source: 'soc' },
   ]
   return {
     id,
@@ -88,8 +90,10 @@ function mapSophosAlertToIncident(
   const createdTs = new Date(created).getTime()
   const eventLog: IncidentEventLogEntry[] = [
     { atISO: created, message: description, source: 'sophos', raw: alert },
+    { atISO: new Date(createdTs + 20 * 1000).toISOString(), message: 'XDR: detection context attached (behavior, parent process, persistence indicators).', source: 'xdr' },
+    { atISO: new Date(createdTs + 40 * 1000).toISOString(), message: 'SIEM: correlated identity and network events; enrichment added to case.', source: 'siem' },
     { atISO: new Date(createdTs + 60 * 1000).toISOString(), message: 'SOC triage started (SIEM/XDR correlation and asset context).', source: 'soc' },
-    { atISO: new Date(createdTs + 4 * 60 * 1000).toISOString(), message: 'SOC action: correlated with recent endpoint activity and recommended containment if severity is high.', source: 'soc' },
+    { atISO: new Date(createdTs + 4 * 60 * 1000).toISOString(), message: 'SOC action: correlated with XDR + SIEM and recommended containment if severity is high.', source: 'soc' },
   ]
   return {
     id,
