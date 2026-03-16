@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { MapPin, Navigation, Plus, FileText, Edit, Search, Building2, ChevronRight } from 'lucide-react'
+import { MapPin, Navigation, Plus, FileText, Edit, Search, Building2, ChevronDown, Check } from 'lucide-react'
 import { MiniMap } from '@/components/MiniMap'
 import { Card } from '@/components/Card'
 import { HapticButton } from '@/components/HapticButton'
@@ -47,6 +47,7 @@ export default function CompanyPage() {
   const [tenantsLoading, setTenantsLoading] = useState(false)
   const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [orgPickerOpen, setOrgPickerOpen] = useState(false)
   const [isAddLocationOpen, setIsAddLocationOpen] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const h = useHaptics()
@@ -81,6 +82,13 @@ export default function CompanyPage() {
   useEffect(() => {
     if (!canSeeMultipleCompanies && effectiveSingleTenantId) setSelectedTenantId(effectiveSingleTenantId)
   }, [canSeeMultipleCompanies, effectiveSingleTenantId])
+
+  useEffect(() => {
+    if (!orgPickerOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOrgPickerOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [orgPickerOpen])
 
   useEffect(() => {
     if (canSeeMultipleCompanies || !effectiveSingleTenantId) return
@@ -169,42 +177,82 @@ export default function CompanyPage() {
           </Card>
         )}
         {canSeeMultipleCompanies && (
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Search className="w-5 h-5 text-[var(--muted)]" />
-              <input
-                type="search"
-                placeholder={isPartner ? 'Search customers...' : 'Search organizations...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent border-none outline-none text-[var(--text)] placeholder-[var(--muted)]"
-              />
-            </div>
-            <p className="text-xs text-[var(--muted)] mb-2">
-              {isPartner ? 'Select a customer' : 'Select an organization'}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {filteredTenants.map((t) => (
+          <Card className="p-4 relative">
+            <button
+              type="button"
+              onClick={() => { h.impact('light'); setOrgPickerOpen((o) => !o) }}
+              className="flex items-center gap-3 w-full text-left rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-4 py-3 hover:bg-[var(--surface-2)]/80 transition-colors"
+              aria-expanded={orgPickerOpen}
+              aria-haspopup="listbox"
+              aria-label={isPartner ? 'Select customer' : 'Select organization'}
+            >
+              <Building2 className="w-5 h-5 text-[var(--muted)] shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="font-medium text-[var(--text)] block truncate">
+                  {selectedTenant ? `${selectedTenant.name} (${selectedTenant.id})` : (isPartner ? 'Select a customer' : 'Select an organization')}
+                </span>
+                <span className="text-xs text-[var(--muted)]">
+                  {isPartner ? 'Customer' : 'Organization'} · {tenants.length} total
+                </span>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-[var(--muted)] shrink-0 transition-transform ${orgPickerOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {orgPickerOpen && (
+              <>
+                <div className="absolute left-0 right-0 top-full z-20 mt-2 rounded-xl border border-[var(--border)] bg-[var(--surface-elev)] shadow-lg overflow-hidden" role="listbox">
+                  <div className="p-2 border-b border-[var(--border)]">
+                    <div className="flex items-center gap-2 rounded-lg bg-[var(--surface-2)] px-3 py-2">
+                      <Search className="w-4 h-4 text-[var(--muted)] shrink-0" />
+                      <input
+                        type="search"
+                        placeholder={isPartner ? 'Search customers...' : 'Search organizations...'}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-[var(--text)] placeholder:text-[var(--muted)]"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                  <div className="max-h-[280px] overflow-y-auto overscroll-contain">
+                    {filteredTenants.length === 0 ? (
+                      <p className="py-4 px-4 text-sm text-[var(--muted)] text-center">
+                        {searchQuery.trim() ? 'No matches' : 'Loading…'}
+                      </p>
+                    ) : (
+                      filteredTenants.map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          role="option"
+                          aria-selected={selectedTenantId === t.id}
+                          onClick={() => {
+                            h.impact('light')
+                            setSelectedTenantId(t.id)
+                            setOrgPickerOpen(false)
+                          }}
+                          className={`flex items-center gap-3 w-full px-4 py-2.5 text-left transition-colors ${
+                            selectedTenantId === t.id
+                              ? 'bg-[var(--primary)]/15 text-[var(--primary)]'
+                              : 'text-[var(--text)] hover:bg-[var(--surface-2)]'
+                          }`}
+                        >
+                          {selectedTenantId === t.id ? <Check className="w-4 h-4 shrink-0" /> : <Building2 className="w-4 h-4 shrink-0 text-[var(--muted)]" />}
+                          <span className="font-medium truncate">{t.name}</span>
+                          <span className="text-xs text-[var(--muted)] shrink-0">{t.id}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
                 <button
-                  key={t.id}
                   type="button"
-                  onClick={() => {
-                    h.impact('light')
-                    setSelectedTenantId(t.id)
-                  }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-left transition-colors ${
-                    selectedTenantId === t.id
-                      ? 'bg-[var(--primary)] text-white'
-                      : 'bg-[var(--surface-2)] text-[var(--text)] hover:bg-[var(--surface-2)]/80'
-                  }`}
-                >
-                  <Building2 className="w-4 h-4 shrink-0" />
-                  <span className="font-medium">{t.name}</span>
-                  <span className="text-xs opacity-80">{t.id}</span>
-                  <ChevronRight className="w-4 h-4 shrink-0" />
-                </button>
-              ))}
-            </div>
+                  className="fixed inset-0 z-10"
+                  aria-label="Close"
+                  onClick={() => setOrgPickerOpen(false)}
+                />
+              </>
+            )}
             {tenantsLoading && <p className="text-sm text-[var(--muted)] mt-2">Loading…</p>}
           </Card>
         )}
