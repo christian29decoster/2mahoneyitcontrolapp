@@ -47,7 +47,9 @@ export function upsertUser(u: Partial<DemoUser> & {username: string, password?: 
     role: (u.role as DemoRole) || 'sales',
     active: u.active ?? true,
     expiresAtISO: u.expiresAtISO,
-    createdAtISO: new Date().toISOString()
+    createdAtISO: new Date().toISOString(),
+    partnerId: u.partnerId,
+    tenantId: u.tenantId,
   };
   users.push(nu);
   return nu;

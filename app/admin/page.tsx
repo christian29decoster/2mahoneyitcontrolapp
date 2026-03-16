@@ -1,11 +1,12 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X } from 'lucide-react';
 
 type User = {
   id:string; username:string; role:string;
   active:boolean; createdAtISO:string; expiresAtISO?:string;
+  partnerId?:string; tenantId?:string;
 };
 
 type AuditItem = { atISO:string; username:string; ipMasked:string; tz?:string; ua?:string };
@@ -34,8 +35,10 @@ export default function AdminPage(){
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [audit, setAudit] = useState<AuditItem[]>([]);
-  const [form, setForm] = useState({ username:'', password:'Mahoney#1', role:'sales', expiresAtISO:'' });
+  const [form, setForm] = useState({ username:'', password:'Mahoney#1', role:'sales', expiresAtISO:'', partnerId:'', tenantId:'' });
   const [currentRole, setCurrentRole] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+  const [partnerSearch, setPartnerSearch] = useState('');
 
   const [partners, setPartners] = useState<PartnerItem[]>([]);
   const [partnersLoading, setPartnersLoading] = useState(false);
@@ -104,6 +107,19 @@ export default function AdminPage(){
   useEffect(()=>{ loadAll(); }, []);
 
   const isSuperAdmin = currentRole === 'superadmin';
+
+  const filteredUsers = useMemo(() => {
+    const q = userSearch.trim().toLowerCase();
+    if (!q) return users;
+    return users.filter(u => u.username.toLowerCase().includes(q) || u.role.toLowerCase().includes(q));
+  }, [users, userSearch]);
+
+  const filteredPartners = useMemo(() => {
+    const q = partnerSearch.trim().toLowerCase();
+    if (!q) return partners;
+    return partners.filter(p => p.id.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
+  }, [partners, partnerSearch]);
+
   useEffect(function checkAdminRole() {
     const role = getDemoRoleFromCookie();
     setCurrentRole(role);
@@ -346,11 +362,18 @@ export default function AdminPage(){
       const response = await fetch('/api/demo/users', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+        username: form.username,
+        password: form.password,
+        role: form.role,
+        expiresAtISO: form.expiresAtISO || undefined,
+        partnerId: form.role === 'partner' && form.partnerId ? form.partnerId : undefined,
+        tenantId: form.role === 'tenant_user' && form.tenantId ? form.tenantId : undefined,
+      }),
       });
       
       if (response.ok) {
-        setForm({ username:'', password:'Mahoney#1', role:'sales', expiresAtISO:'' });
+        setForm({ username:'', password:'Mahoney#1', role:'sales', expiresAtISO:'', partnerId:'', tenantId:'' });
         await loadAll();
       } else {
         const error = await response.json();
@@ -485,13 +508,37 @@ export default function AdminPage(){
                     <option value="demo">demo</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-[var(--muted)] mb-1">Expires at (optional)</label>
-                  <input type="datetime-local" value={form.expiresAtISO}
+<div>
+                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Expires at (optional)</label>
+                <input type="datetime-local" value={form.expiresAtISO}
                          onChange={e=>setForm(s=>({...s, expiresAtISO:e.target.value}))}
                          className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]"/>
                 </div>
               </div>
+              {form.role === 'partner' && (
+                <div>
+                  <label className="block text-xs font-medium text-[var(--muted)] mb-1">Partner</label>
+                  <select value={form.partnerId} onChange={e=>setForm(s=>({...s, partnerId:e.target.value}))}
+                          className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]">
+                    <option value="">— Select partner —</option>
+                    {partners.filter(p=>p.active).map(p=>(
+                      <option key={p.id} value={p.id}>{p.name} ({p.id})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {form.role === 'tenant_user' && (
+                <div>
+                  <label className="block text-xs font-medium text-[var(--muted)] mb-1">Tenant / Organization</label>
+                  <select value={form.tenantId} onChange={e=>setForm(s=>({...s, tenantId:e.target.value}))}
+                          className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]">
+                    <option value="">— Select tenant —</option>
+                    {tenants.filter(t=>t.active).map(t=>(
+                      <option key={t.id} value={t.id}>{t.name} ({t.id})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="flex justify-end pt-1">
                 <button onClick={addUser}
                         className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90 transition-opacity">
@@ -502,9 +549,13 @@ export default function AdminPage(){
           </Card>
 
           <Card className="p-5 overflow-auto">
-            <div className="flex items-center gap-2 mb-4">
-              <Users size={20} className="text-[var(--primary)]" />
-              <h2 className="font-semibold text-[var(--text)]">Users</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <Users size={20} className="text-[var(--primary)]" />
+                <h2 className="font-semibold text-[var(--text)]">Users</h2>
+              </div>
+              <input type="search" placeholder="Search by username or role…" value={userSearch} onChange={e=>setUserSearch(e.target.value)}
+                     className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)] w-full sm:w-56"/>
             </div>
             {loading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : users.length === 0 ? (
               <div className="py-8 flex flex-col items-center justify-center text-center text-[var(--muted)]">
@@ -519,16 +570,20 @@ export default function AdminPage(){
                     <tr>
                       <th className="text-left py-3 px-3 font-medium text-[var(--muted)]">Username</th>
                       <th className="py-3 px-3 font-medium text-[var(--muted)]">Role</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Assignment</th>
                       <th className="py-3 px-3 font-medium text-[var(--muted)]">Status</th>
                       <th className="py-3 px-3 font-medium text-[var(--muted)]">Expires</th>
                       <th className="text-right py-3 px-3 font-medium text-[var(--muted)]">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]">
-                    {users.map(u=>(
+                    {filteredUsers.map(u=>{
+                      const assignment = u.tenantId ? (tenants.find(t=>t.id===u.tenantId)?.name ?? u.tenantId) : u.partnerId ? (partners.find(p=>p.id===u.partnerId)?.name ?? u.partnerId) : '—';
+                      return (
                       <tr key={u.id} className="hover:bg-[var(--surface-2)]/50 transition-colors">
                         <td className="py-3 px-3 font-medium text-[var(--text)]">{u.username}</td>
                         <td className="py-3 px-3 text-[var(--text)]">{u.role}</td>
+                        <td className="py-3 px-3 text-[var(--muted)]">{assignment}</td>
                         <td className="py-3 px-3">
                           <span className={`inline-flex px-2 py-1 rounded-lg text-xs font-medium ${u.active?'bg-emerald-500/20 text-emerald-400':'bg-zinc-500/20 text-zinc-400'}`}>
                             {u.active?'Active':'Disabled'}
@@ -552,10 +607,13 @@ export default function AdminPage(){
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    );})}
                   </tbody>
                 </table>
               </div>
+            )}
+            {!loading && users.length > 0 && filteredUsers.length === 0 && (
+              <p className="text-sm text-[var(--muted)] py-2">No users match the search.</p>
             )}
           </Card>
         </div>
@@ -653,9 +711,13 @@ export default function AdminPage(){
             </div>
           </Card>
           <Card className="p-5 overflow-auto">
-            <div className="flex items-center gap-2 mb-4">
-              <Building2 size={20} className="text-[var(--primary)]" />
-              <h2 className="font-semibold text-[var(--text)]">Partners</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <Building2 size={20} className="text-[var(--primary)]" />
+                <h2 className="font-semibold text-[var(--text)]">Partners</h2>
+              </div>
+              <input type="search" placeholder="Search by name or ID…" value={partnerSearch} onChange={e=>setPartnerSearch(e.target.value)}
+                     className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)] w-full sm:w-56"/>
             </div>
             {partnersLoading ? <div className="text-sm text-[var(--muted)] py-4">Loading…</div> : partners.length === 0 ? (
               <div className="py-8 flex flex-col items-center justify-center text-center text-[var(--muted)]">
@@ -671,17 +733,21 @@ export default function AdminPage(){
                       <th className="text-left py-3 px-3 font-medium text-[var(--muted)]">ID</th>
                       <th className="py-3 px-3 font-medium text-[var(--muted)]">Name</th>
                       <th className="py-3 px-3 font-medium text-[var(--muted)]">Tier</th>
+                      <th className="py-3 px-3 font-medium text-[var(--muted)]">Tenants</th>
                       <th className="py-3 px-3 font-medium text-[var(--muted)]">External ID</th>
                       <th className="py-3 px-3 font-medium text-[var(--muted)]">Status</th>
                       <th className="text-right py-3 px-3 font-medium text-[var(--muted)]">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]">
-                    {partners.map(p=>(
+                    {filteredPartners.map(p=>{
+                      const tenantCount = tenants.filter(t=>t.partnerId===p.id).length;
+                      return (
                       <tr key={p.id} className="hover:bg-[var(--surface-2)]/50 transition-colors">
                         <td className="py-3 px-3 font-medium text-[var(--text)]">{p.id}</td>
                         <td className="py-3 px-3 text-[var(--text)]">{p.name}</td>
                         <td className="py-3 px-3 text-[var(--muted)]">{p.tier ? p.tier.charAt(0).toUpperCase() + p.tier.slice(1) : '—'}</td>
+                        <td className="py-3 px-3 text-[var(--text)]">{tenantCount}</td>
                         <td className="py-3 px-3 text-[var(--muted)]">{p.externalId ?? '—'}</td>
                         <td className="py-3 px-3">
                           <span className={`inline-flex px-2 py-1 rounded-lg text-xs font-medium ${p.active?'bg-emerald-500/20 text-emerald-400':'bg-zinc-500/20 text-zinc-400'}`}>{p.active?'Active':'Inactive'}</span>
@@ -695,10 +761,13 @@ export default function AdminPage(){
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    );})}
                   </tbody>
                 </table>
               </div>
+            )}
+            {!partnersLoading && partners.length > 0 && filteredPartners.length === 0 && (
+              <p className="text-sm text-[var(--muted)] py-2">No partners match the search.</p>
             )}
           </Card>
         </div>

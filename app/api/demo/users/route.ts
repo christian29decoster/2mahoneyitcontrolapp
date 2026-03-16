@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { listUsers, upsertUser, toggleActive, removeUser, findUserById, findUser, isSuperAdminUser } from '@/lib/demo-users';
+import type { DemoUser } from '@/lib/demo-users';
 
 type DemoRole = import('@/lib/demo-users').DemoRole;
 
@@ -23,9 +24,15 @@ function canModifyTarget(actorRole: DemoRole | null, targetIsSuperAdmin: boolean
   return actorRole === 'superadmin';
 }
 
+function sanitizeUser(u: DemoUser) {
+  const { password: _, ...rest } = u;
+  return rest;
+}
+
 export async function GET(req: NextRequest) {
   if (!canManageUsers(req)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-  return NextResponse.json({ items: listUsers() });
+  const users = listUsers().map(sanitizeUser);
+  return NextResponse.json({ items: users });
 }
 
 export async function POST(req: NextRequest) {
@@ -37,7 +44,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'SuperAdmin can only be edited by SuperAdmin.' }, { status: 403 });
   }
   const saved = upsertUser(body);
-  return NextResponse.json({ item: saved });
+  return NextResponse.json({ item: sanitizeUser(saved) });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -50,7 +57,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'SuperAdmin cannot be deactivated.' }, { status: 403 });
     }
     const updated = toggleActive(body.id, !!body.active);
-    return NextResponse.json({ item: updated });
+    return NextResponse.json({ item: updated ? sanitizeUser(updated) : null });
   }
   return NextResponse.json({ error: 'bad_request' }, { status: 400 });
 }
