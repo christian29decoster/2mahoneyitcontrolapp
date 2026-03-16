@@ -64,10 +64,10 @@ export interface TenantBilling {
   bundleId?: string
   /** Kurzbeschreibung, was im Bundle enthalten ist. */
   bundleIncludes?: string
+  /** Name/Bezeichnung des Custom-Bundles (vom Partner eingebbar). */
+  customBundleName?: string
   /** Einmalige Onboarding-Gebühr (z. B. USD). */
   onboardingFee?: number
-  /** Revenue-Share in Prozent (z. B. 20). */
-  revenueSharePercent?: number
   /** Verkaufspreise des Partners (vorausgefüllt mit Listenpreis). */
   salePriceAppTier?: number
   salePriceSocTier?: number
