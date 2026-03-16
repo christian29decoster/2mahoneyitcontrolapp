@@ -37,9 +37,22 @@ export interface TenantCertificate {
   name: string
 }
 
+/** Zeile im eigenen Bundle (Mahoney-Produkt oder eigene Leistung z. B. Helpdesk). */
+export interface TenantBillingCustomBundleLine {
+  type: 'mahoney' | 'own'
+  /** Bei type mahoney: z. B. app-essential, soc-core, mitai-Insight. */
+  productId?: string
+  /** Anzeige (z. B. "Platform Essential" oder "Helpdesk pauschal"). */
+  label: string
+  /** Partner-Einkaufspreis (nur bei Mahoney). */
+  partnerCost?: number
+  /** Vom Partner an Kunden verrechneter Verkaufspreis (USD/mo). */
+  salePrice: number
+}
+
 /** Billing-/Vertragsattribute pro Kundenakte (Partner bucht Zusatzleistungen). */
 export interface TenantBilling {
-  /** Partner muss Zusatzleistung explizit aktivieren (Slider/Check). */
+  /** Partner muss Zusatzleistung explizit aktivieren. */
   zusatzleistungEnabled?: boolean
   /** App/Platform Tier (z. B. essential, professional, enterprise). */
   appTierId?: string
@@ -55,6 +68,14 @@ export interface TenantBilling {
   onboardingFee?: number
   /** Revenue-Share in Prozent (z. B. 20). */
   revenueSharePercent?: number
+  /** Verkaufspreise des Partners (vorausgefüllt mit Listenpreis). */
+  salePriceAppTier?: number
+  salePriceSocTier?: number
+  salePriceMitAiTier?: number
+  salePriceBundle?: number
+  /** Eigenes Bundle inkl. eigener Leistungen (z. B. Helpdesk). */
+  useCustomBundle?: boolean
+  customBundleLines?: TenantBillingCustomBundleLine[]
 }
 
 /** Tenant (Mandant) – von Mahoney oder Partner verwaltet. */

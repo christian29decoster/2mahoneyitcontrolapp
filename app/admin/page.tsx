@@ -1,7 +1,18 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
-import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X, MapPin, FileText } from 'lucide-react';
+import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X, MapPin, FileText, Plus, Trash2 } from 'lucide-react';
+import {
+  PLATFORM_LIST_PRICES,
+  SOC_LIST_PRICES,
+  SOC_PARTNER_MARGIN_PCT,
+  MITAI_LIST_PRICES,
+  PARTNER_BUNDLES,
+  platformPartnerCost,
+  socPartnerCost,
+  mitaiPartnerCost,
+  type PartnerTierId,
+} from '@/lib/partner-pricing';
 
 type User = {
   id:string; username:string; role:string;
@@ -15,7 +26,13 @@ type PartnerBranding = { appName?: string; logoDataUrl?: string };
 type PartnerItem = { id: string; name: string; externalId?: string; tier?: 'authorized' | 'advanced' | 'elite'; active: boolean; createdAtISO: string; branding?: PartnerBranding };
 type TenantConnectors = { rmm?: { apiUrl?: string; tenantId?: string; label?: string }; sophos?: { tenantId?: string; partnerId?: string; label?: string }; [k: string]: unknown };
 type TenantLocation = { name: string; address: string; lat: number; lng: number };
-type TenantBillingForm = { zusatzleistungEnabled: boolean; appTierId: string; socTierId: string; mitAiTierId: string; bundleId: string; bundleIncludes: string; onboardingFee: string; revenueSharePercent: string };
+type CustomBundleLineForm = { type: 'mahoney'|'own'; productId: string; label: string; partnerCost: string; salePrice: string };
+type TenantBillingForm = {
+  zusatzleistungEnabled: boolean; appTierId: string; socTierId: string; mitAiTierId: string; bundleId: string; bundleIncludes: string;
+  onboardingFee: string; revenueSharePercent: string;
+  salePriceAppTier: string; salePriceSocTier: string; salePriceMitAiTier: string; salePriceBundle: string;
+  useCustomBundle: boolean; customBundleLines: CustomBundleLineForm[];
+};
 type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string; locations?: TenantLocation[]; billing?: Partial<TenantBillingForm> };
 
 const TABS = [
@@ -52,7 +69,12 @@ export default function AdminPage(){
 
   const [tenants, setTenants] = useState<TenantItem[]>([]);
   const [tenantsLoading, setTenantsLoading] = useState(false);
-  const defaultBillingForm: TenantBillingForm = { zusatzleistungEnabled: false, appTierId: '', socTierId: '', mitAiTierId: '', bundleId: '', bundleIncludes: '', onboardingFee: '', revenueSharePercent: '' };
+  const defaultBillingForm: TenantBillingForm = {
+    zusatzleistungEnabled: false, appTierId: '', socTierId: '', mitAiTierId: '', bundleId: '', bundleIncludes: '',
+    onboardingFee: '', revenueSharePercent: '',
+    salePriceAppTier: '', salePriceSocTier: '', salePriceMitAiTier: '', salePriceBundle: '',
+    useCustomBundle: false, customBundleLines: [],
+  };
   const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors; locations: TenantLocation[]; billing: TenantBillingForm }>({
     id: '', name: '', partnerId: '', active: true,
     connectors: { rmm: {}, sophos: {}, autotask: {} },
@@ -289,6 +311,13 @@ export default function AdminPage(){
 
   async function saveTenant() {
     if (!tenantForm.name.trim()) { alert('Name erforderlich'); return; }
+    const customLines = tenantForm.billing.customBundleLines.map((l) => ({
+      type: l.type,
+      productId: l.productId || undefined,
+      label: l.label,
+      partnerCost: l.partnerCost ? Number(l.partnerCost) : undefined,
+      salePrice: Number(l.salePrice) || 0,
+    }));
     const billingPayload = {
       zusatzleistungEnabled: tenantForm.billing.zusatzleistungEnabled,
       appTierId: tenantForm.billing.appTierId || undefined,
@@ -298,6 +327,12 @@ export default function AdminPage(){
       bundleIncludes: tenantForm.billing.bundleIncludes || undefined,
       onboardingFee: tenantForm.billing.onboardingFee ? Number(tenantForm.billing.onboardingFee) : undefined,
       revenueSharePercent: tenantForm.billing.revenueSharePercent ? Number(tenantForm.billing.revenueSharePercent) : undefined,
+      salePriceAppTier: tenantForm.billing.salePriceAppTier ? Number(tenantForm.billing.salePriceAppTier) : undefined,
+      salePriceSocTier: tenantForm.billing.salePriceSocTier ? Number(tenantForm.billing.salePriceSocTier) : undefined,
+      salePriceMitAiTier: tenantForm.billing.salePriceMitAiTier ? Number(tenantForm.billing.salePriceMitAiTier) : undefined,
+      salePriceBundle: tenantForm.billing.salePriceBundle ? Number(tenantForm.billing.salePriceBundle) : undefined,
+      useCustomBundle: tenantForm.billing.useCustomBundle || undefined,
+      customBundleLines: tenantForm.billing.useCustomBundle ? customLines : undefined,
     };
     try {
       if (editingTenantId) {
@@ -316,6 +351,7 @@ export default function AdminPage(){
   function startEditTenant(t: TenantItem) {
     setEditingTenantId(t.id);
     const b = t.billing as Record<string, unknown> | undefined;
+    const lines = (b?.customBundleLines as Array<{ type: string; productId?: string; label: string; partnerCost?: number; salePrice: number }>) ?? [];
     setTenantForm({
       id: t.id, name: t.name, partnerId: t.partnerId ?? '', active: t.active, connectors: { ...t.connectors },
       locations: Array.isArray(t.locations) ? t.locations.map((l) => ({ ...l })) : [],
@@ -328,6 +364,12 @@ export default function AdminPage(){
         bundleIncludes: (b?.bundleIncludes as string) ?? '',
         onboardingFee: b?.onboardingFee != null ? String(b.onboardingFee) : '',
         revenueSharePercent: b?.revenueSharePercent != null ? String(b.revenueSharePercent) : '',
+        salePriceAppTier: b?.salePriceAppTier != null ? String(b.salePriceAppTier) : '',
+        salePriceSocTier: b?.salePriceSocTier != null ? String(b.salePriceSocTier) : '',
+        salePriceMitAiTier: b?.salePriceMitAiTier != null ? String(b.salePriceMitAiTier) : '',
+        salePriceBundle: b?.salePriceBundle != null ? String(b.salePriceBundle) : '',
+        useCustomBundle: !!b?.useCustomBundle,
+        customBundleLines: lines.map((l) => ({ type: (l.type as 'mahoney'|'own') || 'own', productId: l.productId ?? '', label: l.label, partnerCost: l.partnerCost != null ? String(l.partnerCost) : '', salePrice: l.salePrice != null ? String(l.salePrice) : '' })),
       },
     });
   }
@@ -958,67 +1000,155 @@ export default function AdminPage(){
                 </>
               )}
 
-              {kundenakteSection==='billing' && (
+              {kundenakteSection==='billing' && (()=>{
+                  const partnerTier: PartnerTierId | null = tenantForm.partnerId ? (partners.find(p=>p.id===tenantForm.partnerId)?.tier as PartnerTierId) ?? null : null;
+                  const discountPct = partnerTier ? { authorized: 20, advanced: 30, elite: 40 }[partnerTier] : 0;
+                  const appList = tenantForm.billing.appTierId ? (PLATFORM_LIST_PRICES as Record<string, number>)[tenantForm.billing.appTierId] : null;
+                  const appCost = appList != null && partnerTier ? platformPartnerCost(appList, discountPct) : null;
+                  const socKeyMap: Record<string, string> = { 'soc-core': 'Core Shield', 'soc-advanced': 'Advanced Guard', 'soc-enterprise': 'Enterprise Threat Operations' };
+                  const socKey = tenantForm.billing.socTierId ? socKeyMap[tenantForm.billing.socTierId] : null;
+                  const socList = socKey ? SOC_LIST_PRICES[socKey] : null;
+                  const socMarginPct = socKey ? (SOC_PARTNER_MARGIN_PCT[socKey] ?? 20) : 0;
+                  const socCost = socList != null ? socPartnerCost(socList, socMarginPct) : null;
+                  const mitaiList = tenantForm.billing.mitAiTierId ? MITAI_LIST_PRICES[tenantForm.billing.mitAiTierId as keyof typeof MITAI_LIST_PRICES] : null;
+                  const mitaiCost = mitaiList != null ? mitaiPartnerCost(mitaiList) : null;
+                  const bundleDef = tenantForm.billing.bundleId ? PARTNER_BUNDLES.find(b=>b.id===tenantForm.billing.bundleId) : null;
+                  return (
                 <>
-                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Billing attribute</div>
-                  <p className="text-xs text-[var(--muted)] mb-3">Partner müssen Zusatzleistung aktivieren und Produkte/Tiers wählen.</p>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Abrechnungsattribute</div>
+                  <p className="text-xs text-[var(--muted)] mb-3">Partner müssen Zusatzleistung aktivieren und Produkte/Tiers wählen. Listenpreise = unsere Preise (vorausgefüllt als Verkaufspreis); Partner kann eigene Verkaufspreise setzen.</p>
 
                   <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-4 mb-4">
-                    <div className="flex items-center justify-between gap-4 mb-2">
-                      <label className="text-sm font-medium text-[var(--text)]">Zusatzleistung gebucht</label>
-                      <span className={`text-sm font-semibold ${tenantForm.billing.zusatzleistungEnabled ? 'text-emerald-500' : 'text-[var(--muted)]'}`}>{tenantForm.billing.zusatzleistungEnabled ? 'Aktiv' : 'Aus'}</span>
-                    </div>
-                    <input type="range" min={0} max={1} step={1} value={tenantForm.billing.zusatzleistungEnabled ? 1 : 0}
-                      onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, zusatzleistungEnabled: e.target.value === '1' } }))}
-                      className="w-full h-3 rounded-full appearance-none bg-[var(--surface)] accent-[var(--primary)]"/>
+                    <p className="text-xs text-[var(--muted)] mb-2">Service ein- oder ausschalten (nur An/Aus).</p>
+                    <label className="flex items-center justify-between gap-4 cursor-pointer">
+                      <span className="text-sm font-medium text-[var(--text)]">Zusatzleistung</span>
+                      <span className={`text-sm font-semibold ${tenantForm.billing.zusatzleistungEnabled ? 'text-emerald-500' : 'text-[var(--muted)]'}`}>{tenantForm.billing.zusatzleistungEnabled ? 'An' : 'Aus'}</span>
+                      <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-[var(--surface)] border border-[var(--border)] transition-colors focus-within:ring-2 focus-within:ring-[var(--primary)]/30">
+                        <input type="checkbox" checked={tenantForm.billing.zusatzleistungEnabled} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, zusatzleistungEnabled: e.target.checked } }))} className="sr-only peer" />
+                        <span className="pointer-events-none inline-block h-5 w-5 rounded-full bg-[var(--muted)] shadow ring-0 transition translate-x-0.5 peer-checked:translate-x-6 peer-checked:bg-[var(--primary)] rtl:peer-checked:-translate-x-6" />
+                      </span>
+                    </label>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">App Tier / Product</label>
-                      <select value={tenantForm.billing.appTierId} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, appTierId: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
+                  <div className="space-y-4">
+                    <div className="rounded-xl border border-[var(--border)] p-3 space-y-2">
+                      <label className="block text-xs font-medium text-[var(--muted)]">App Tier / Produkt</label>
+                      <select value={tenantForm.billing.appTierId} onChange={e=>{ const v=e.target.value; setTenantForm(s=>({...s, billing: { ...s.billing, appTierId: v, salePriceAppTier: v ? String((PLATFORM_LIST_PRICES as Record<string, number>)[v] ?? '') : '' } })); }} className="w-full rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
                         <option value="">—</option>
                         <option value="essential">Essential</option>
                         <option value="professional">Professional</option>
                         <option value="enterprise">Enterprise</option>
                         <option value="securityOs">Security OS</option>
                       </select>
+                      {appList != null && (
+                        <div className="flex flex-wrap gap-3 text-xs">
+                          <span className="text-[var(--muted)]">Listenpreis: <strong className="text-[var(--text)]">{appList} USD/mo</strong></span>
+                          {appCost != null && <span className="text-[var(--muted)]">Ihre Kosten (Einkauf): <strong className="text-emerald-600">{appCost} USD/mo</strong></span>}
+                          <span className="text-[var(--muted)]">Ihr Verkaufspreis: <input type="number" min={0} value={tenantForm.billing.salePriceAppTier} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceAppTier: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">SOC Tier</label>
-                      <select value={tenantForm.billing.socTierId} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, socTierId: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
+                    <div className="rounded-xl border border-[var(--border)] p-3 space-y-2">
+                      <label className="block text-xs font-medium text-[var(--muted)]">SOC Tier</label>
+                      <select value={tenantForm.billing.socTierId} onChange={e=>{ const v=e.target.value; const key = v ? { 'soc-core':'Core Shield','soc-advanced':'Advanced Guard','soc-enterprise':'Enterprise Threat Operations' }[v] : null; setTenantForm(s=>({...s, billing: { ...s.billing, socTierId: v, salePriceSocTier: key && SOC_LIST_PRICES[key] != null ? String(SOC_LIST_PRICES[key]) : '' } })); }} className="w-full rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
                         <option value="">—</option>
                         <option value="soc-core">Core Monitoring</option>
                         <option value="soc-advanced">Advanced SOC</option>
                         <option value="soc-enterprise">Enterprise Threat Operations</option>
                       </select>
+                      {socList != null && (
+                        <div className="flex flex-wrap gap-3 text-xs">
+                          <span className="text-[var(--muted)]">Listenpreis: <strong className="text-[var(--text)]">{socList} USD/mo</strong></span>
+                          {socCost != null && <span className="text-[var(--muted)]">Ihre Kosten: <strong className="text-emerald-600">{socCost} USD/mo</strong></span>}
+                          <span className="text-[var(--muted)]">Ihr Verkaufspreis: <input type="number" min={0} value={tenantForm.billing.salePriceSocTier} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceSocTier: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">MIT-AI Packet / Tier</label>
-                      <select value={tenantForm.billing.mitAiTierId} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, mitAiTierId: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
+                    <div className="rounded-xl border border-[var(--border)] p-3 space-y-2">
+                      <label className="block text-xs font-medium text-[var(--muted)]">MIT-AI Packet / Tier</label>
+                      <select value={tenantForm.billing.mitAiTierId} onChange={e=>{ const v=e.target.value; setTenantForm(s=>({...s, billing: { ...s.billing, mitAiTierId: v, salePriceMitAiTier: v && MITAI_LIST_PRICES[v as keyof typeof MITAI_LIST_PRICES] != null ? String(MITAI_LIST_PRICES[v as keyof typeof MITAI_LIST_PRICES]) : '' } })); }} className="w-full rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
                         <option value="">—</option>
                         <option value="Insight">Insight</option>
                         <option value="Intelligence">Intelligence</option>
                         <option value="Command">Command</option>
                       </select>
+                      {mitaiList != null && (
+                        <div className="flex flex-wrap gap-3 text-xs">
+                          <span className="text-[var(--muted)]">Listenpreis: <strong className="text-[var(--text)]">{mitaiList} USD/mo</strong></span>
+                          {mitaiCost != null && <span className="text-[var(--muted)]">Ihre Kosten: <strong className="text-emerald-600">{mitaiCost} USD/mo</strong></span>}
+                          <span className="text-[var(--muted)]">Ihr Verkaufspreis: <input type="number" min={0} value={tenantForm.billing.salePriceMitAiTier} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceMitAiTier: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">Bundle</label>
-                      <select value={tenantForm.billing.bundleId} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, bundleId: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
+                    <div className="rounded-xl border border-[var(--border)] p-3 space-y-2">
+                      <label className="block text-xs font-medium text-[var(--muted)]">Vordefiniertes Bundle</label>
+                      <select value={tenantForm.billing.bundleId} onChange={e=>{ const v=e.target.value; const b = PARTNER_BUNDLES.find(x=>x.id===v); setTenantForm(s=>({...s, billing: { ...s.billing, bundleId: v, salePriceBundle: b ? String(b.listPrice) : '' } })); }} className="w-full rounded-lg bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
                         <option value="">—</option>
-                        <option value="growth">Growth Bundle</option>
-                        <option value="professional">Professional Bundle</option>
-                        <option value="enterprise">Enterprise Bundle</option>
+                        {PARTNER_BUNDLES.map(b=>(<option key={b.id} value={b.id}>{b.name}</option>))}
                       </select>
+                      {bundleDef != null && (
+                        <div className="flex flex-wrap gap-3 text-xs">
+                          <span className="text-[var(--muted)]">Listenpreis: <strong className="text-[var(--text)]">{bundleDef.listPrice} USD/mo</strong></span>
+                          <span className="text-[var(--muted)]">Ihre Kosten: <strong className="text-emerald-600">{bundleDef.partnerCost} USD/mo</strong></span>
+                          <span className="text-[var(--muted)]">Ihr Verkaufspreis: <input type="number" min={0} value={tenantForm.billing.salePriceBundle} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, salePriceBundle: e.target.value } }))} className="w-20 rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--text)]" /> USD/mo</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="mt-3">
+                  <div className="mt-2">
                     <label className="block text-xs font-medium text-[var(--muted)] mb-1">Bundle – was ist enthalten?</label>
                     <input value={tenantForm.billing.bundleIncludes} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, bundleIncludes: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="z. B. Platform + SOC Core + MIT-AI Insight"/>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+
+                  <div className="mt-4 p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                    <label className="flex items-center gap-2 cursor-pointer mb-2">
+                      <input type="checkbox" checked={tenantForm.billing.useCustomBundle} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, useCustomBundle: e.target.checked } }))} className="rounded border-[var(--border)]"/>
+                      <span className="text-sm font-medium text-[var(--text)]">Eigenes Bundle (inkl. eigene Leistungen, z. B. Helpdesk)</span>
+                    </label>
+                    <p className="text-xs text-[var(--muted)] mb-3">Partner können ein eigenes Bundle aus Mahoney-Produkten und eigenen Leistungen (z. B. Helpdesk) zusammenstellen.</p>
+                    {tenantForm.billing.useCustomBundle && (
+                      <div className="space-y-2">
+                        {tenantForm.billing.customBundleLines.map((line, idx)=>(
+                          <div key={idx} className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] p-2 bg-[var(--surface)]">
+                            <select value={line.type} onChange={e=>{ const t = e.target.value as 'mahoney'|'own'; const arr = [...tenantForm.billing.customBundleLines]; arr[idx] = { type: t, productId: t==='mahoney' ? 'app-essential' : '', label: t==='own' ? arr[idx].label : 'Platform Essential', partnerCost: t==='mahoney' ? String(partnerTier ? platformPartnerCost(PLATFORM_LIST_PRICES.essential, discountPct) : PLATFORM_LIST_PRICES.essential) : '', salePrice: t==='mahoney' ? String(PLATFORM_LIST_PRICES.essential) : arr[idx].salePrice }; setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: arr } })); }} className="rounded border border-[var(--border)] px-2 py-1 text-sm">
+                              <option value="mahoney">Mahoney</option>
+                              <option value="own">Eigene Leistung (z. B. Helpdesk)</option>
+                            </select>
+                            {line.type==='own' ? (
+                              <input value={line.label} onChange={e=>{ const arr = [...tenantForm.billing.customBundleLines]; arr[idx] = { ...arr[idx], label: e.target.value }; setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: arr } })); }} className="flex-1 min-w-[120px] rounded border border-[var(--border)] px-2 py-1 text-sm" placeholder="z. B. Helpdesk pauschal"/>
+                            ) : (
+                              (()=>{
+                                const opts = [
+                                  { id: 'app-essential', label: 'Platform Essential', list: PLATFORM_LIST_PRICES.essential, cost: ()=> partnerTier ? platformPartnerCost(PLATFORM_LIST_PRICES.essential, discountPct) : PLATFORM_LIST_PRICES.essential },
+                                  { id: 'app-professional', label: 'Platform Professional', list: PLATFORM_LIST_PRICES.professional, cost: ()=> partnerTier ? platformPartnerCost(PLATFORM_LIST_PRICES.professional, discountPct) : PLATFORM_LIST_PRICES.professional },
+                                  { id: 'app-enterprise', label: 'Platform Enterprise', list: PLATFORM_LIST_PRICES.enterprise, cost: ()=> partnerTier ? platformPartnerCost(PLATFORM_LIST_PRICES.enterprise, discountPct) : PLATFORM_LIST_PRICES.enterprise },
+                                  { id: 'soc-core', label: 'SOC Core Shield', list: SOC_LIST_PRICES['Core Shield'], cost: ()=> socPartnerCost(SOC_LIST_PRICES['Core Shield'], SOC_PARTNER_MARGIN_PCT['Core Shield'] ?? 15) },
+                                  { id: 'mitai-Insight', label: 'MIT-AI Insight', list: MITAI_LIST_PRICES.Insight, cost: ()=> mitaiPartnerCost(MITAI_LIST_PRICES.Insight) },
+                                ];
+                                return (
+                                  <select value={line.productId||'app-essential'} onChange={e=>{ const id = e.target.value; const o = opts.find(x=>x.id===id); if(!o) return; const arr = [...tenantForm.billing.customBundleLines]; arr[idx] = { ...arr[idx], productId: id, label: o.label, partnerCost: String(o.cost()), salePrice: String(o.list) }; setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: arr } })); }} className="rounded border border-[var(--border)] px-2 py-1 text-sm">
+                                    {opts.map(o=>(<option key={o.id} value={o.id}>{o.label} ({o.list} USD)</option>))}
+                                  </select>
+                                );
+                              })()
+                            )}
+                            <span className="text-xs text-[var(--muted)]">Verkaufspreis:</span>
+                            <input type="number" min={0} value={line.salePrice} onChange={e=>{ const arr = [...tenantForm.billing.customBundleLines]; arr[idx] = { ...arr[idx], salePrice: e.target.value }; setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: arr } })); }} className="w-20 rounded border border-[var(--border)] px-2 py-1 text-sm" placeholder="USD"/>
+                            {line.type==='mahoney' && line.partnerCost && <span className="text-xs text-[var(--muted)]">Ihre Kosten: {line.partnerCost} USD</span>}
+                            <button type="button" onClick={()=>setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: s.billing.customBundleLines.filter((_,i)=>i!==idx) } }))} className="p-1 rounded text-[var(--muted)] hover:bg-[var(--surface-2)]" aria-label="Entfernen"><Trash2 size={14}/></button>
+                          </div>
+                        ))}
+                        <button type="button" onClick={()=>setTenantForm(s=>({...s, billing: { ...s.billing, customBundleLines: [...s.billing.customBundleLines, { type: 'own', productId: '', label: '', partnerCost: '', salePrice: '' }] } }))} className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] hover:bg-[var(--surface-2)]"><Plus size={14}/> Zeile hinzufügen</button>
+                        {tenantForm.billing.customBundleLines.length > 0 && (
+                          <p className="text-xs text-[var(--muted)]">Summe Verkauf: <strong className="text-[var(--text)]">{tenantForm.billing.customBundleLines.reduce((sum, l)=> sum + (Number(l.salePrice) || 0), 0)} USD/mo</strong></p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">Onboarding fee (USD)</label>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">Onboarding-Gebühr (USD)</label>
                       <input type="number" min={0} step={1} value={tenantForm.billing.onboardingFee} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, onboardingFee: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="0"/>
                     </div>
                     <div>
@@ -1036,7 +1166,8 @@ export default function AdminPage(){
                     <p className="text-sm text-[var(--muted)] mt-2">Dieser Monat: — (Daten aus Admin → Billing / Usage)</p>
                   </div>
                 </>
-              )}
+                  );
+                })()}
 
               <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
                 <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90">{editingTenantId ? 'Save' : 'Add tenant'}</button>
