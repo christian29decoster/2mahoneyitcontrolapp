@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
-import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X } from 'lucide-react';
+import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X, MapPin, FileText } from 'lucide-react';
 
 type User = {
   id:string; username:string; role:string;
@@ -14,7 +14,9 @@ type AuditItem = { atISO:string; username:string; ipMasked:string; tz?:string; u
 type PartnerBranding = { appName?: string; logoDataUrl?: string };
 type PartnerItem = { id: string; name: string; externalId?: string; tier?: 'authorized' | 'advanced' | 'elite'; active: boolean; createdAtISO: string; branding?: PartnerBranding };
 type TenantConnectors = { rmm?: { apiUrl?: string; tenantId?: string; label?: string }; sophos?: { tenantId?: string; partnerId?: string; label?: string }; [k: string]: unknown };
-type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string };
+type TenantLocation = { name: string; address: string; lat: number; lng: number };
+type TenantBillingForm = { zusatzleistungEnabled: boolean; appTierId: string; socTierId: string; mitAiTierId: string; bundleId: string; bundleIncludes: string; onboardingFee: string; revenueSharePercent: string };
+type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string; locations?: TenantLocation[]; billing?: Partial<TenantBillingForm> };
 
 const TABS = [
   { id: 'users' as const, label: 'Users', icon: Users },
@@ -50,10 +52,14 @@ export default function AdminPage(){
 
   const [tenants, setTenants] = useState<TenantItem[]>([]);
   const [tenantsLoading, setTenantsLoading] = useState(false);
-  const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors }>({
+  const defaultBillingForm: TenantBillingForm = { zusatzleistungEnabled: false, appTierId: '', socTierId: '', mitAiTierId: '', bundleId: '', bundleIncludes: '', onboardingFee: '', revenueSharePercent: '' };
+  const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors; locations: TenantLocation[]; billing: TenantBillingForm }>({
     id: '', name: '', partnerId: '', active: true,
     connectors: { rmm: {}, sophos: {}, autotask: {} },
+    locations: [],
+    billing: defaultBillingForm,
   });
+  const [kundenakteSection, setKundenakteSection] = useState<'company'|'locations'|'partner'|'billing'>('company');
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
   type AutotaskCompanyItem = { id: number; companyName?: string };
   const [autotaskCompanies, setAutotaskCompanies] = useState<AutotaskCompanyItem[]>([]);
@@ -283,23 +289,47 @@ export default function AdminPage(){
 
   async function saveTenant() {
     if (!tenantForm.name.trim()) { alert('Name erforderlich'); return; }
+    const billingPayload = {
+      zusatzleistungEnabled: tenantForm.billing.zusatzleistungEnabled,
+      appTierId: tenantForm.billing.appTierId || undefined,
+      socTierId: tenantForm.billing.socTierId || undefined,
+      mitAiTierId: tenantForm.billing.mitAiTierId || undefined,
+      bundleId: tenantForm.billing.bundleId || undefined,
+      bundleIncludes: tenantForm.billing.bundleIncludes || undefined,
+      onboardingFee: tenantForm.billing.onboardingFee ? Number(tenantForm.billing.onboardingFee) : undefined,
+      revenueSharePercent: tenantForm.billing.revenueSharePercent ? Number(tenantForm.billing.revenueSharePercent) : undefined,
+    };
     try {
       if (editingTenantId) {
-        const res = await fetch(`/api/tenants/${editingTenantId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors }) });
+        const res = await fetch(`/api/tenants/${editingTenantId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
         setEditingTenantId(null);
       } else {
-        const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors }) });
+        const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
       }
-      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} } });
+      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm });
       await loadTenants();
     } catch (err) { console.error(err); alert('Error saving'); }
   }
   function clearLogo() { setSettings(s => ({ ...s, logoDataUrl: '' })); }
   function startEditTenant(t: TenantItem) {
     setEditingTenantId(t.id);
-    setTenantForm({ id: t.id, name: t.name, partnerId: t.partnerId ?? '', active: t.active, connectors: { ...t.connectors } });
+    const b = t.billing as Record<string, unknown> | undefined;
+    setTenantForm({
+      id: t.id, name: t.name, partnerId: t.partnerId ?? '', active: t.active, connectors: { ...t.connectors },
+      locations: Array.isArray(t.locations) ? t.locations.map((l) => ({ ...l })) : [],
+      billing: {
+        zusatzleistungEnabled: !!b?.zusatzleistungEnabled,
+        appTierId: (b?.appTierId as string) ?? '',
+        socTierId: (b?.socTierId as string) ?? '',
+        mitAiTierId: (b?.mitAiTierId as string) ?? '',
+        bundleId: (b?.bundleId as string) ?? '',
+        bundleIncludes: (b?.bundleIncludes as string) ?? '',
+        onboardingFee: b?.onboardingFee != null ? String(b.onboardingFee) : '',
+        revenueSharePercent: b?.revenueSharePercent != null ? String(b.revenueSharePercent) : '',
+      },
+    });
   }
   async function deleteTenant(id: string) {
     if (!confirm('Really deactivate or remove this tenant?')) return;
@@ -824,82 +854,194 @@ export default function AdminPage(){
       {tab==='tenants' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="p-5 overflow-auto">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-2">
               <Layers size={20} className="text-[var(--primary)]" />
-              <h2 className="font-semibold text-[var(--text)]">{editingTenantId ? 'Edit tenant' : 'Add tenant'}</h2>
+              <h2 className="font-semibold text-[var(--text)]">Kundenakte · {editingTenantId ? 'Edit' : 'Add tenant'}</h2>
             </div>
-            <p className="text-xs text-[var(--muted)] mb-4">Tenants are customers or organizations. Assign partners and configure RMM, Sophos, and Autotask connectors.</p>
-            <div className="space-y-3">
-              {!editingTenantId && (
-                <div>
-                  <label className="block text-xs font-medium text-[var(--muted)] mb-1">ID (optional)</label>
-                  <input value={tenantForm.id} onChange={e=>setTenantForm(s=>({...s, id:e.target.value}))}
-                         className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="e.g. tenant-1"/>
-                </div>
-              )}
-              <div>
-                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Name</label>
-                <input value={tenantForm.name} onChange={e=>setTenantForm(s=>({...s, name:e.target.value}))}
-                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]"/>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-[var(--muted)] mb-1">Partner ID</label>
-                <input value={tenantForm.partnerId} onChange={e=>setTenantForm(s=>({...s, partnerId:e.target.value}))}
-                       className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="Empty = Mahoney"/>
-              </div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={tenantForm.active} onChange={e=>setTenantForm(s=>({...s, active:e.target.checked}))} className="rounded border-[var(--border)]"/>
-                <span className="text-sm text-[var(--text)]">Active</span>
-              </label>
-              <div className="text-xs font-medium text-[var(--muted)] pt-3 mt-3 border-t border-[var(--border)]">Connectors</div>
-              <div className="space-y-4">
-                <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
-                  <div className="text-xs font-medium text-[var(--text)]">RMM (Datto)</div>
-                  <input value={tenantForm.connectors?.rmm?.apiUrl ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, apiUrl: e.target.value } } }))}
-                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="API URL"/>
-                  <input value={tenantForm.connectors?.rmm?.tenantId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, tenantId: e.target.value } } }))}
-                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Tenant ID"/>
-                  <input value={tenantForm.connectors?.rmm?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, label: e.target.value } } }))}
-                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Label (optional)"/>
-                </div>
-                <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
-                  <div className="text-xs font-medium text-[var(--text)]">Sophos</div>
-                  <input value={tenantForm.connectors?.sophos?.tenantId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, tenantId: e.target.value } } }))}
-                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Tenant ID"/>
-                  <input value={tenantForm.connectors?.sophos?.partnerId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, partnerId: e.target.value } } }))}
-                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Partner ID"/>
-                  <input value={tenantForm.connectors?.sophos?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, label: e.target.value } } }))}
-                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Label (optional)"/>
-                </div>
-                <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
-                  <div className="text-xs font-medium text-[var(--text)]">Autotask PSA</div>
-                  <button type="button" onClick={loadAutotaskCompanies} disabled={autotaskCompaniesLoading}
-                          className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] bg-[var(--surface)] hover:bg-[var(--surface-2)] disabled:opacity-50 font-medium">
-                    {autotaskCompaniesLoading ? 'Loading…' : 'Load companies from Autotask'}
-                  </button>
-                  {autotaskCompaniesError && <p className="text-xs text-amber-400">{autotaskCompaniesError}</p>}
-                  {autotaskCompanies.length > 0 && (
-                    <select value={(tenantForm.connectors as Record<string,{ companyId?: string }|undefined>)?.autotask?.companyId ?? ''}
-                            onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))}
-                            className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm bg-[var(--surface)] text-[var(--text)]">
-                      <option value="">— No company —</option>
-                      {autotaskCompanies.map(c=>(
-                        <option key={c.id} value={String(c.id)}>{(c as { companyName?: string; CompanyName?: string }).companyName ?? (c as { CompanyName?: string }).CompanyName ?? `Company ${c.id}`}</option>
-                      ))}
-                    </select>
-                  )}
-                  <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.companyId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))}
-                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Or company ID"/>
-                  <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, label: e.target.value } } }))}
-                         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)]" placeholder="Label (optional)"/>
-                </div>
-              </div>
-              <div className="flex gap-2 pt-1">
-                <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90">
-                  {editingTenantId ? 'Save' : 'Add tenant'}
+            <p className="text-xs text-[var(--muted)] mb-4">Tenants are customers or organizations. Structured by Company, Locations, Partner, and Billing.</p>
+
+            <nav className="flex flex-wrap gap-1 p-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] mb-4">
+              {(['company','locations','partner','billing'] as const).map((sec)=>(
+                <button key={sec} type="button" onClick={()=>setKundenakteSection(sec)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${kundenakteSection===sec?'bg-[var(--primary)] text-white':'text-[var(--muted)] hover:text-[var(--text)]'}`}>
+                  {sec==='company'&&<Building2 size={14}/>}
+                  {sec==='locations'&&<MapPin size={14}/>}
+                  {sec==='partner'&&<Building2 size={14}/>}
+                  {sec==='billing'&&<CreditCard size={14}/>}
+                  {sec==='company'?'Company':sec==='locations'?'Locations':sec==='partner'?'Partner':'Billing'}
                 </button>
+              ))}
+            </nav>
+
+            <div className="space-y-4">
+              {kundenakteSection==='company' && (
+                <>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Company attribute</div>
+                  {!editingTenantId && (
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">ID (optional)</label>
+                      <input value={tenantForm.id} onChange={e=>setTenantForm(s=>({...s, id:e.target.value}))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="e.g. tenant-1"/>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-xs font-medium text-[var(--muted)] mb-1">Name</label>
+                    <input value={tenantForm.name} onChange={e=>setTenantForm(s=>({...s, name:e.target.value}))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]"/>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={tenantForm.active} onChange={e=>setTenantForm(s=>({...s, active:e.target.checked}))} className="rounded border-[var(--border)]"/>
+                    <span className="text-sm text-[var(--text)]">Active</span>
+                  </label>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide pt-2 border-t border-[var(--border)]">Connectors (RMM, Sophos, Autotask)</div>
+                  <div className="space-y-3">
+                    <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
+                      <div className="text-xs font-medium text-[var(--text)]">RMM (Datto)</div>
+                      <input value={tenantForm.connectors?.rmm?.apiUrl ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, apiUrl: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="API URL"/>
+                      <input value={tenantForm.connectors?.rmm?.tenantId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, tenantId: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Tenant ID"/>
+                      <input value={tenantForm.connectors?.rmm?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, label: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Label (optional)"/>
+                    </div>
+                    <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
+                      <div className="text-xs font-medium text-[var(--text)]">Sophos</div>
+                      <input value={tenantForm.connectors?.sophos?.tenantId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, tenantId: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Tenant ID"/>
+                      <input value={tenantForm.connectors?.sophos?.partnerId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, partnerId: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Partner ID"/>
+                      <input value={tenantForm.connectors?.sophos?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, label: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Label (optional)"/>
+                    </div>
+                    <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
+                      <div className="text-xs font-medium text-[var(--text)]">Autotask PSA</div>
+                      <button type="button" onClick={loadAutotaskCompanies} disabled={autotaskCompaniesLoading} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm bg-[var(--surface)] hover:bg-[var(--surface-2)] disabled:opacity-50 font-medium">{autotaskCompaniesLoading ? 'Loading…' : 'Load companies from Autotask'}</button>
+                      {autotaskCompaniesError && <p className="text-xs text-amber-400">{autotaskCompaniesError}</p>}
+                      {autotaskCompanies.length > 0 && (
+                        <select value={(tenantForm.connectors as Record<string,{ companyId?: string }|undefined>)?.autotask?.companyId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm bg-[var(--surface)] text-[var(--text)]">
+                        <option value="">— No company —</option>
+                        {autotaskCompanies.map(c=>(<option key={c.id} value={String(c.id)}>{(c as { companyName?: string }).companyName ?? (c as { CompanyName?: string }).CompanyName ?? `Company ${c.id}`}</option>))}
+                      </select>
+                      )}
+                      <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.companyId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Or company ID"/>
+                      <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, label: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Label (optional)"/>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {kundenakteSection==='locations' && (
+                <>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Local attribute (Standorte)</div>
+                  <p className="text-xs text-[var(--muted)]">Standorte für Company-Seite. Name, Adresse, Lat/Lng.</p>
+                  {tenantForm.locations.length === 0 ? (
+                    <p className="text-sm text-[var(--muted)]">No locations yet.</p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {tenantForm.locations.map((loc, idx)=>(
+                        <li key={idx} className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <input value={loc.name} onChange={e=>{ const l = [...tenantForm.locations]; l[idx]={...l[idx], name:e.target.value}; setTenantForm(s=>({...s, locations: l })); }} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Name"/>
+                            <input value={loc.address} onChange={e=>{ const l = [...tenantForm.locations]; l[idx]={...l[idx], address:e.target.value}; setTenantForm(s=>({...s, locations: l })); }} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm col-span-2" placeholder="Adresse"/>
+                            <input type="number" step="any" value={loc.lat || ''} onChange={e=>{ const l = [...tenantForm.locations]; l[idx]={...l[idx], lat: Number(e.target.value) || 0}; setTenantForm(s=>({...s, locations: l })); }} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Lat"/>
+                            <input type="number" step="any" value={loc.lng || ''} onChange={e=>{ const l = [...tenantForm.locations]; l[idx]={...l[idx], lng: Number(e.target.value) || 0}; setTenantForm(s=>({...s, locations: l })); }} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Lng"/>
+                          </div>
+                          <button type="button" onClick={()=>setTenantForm(s=>({...s, locations: s.locations.filter((_,i)=>i!==idx) }))} className="px-2 py-1 rounded border border-[var(--border)] text-xs text-[var(--muted)] hover:bg-[var(--surface)]">Remove</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button type="button" onClick={()=>setTenantForm(s=>({...s, locations: [...s.locations, { name: '', address: '', lat: 0, lng: 0 }] }))} className="px-3 py-2 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--text)] hover:bg-[var(--surface-2)]">+ Add location</button>
+                </>
+              )}
+
+              {kundenakteSection==='partner' && (
+                <>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Partner attribute</div>
+                  <div>
+                    <label className="block text-xs font-medium text-[var(--muted)] mb-1">Partner ID</label>
+                    <input value={tenantForm.partnerId} onChange={e=>setTenantForm(s=>({...s, partnerId:e.target.value}))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-[var(--text)]" placeholder="Empty = Mahoney"/>
+                  </div>
+                  <p className="text-xs text-[var(--muted)]">Leer = Direktkunde Mahoney. Setzen Sie die Partner-ID, wenn der Kunde einem Partner zugeordnet ist.</p>
+                </>
+              )}
+
+              {kundenakteSection==='billing' && (
+                <>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Billing attribute</div>
+                  <p className="text-xs text-[var(--muted)] mb-3">Partner müssen Zusatzleistung aktivieren und Produkte/Tiers wählen.</p>
+
+                  <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-4 mb-4">
+                    <div className="flex items-center justify-between gap-4 mb-2">
+                      <label className="text-sm font-medium text-[var(--text)]">Zusatzleistung gebucht</label>
+                      <span className={`text-sm font-semibold ${tenantForm.billing.zusatzleistungEnabled ? 'text-emerald-500' : 'text-[var(--muted)]'}`}>{tenantForm.billing.zusatzleistungEnabled ? 'Aktiv' : 'Aus'}</span>
+                    </div>
+                    <input type="range" min={0} max={1} step={1} value={tenantForm.billing.zusatzleistungEnabled ? 1 : 0}
+                      onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, zusatzleistungEnabled: e.target.value === '1' } }))}
+                      className="w-full h-3 rounded-full appearance-none bg-[var(--surface)] accent-[var(--primary)]"/>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">App Tier / Product</label>
+                      <select value={tenantForm.billing.appTierId} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, appTierId: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
+                        <option value="">—</option>
+                        <option value="essential">Essential</option>
+                        <option value="professional">Professional</option>
+                        <option value="enterprise">Enterprise</option>
+                        <option value="securityOs">Security OS</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">SOC Tier</label>
+                      <select value={tenantForm.billing.socTierId} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, socTierId: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
+                        <option value="">—</option>
+                        <option value="soc-core">Core Monitoring</option>
+                        <option value="soc-advanced">Advanced SOC</option>
+                        <option value="soc-enterprise">Enterprise Threat Operations</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">MIT-AI Packet / Tier</label>
+                      <select value={tenantForm.billing.mitAiTierId} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, mitAiTierId: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
+                        <option value="">—</option>
+                        <option value="Insight">Insight</option>
+                        <option value="Intelligence">Intelligence</option>
+                        <option value="Command">Command</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">Bundle</label>
+                      <select value={tenantForm.billing.bundleId} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, bundleId: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]">
+                        <option value="">—</option>
+                        <option value="growth">Growth Bundle</option>
+                        <option value="professional">Professional Bundle</option>
+                        <option value="enterprise">Enterprise Bundle</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-[var(--muted)] mb-1">Bundle – was ist enthalten?</label>
+                    <input value={tenantForm.billing.bundleIncludes} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, bundleIncludes: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="z. B. Platform + SOC Core + MIT-AI Insight"/>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">Onboarding fee (USD)</label>
+                      <input type="number" min={0} step={1} value={tenantForm.billing.onboardingFee} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, onboardingFee: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="0"/>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">Revenue-Share (%)</label>
+                      <input type="number" min={0} max={100} step={0.5} value={tenantForm.billing.revenueSharePercent} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, revenueSharePercent: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="z. B. 20"/>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText size={16} className="text-[var(--muted)]" />
+                      <span className="text-sm font-semibold text-[var(--text)]">MDU-Verbrauch (Kunde)</span>
+                    </div>
+                    <p className="text-xs text-[var(--muted)]">Welcher Kunde welche MDU verbraucht hat: wird aus Billing/Usage pro Tenant ausgewiesen (sobald pro Tenant verfügbar).</p>
+                    <p className="text-sm text-[var(--muted)] mt-2">Dieser Monat: — (Daten aus Admin → Billing / Usage)</p>
+                  </div>
+                </>
+              )}
+
+              <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
+                <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90">{editingTenantId ? 'Save' : 'Add tenant'}</button>
                 {editingTenantId && (
-                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} } }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
+                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
                 )}
               </div>
             </div>

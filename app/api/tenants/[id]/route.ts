@@ -35,6 +35,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     active: body.active,
     locations: body.locations,
     certificates: body.certificates,
+    billing: body.billing,
   })
   return NextResponse.json({ item: updated })
 }

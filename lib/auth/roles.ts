@@ -37,6 +37,26 @@ export interface TenantCertificate {
   name: string
 }
 
+/** Billing-/Vertragsattribute pro Kundenakte (Partner bucht Zusatzleistungen). */
+export interface TenantBilling {
+  /** Partner muss Zusatzleistung explizit aktivieren (Slider/Check). */
+  zusatzleistungEnabled?: boolean
+  /** App/Platform Tier (z. B. essential, professional, enterprise). */
+  appTierId?: string
+  /** SOC Tier (z. B. soc-core, soc-advanced). */
+  socTierId?: string
+  /** MIT-AI Packet/Tier (z. B. Insight, Intelligence, Command). */
+  mitAiTierId?: string
+  /** Bundle (z. B. growth, professional, enterprise). */
+  bundleId?: string
+  /** Kurzbeschreibung, was im Bundle enthalten ist. */
+  bundleIncludes?: string
+  /** Einmalige Onboarding-Gebühr (z. B. USD). */
+  onboardingFee?: number
+  /** Revenue-Share in Prozent (z. B. 20). */
+  revenueSharePercent?: number
+}
+
 /** Tenant (Mandant) – von Mahoney oder Partner verwaltet. */
 export interface Tenant {
   id: string
@@ -51,6 +71,8 @@ export interface Tenant {
   locations?: TenantLocation[]
   /** Zertifikate (Company-Seite); leer = Fallback auf Demo. */
   certificates?: TenantCertificate[]
+  /** Billing- und Vertragsattribute (Kundenakte). */
+  billing?: TenantBilling
 }
 
 /** Pro Tenant: Zuordnung zu RMM, Sophos, Autotask und weiteren APIs. */

@@ -33,6 +33,9 @@ export async function POST(req: NextRequest) {
     partnerId,
     connectors: body.connectors ?? {},
     active: body.active ?? true,
+    locations: body.locations,
+    certificates: body.certificates,
+    billing: body.billing,
   })
   return NextResponse.json({ item: tenant })
 }
