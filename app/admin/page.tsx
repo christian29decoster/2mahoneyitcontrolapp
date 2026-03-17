@@ -1278,7 +1278,7 @@ export default function AdminPage(){
 
                     <div className="space-y-4">
                       {tenantForm.frameworkDocuments.map((row, rowIdx) => (
-                        <div key={row.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                        <div key={row.id} className="flex flex-wrap items-end gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
                           <div className="flex-1 min-w-[200px]">
                             <label className="text-xs font-medium text-[var(--muted)] block mb-1.5">Framework</label>
                             <select
@@ -1293,7 +1293,7 @@ export default function AdminPage(){
                                 }
                                 setTenantForm((s) => ({ ...s, frameworkDocuments: arr }))
                               }}
-                              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)]"
+                              className="w-full h-10 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)]"
                             >
                               <option value="">— Select framework —</option>
                               {KNOWN_FRAMEWORKS.map((fw) => (
@@ -1301,7 +1301,7 @@ export default function AdminPage(){
                               ))}
                             </select>
                           </div>
-                          <div className="flex items-end gap-2">
+                          <div className="flex items-center gap-2 h-10">
                             <input
                               type="file"
                               id={'framework-upload-' + row.id}
@@ -1320,15 +1320,15 @@ export default function AdminPage(){
                               }}
                             />
                             {row.frameworkId ? (
-                              <label htmlFor={'framework-upload-' + row.id} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-[var(--primary)] text-white hover:opacity-90">
+                              <label htmlFor={'framework-upload-' + row.id} className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg text-sm font-medium cursor-pointer bg-[var(--primary)] text-white hover:opacity-90 shrink-0">
                                 <Plus size={16} /> Upload
                               </label>
                             ) : (
-                              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)]">Select framework first</span>
+                              <span className="inline-flex items-center justify-center h-10 px-4 rounded-lg text-sm font-medium bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] shrink-0">Select framework first</span>
                             )}
                           </div>
                           {row.frameworkId && (
-                            <button type="button" onClick={() => setTenantForm((s) => ({ ...s, frameworkDocuments: s.frameworkDocuments.filter((_, i) => i !== rowIdx) }))} className="p-2 rounded-lg text-[var(--muted)] hover:bg-[var(--danger)]/10 hover:text-[var(--danger)]" aria-label="Remove row"><Trash2 size={14} /></button>
+                            <button type="button" onClick={() => setTenantForm((s) => ({ ...s, frameworkDocuments: s.frameworkDocuments.filter((_, i) => i !== rowIdx) }))} className="flex items-center justify-center h-10 w-10 shrink-0 rounded-lg text-[var(--muted)] hover:bg-[var(--danger)]/10 hover:text-[var(--danger)]" aria-label="Remove row"><Trash2 size={14} /></button>
                           )}
                         </div>
                       ))}
