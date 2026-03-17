@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { checkCredentials } from '@/lib/demo-auth'
 import { useHaptics } from '@/hooks/useHaptics'
 
 type Branding = { appName: string; logoDataUrl: string | null }
@@ -8,8 +9,6 @@ type Branding = { appName: string; logoDataUrl: string | null }
 export default function LoginPage() {
   const [u, setU] = useState('')
   const [p, setP] = useState('')
-  const [totpCode, setTotpCode] = useState('')
-  const [need2fa, setNeed2fa] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [branding, setBranding] = useState<Branding | null>(null)
@@ -28,45 +27,34 @@ export default function LoginPage() {
     setBusy(true)
     h.impact('medium')
 
-    try {
-      const res = await fetch('/api/demo/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: u.trim(),
-          password: p,
-          ...(need2fa ? { totpCode: totpCode.replace(/\s/g, '') } : {}),
-        }),
-        credentials: 'include',
-      })
-      const data = await res.json().catch(() => ({}))
-      if (data.need2fa) {
-        setNeed2fa(true)
-        setErr(null)
-        setBusy(false)
-        return
-      }
-      if (data.error || !res.ok) {
-        setErr(data.error || 'Invalid username or password.')
-        h.impact('heavy')
-        setBusy(false)
-        return
-      }
-      try {
-        await fetch('/api/demo/audit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: u,
-            tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            ua: navigator.userAgent,
-          }),
-        })
-      } catch {}
-      h.success()
-      window.location.assign('/')
-    } catch {
-      setErr('Network error.')
+          const session = checkCredentials(u, p)
+      if (session) {
+        // demo cookies: 30 days (no auto-logout)
+        const maxAge = 30 * 24 * 3600
+        document.cookie = `demo_authed=1; Max-Age=${maxAge}; Path=/; SameSite=Lax`
+        document.cookie = `demo_user=${u}; Max-Age=${maxAge}; Path=/; SameSite=Lax`
+        document.cookie = `demo_role=${session.role}; Max-Age=${maxAge}; Path=/; SameSite=Lax`
+        if (session.partnerId) document.cookie = `demo_partner_id=${session.partnerId}; Max-Age=${maxAge}; Path=/; SameSite=Lax`
+        if (session.tenantId) document.cookie = `demo_tenant_id=${session.tenantId}; Max-Age=${maxAge}; Path=/; SameSite=Lax`
+        
+        // send audit (timezone + ua). The server will add masked IP.
+        try {
+          await fetch('/api/demo/audit', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+              username: u,
+              tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              ua: navigator.userAgent
+            })
+          });
+        } catch {}
+        
+        h.success()
+        window.location.assign('/')
+      } else {
+      setErr('Invalid username or password.')
+      h.impact('heavy')
       setBusy(false)
     }
   }
@@ -126,25 +114,8 @@ export default function LoginPage() {
               onChange={(e) => setP(e.target.value)}
               className="mt-1 w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 outline-none focus:border-[rgba(59,130,246,.5)] text-[var(--text)] placeholder-[var(--muted)]"
               placeholder="Enter password"
-              readOnly={need2fa}
             />
           </div>
-
-          {need2fa && (
-            <div>
-              <label className="text-sm text-[var(--muted)]">Authentication code</label>
-              <input
-                value={totpCode}
-                onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="mt-1 w-full rounded-xl bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 outline-none focus:border-[rgba(59,130,246,.5)] text-[var(--text)] placeholder-[var(--muted)] text-center tracking-[0.3em] text-lg"
-                placeholder="000000"
-                maxLength={6}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-              />
-              <p className="text-xs text-[var(--muted)] mt-1">Enter the 6-digit code from your authenticator app.</p>
-            </div>
-          )}
 
           {err && <div className="text-sm text-red-400">{err}</div>}
 

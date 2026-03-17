@@ -10,8 +10,6 @@ export type DemoUser = {
   partnerId?: string;
   /** Bei Tenant-User: zugeordneter Mandant. */
   tenantId?: string;
-  /** TOTP secret (base32) for Google Authenticator–compatible 2FA. */
-  totpSecret?: string;
   active: boolean;
   expiresAtISO?: string;   // optional expiry
   createdAtISO: string;
@@ -25,8 +23,6 @@ let users: DemoUser[] = [
   { id: 'u-s-2', username: 'sales.john', password: 'Mahoney#1', role: 'sales', active: true, createdAtISO: new Date().toISOString() },
   { id: 'u-tenant-1', username: 'tenant.acme', password: 'Mahoney#1', role: 'tenant_user', tenantId: 'O-25-001', active: true, createdAtISO: new Date().toISOString() },
   { id: 'u-partner-1', username: 'partner.demo', password: 'Mahoney#1', role: 'partner', partnerId: 'partner-1', active: true, createdAtISO: new Date().toISOString() },
-  // Karen Thompson – demos; can switch between Partner and Customer (sales role). Send password securely.
-  { id: 'u-karen', username: 'karen.thompson', password: 'K7#mN9$pL2@xQ', role: 'sales', active: true, createdAtISO: new Date().toISOString() },
 ];
 
 export function listUsers(){ return users.slice(); }
@@ -76,13 +72,4 @@ export function isSuperAdminUser(u: DemoUser): boolean {
 }
 export function isExpired(u: DemoUser){
   return !!(u.expiresAtISO && new Date(u.expiresAtISO).getTime() < Date.now());
-}
-
-/** Set or clear TOTP secret for a user (by username). */
-export function updateUserTotpSecret(username: string, secret: string | null): void {
-  const u = users.find((x) => x.username === username);
-  if (u) {
-    if (secret) u.totpSecret = secret;
-    else delete u.totpSecret;
-  }
 }

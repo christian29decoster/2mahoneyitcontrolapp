@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, Phone, Bell, Shield, Settings, Camera } from 'lucide-react'
 import { Card } from '@/components/Card'
@@ -19,20 +19,6 @@ export default function ProfilePage() {
   const [toasts, setToasts] = useState<Array<{ id: string; type: ToastType; title: string; message?: string }>>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const h = useHaptics()
-
-  const [has2fa, setHas2fa] = useState<boolean | null>(null)
-  const [twoFaLoading, setTwoFaLoading] = useState(false)
-  const [setup2fa, setSetup2fa] = useState<{ secret: string; qrDataUrl: string } | null>(null)
-  const [setupCode, setSetupCode] = useState('')
-  const [disableCode, setDisableCode] = useState('')
-  const [showDisable2fa, setShowDisable2fa] = useState(false)
-
-  useEffect(() => {
-    fetch('/api/demo/2fa/status', { credentials: 'include' })
-      .then((r) => r.ok ? r.json() : null)
-      .then((data: { has2fa?: boolean } | null) => data && setHas2fa(!!data.has2fa))
-      .catch(() => setHas2fa(false))
-  }, [])
 
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -229,8 +215,8 @@ export default function ProfilePage() {
         {/* Security Status */}
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${has2fa ? 'bg-[var(--success)]/15' : 'bg-[var(--surface-2)]'}`}>
-              <Shield className={`w-5 h-5 ${has2fa ? 'text-[var(--success)]' : 'text-[var(--muted)]'}`} />
+            <div className="w-10 h-10 rounded-xl bg-[var(--success)]/15 flex items-center justify-center shrink-0">
+              <Shield className="w-5 h-5 text-[var(--success)]" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-[var(--text)]">Security</h2>
@@ -238,158 +224,16 @@ export default function ProfilePage() {
             </div>
           </div>
           <div className="space-y-3">
-            <div className={`flex items-center justify-between p-3 rounded-xl border ${has2fa ? 'bg-[var(--success)]/10 border-[var(--success)]/20' : 'bg-[var(--surface-2)] border-[var(--border)]'}`}>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--success)]/10 border border-[var(--success)]/20">
               <div className="flex items-center gap-3 min-w-0">
-                <Shield className={`w-5 h-5 shrink-0 ${has2fa ? 'text-[var(--success)]' : 'text-[var(--muted)]'}`} />
+                <Shield className="w-5 h-5 text-[var(--success)] shrink-0" />
                 <div className="min-w-0">
                   <p className="text-[var(--text)] font-medium">Two-factor authentication</p>
-                  <p className="text-xs text-[var(--muted)]">{has2fa === null ? '…' : has2fa ? 'Enabled' : 'Disabled'}</p>
+                  <p className="text-xs text-[var(--muted)]">Enabled</p>
                 </div>
               </div>
-              {has2fa === true && (
-                <button
-                  type="button"
-                  onClick={() => setShowDisable2fa(true)}
-                  className="text-xs font-medium text-[var(--muted)] hover:text-[var(--text)]"
-                >
-                  Disable
-                </button>
-              )}
-              {has2fa === false && !setup2fa && (
-                <button
-                  type="button"
-                  disabled={twoFaLoading}
-                  onClick={async () => {
-                    setTwoFaLoading(true)
-                    try {
-                      const res = await fetch('/api/demo/2fa/setup', { method: 'POST', credentials: 'include' })
-                      const data = await res.json().catch(() => ({}))
-                      if (data.secret && data.qrDataUrl) setSetup2fa({ secret: data.secret, qrDataUrl: data.qrDataUrl })
-                      else addToast('error', 'Error', data.error || 'Could not start 2FA setup.')
-                    } catch {
-                      addToast('error', 'Error', 'Network error.')
-                    }
-                    setTwoFaLoading(false)
-                  }}
-                  className="text-xs font-medium text-[var(--primary)] hover:underline disabled:opacity-50"
-                >
-                  {twoFaLoading ? '…' : 'Enable'}
-                </button>
-              )}
-              {has2fa === true && <span className="w-2 h-2 bg-[var(--success)] rounded-full shrink-0" aria-hidden />}
+              <span className="w-2 h-2 bg-[var(--success)] rounded-full shrink-0" aria-hidden />
             </div>
-
-            {setup2fa && (
-              <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] space-y-3">
-                <p className="text-sm font-medium text-[var(--text)]">Scan with Google Authenticator (or any TOTP app)</p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={setup2fa.qrDataUrl} alt="QR code for 2FA" className="w-40 h-40 mx-auto block" />
-                <div>
-                  <label className="block text-xs text-[var(--muted)] mb-1">Enter the 6-digit code to confirm</label>
-                  <input
-                    value={setupCode}
-                    onChange={(e) => setSetupCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-center tracking-widest"
-                    placeholder="000000"
-                    maxLength={6}
-                    inputMode="numeric"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => { setSetup2fa(null); setSetupCode('') }}
-                    className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    disabled={setupCode.length !== 6 || twoFaLoading}
-                    onClick={async () => {
-                      setTwoFaLoading(true)
-                      try {
-                        const res = await fetch('/api/demo/2fa/enable', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ code: setupCode, secret: setup2fa.secret }),
-                          credentials: 'include',
-                        })
-                        const data = await res.json().catch(() => ({}))
-                        if (res.ok && data.ok) {
-                          setHas2fa(true)
-                          setSetup2fa(null)
-                          setSetupCode('')
-                          addToast('success', '2FA enabled', 'Two-factor authentication is now enabled.')
-                        } else {
-                          addToast('error', 'Invalid code', data.error || 'Please try again.')
-                        }
-                      } catch {
-                        addToast('error', 'Error', 'Network error.')
-                      }
-                      setTwoFaLoading(false)
-                    }}
-                    className="px-3 py-2 rounded-lg bg-[var(--primary)] text-white text-sm font-medium disabled:opacity-50"
-                  >
-                    Confirm
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {showDisable2fa && (
-              <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] space-y-3">
-                <p className="text-sm font-medium text-[var(--text)]">Enter your current 6-digit code to disable 2FA</p>
-                <input
-                  value={disableCode}
-                  onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-center tracking-widest"
-                  placeholder="000000"
-                  maxLength={6}
-                  inputMode="numeric"
-                />
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => { setShowDisable2fa(false); setDisableCode('') }}
-                    className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    disabled={disableCode.length !== 6 || twoFaLoading}
-                    onClick={async () => {
-                      setTwoFaLoading(true)
-                      try {
-                        const res = await fetch('/api/demo/2fa/disable', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ code: disableCode }),
-                          credentials: 'include',
-                        })
-                        const data = await res.json().catch(() => ({}))
-                        if (res.ok && data.ok) {
-                          setHas2fa(false)
-                          setShowDisable2fa(false)
-                          setDisableCode('')
-                          addToast('success', '2FA disabled', 'Two-factor authentication has been turned off.')
-                        } else {
-                          addToast('error', 'Invalid code', data.error || 'Please try again.')
-                        }
-                      } catch {
-                        addToast('error', 'Error', 'Network error.')
-                      }
-                      setTwoFaLoading(false)
-                    }}
-                    className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium disabled:opacity-50"
-                  >
-                    Disable 2FA
-                  </button>
-                </div>
-              </div>
-            )}
-
             <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
               <div className="flex items-center gap-3 min-w-0">
                 <Shield className="w-5 h-5 text-[var(--muted)] shrink-0" />
