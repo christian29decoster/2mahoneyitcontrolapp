@@ -1334,37 +1334,6 @@ export default function AdminPage(){
                       ))}
                     </div>
                   </div>
-
-                  <div className="pt-4 border-t border-[var(--border)]">
-                    <h3 className="text-sm font-semibold text-[var(--text)] mb-0.5">Uploaded framework documents</h3>
-                    <p className="text-xs text-[var(--muted)] mb-4">Policies, certificates, etc. (metadata stored). Documents evaluated by AI show status &quot;AI evaluated&quot;.</p>
-
-                    {tenantForm.frameworkDocuments.filter((r) => r.documentName).length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-2)]/50 p-6 text-center">
-                        <FileText className="w-8 h-8 mx-auto text-[var(--muted)] mb-2 opacity-70" />
-                        <p className="text-sm text-[var(--muted)]">No documents uploaded yet</p>
-                        <p className="text-[11px] text-[var(--muted)] mt-1">Select a framework above and use Upload.</p>
-                      </div>
-                    ) : (
-                      <ul className="space-y-2">
-                        {tenantForm.frameworkDocuments.filter((r) => r.documentName).map((r) => (
-                          <li key={r.id} className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
-                            <FileText size={16} className="text-[var(--muted)] shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <span className="text-sm font-medium text-[var(--text)] block">{r.frameworkName || r.frameworkId}</span>
-                              <span className="text-xs text-[var(--muted)]">{r.documentName} · {r.uploadedAtISO ? new Date(r.uploadedAtISO).toLocaleDateString('en-US') : ''}</span>
-                            </div>
-                            {r.aiEvaluated ? (
-                              <span className="shrink-0 rounded-full bg-[var(--success)]/20 text-[var(--success)] px-2.5 py-1 text-xs font-medium">Status: AI evaluated</span>
-                            ) : (
-                              <span className="shrink-0 text-xs text-[var(--muted)]">Pending evaluation</span>
-                            )}
-                            <button type="button" onClick={() => setTenantForm((s) => ({ ...s, frameworkDocuments: s.frameworkDocuments.map((x) => x.id === r.id ? { ...x, documentId: undefined, documentName: undefined, uploadedAtISO: undefined } : x) }))} className="p-1.5 rounded-md text-[var(--muted)] hover:bg-[var(--danger)]/10 hover:text-[var(--danger)]" aria-label="Remove"><Trash2 size={14} /></button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
                 </div>
               )}
 
