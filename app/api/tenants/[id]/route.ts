@@ -40,6 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     frameworks: body.frameworks,
     documentUploads: body.documentUploads,
     frameworkDocuments: body.frameworkDocuments,
+    userSync: body.userSync,
   })
   return NextResponse.json({ item: updated })
 }

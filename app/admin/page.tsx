@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X, MapPin, FileText, Plus, Trash2, Link2 } from 'lucide-react';
 import {
   PLATFORM_LIST_PRICES,
@@ -25,7 +26,9 @@ type AuditItem = { atISO:string; username:string; ipMasked:string; tz?:string; u
 
 type PartnerBranding = { appName?: string; logoDataUrl?: string };
 type PartnerItem = { id: string; name: string; externalId?: string; tier?: 'authorized' | 'advanced' | 'elite'; active: boolean; createdAtISO: string; branding?: PartnerBranding };
-type TenantConnectors = { rmm?: { apiUrl?: string; tenantId?: string; label?: string }; sophos?: { tenantId?: string; partnerId?: string; label?: string }; [k: string]: unknown };
+type TenantConnectors = Record<string, { label?: string; [k: string]: string | undefined } | undefined>;
+type ConnectorEntryForm = { id: string; name: string; params: Record<string, string> };
+type TenantUserSyncForm = { provider: '' | 'ldap' | 'azure' | 'aws'; protocol: string; configKeys: string[]; configValues: string[] };
 type TenantLocation = { name: string; address: string; lat: number; lng: number };
 type CustomBundleLineForm = { type: 'mahoney'|'own'; productId: string; label: string; partnerCost: string; salePrice: string };
 type TenantBillingForm = {
@@ -40,7 +43,7 @@ type DataResidencyRegion = 'us' | 'eu' | 'asia';
 type TenantFrameworkForm = { id: string; name: string };
 type TenantDocumentUploadForm = { id: string; name: string; uploadedAtISO: string };
 type FrameworkDocumentEntryForm = { id: string; frameworkId: string; frameworkName: string; documentId?: string; documentName?: string; uploadedAtISO?: string; aiEvaluated?: boolean };
-type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string; locations?: TenantLocation[]; billing?: Partial<TenantBillingForm>; region?: DataResidencyRegion; frameworks?: TenantFrameworkForm[]; documentUploads?: TenantDocumentUploadForm[]; frameworkDocuments?: FrameworkDocumentEntryForm[] };
+type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string; locations?: TenantLocation[]; billing?: Partial<TenantBillingForm>; region?: DataResidencyRegion; frameworks?: TenantFrameworkForm[]; documentUploads?: TenantDocumentUploadForm[]; frameworkDocuments?: FrameworkDocumentEntryForm[]; userSync?: { provider?: string; protocol?: string; config?: Record<string, string> } };
 
 const KNOWN_FRAMEWORKS: TenantFrameworkForm[] = [
   { id: 'iso27001', name: 'ISO 27001' },
@@ -94,17 +97,21 @@ export default function AdminPage(){
     useCustomBundle: false, customBundleLines: [],
     quickbooksSyncEnabled: false, quickbooksCustomerId: '',
   };
-  const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors; locations: TenantLocation[]; billing: TenantBillingForm; region: DataResidencyRegion | ''; frameworks: TenantFrameworkForm[]; documentUploads: TenantDocumentUploadForm[]; frameworkDocuments: FrameworkDocumentEntryForm[] }>({
+  const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectorList: ConnectorEntryForm[]; locations: TenantLocation[]; billing: TenantBillingForm; region: DataResidencyRegion | ''; frameworks: TenantFrameworkForm[]; documentUploads: TenantDocumentUploadForm[]; frameworkDocuments: FrameworkDocumentEntryForm[]; userSync: TenantUserSyncForm }>({
     id: '', name: '', partnerId: '', active: true,
-    connectors: { rmm: {}, sophos: {}, autotask: {} },
+    connectorList: [],
     locations: [],
     billing: defaultBillingForm,
     region: '',
     frameworks: [],
     documentUploads: [],
     frameworkDocuments: [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }],
+    userSync: { provider: '', protocol: '', configKeys: [], configValues: [] },
   });
-  const [kundenakteSection, setKundenakteSection] = useState<'company'|'locations'|'partner'|'billing'|'framework'>('company');
+  const [kundenakteSection, setKundenakteSection] = useState<'company'|'connectors'|'locations'|'partner'|'billing'|'framework'|'users'>('company');
+  const [addConnectorOpen, setAddConnectorOpen] = useState(false);
+  const [addConnectorName, setAddConnectorName] = useState('');
+  const [addConnectorParams, setAddConnectorParams] = useState<{ key: string; value: string }[]>([]);
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
   type AutotaskCompanyItem = { id: number; companyName?: string };
   const [autotaskCompanies, setAutotaskCompanies] = useState<AutotaskCompanyItem[]>([]);
@@ -360,16 +367,18 @@ export default function AdminPage(){
         ? { syncEnabled: tenantForm.billing.quickbooksSyncEnabled, customerId: tenantForm.billing.quickbooksCustomerId.trim() || undefined }
         : undefined,
     };
+    const connectors = Object.fromEntries(tenantForm.connectorList.map((c) => [c.id, { label: c.name, ...c.params }]));
+    const userSyncPayload = tenantForm.userSync.provider ? { provider: tenantForm.userSync.provider, protocol: tenantForm.userSync.protocol || undefined, config: Object.fromEntries(tenantForm.userSync.configKeys.map((k, i) => [k, tenantForm.userSync.configValues[i] ?? '']).filter(([, v]) => v !== '')) } : undefined;
     try {
       if (editingTenantId) {
-        const res = await fetch(`/api/tenants/${editingTenantId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload, region: tenantForm.region || undefined, frameworks: tenantForm.frameworks.length ? tenantForm.frameworks : undefined, documentUploads: tenantForm.documentUploads.length ? tenantForm.documentUploads : undefined, frameworkDocuments: tenantForm.frameworkDocuments.filter((r) => r.frameworkId).length ? tenantForm.frameworkDocuments.filter((r) => r.frameworkId) : undefined }) });
+        const res = await fetch(`/api/tenants/${editingTenantId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors, locations: tenantForm.locations, billing: billingPayload, region: tenantForm.region || undefined, frameworks: tenantForm.frameworks.length ? tenantForm.frameworks : undefined, documentUploads: tenantForm.documentUploads.length ? tenantForm.documentUploads : undefined, frameworkDocuments: tenantForm.frameworkDocuments.filter((r) => r.frameworkId).length ? tenantForm.frameworkDocuments.filter((r) => r.frameworkId) : undefined, userSync: userSyncPayload }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
         setEditingTenantId(null);
       } else {
-        const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload, region: tenantForm.region || undefined, frameworks: tenantForm.frameworks.length ? tenantForm.frameworks : undefined, documentUploads: tenantForm.documentUploads.length ? tenantForm.documentUploads : undefined, frameworkDocuments: tenantForm.frameworkDocuments.filter((r) => r.frameworkId).length ? tenantForm.frameworkDocuments.filter((r) => r.frameworkId) : undefined }) });
+        const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors, locations: tenantForm.locations, billing: billingPayload, region: tenantForm.region || undefined, frameworks: tenantForm.frameworks.length ? tenantForm.frameworks : undefined, documentUploads: tenantForm.documentUploads.length ? tenantForm.documentUploads : undefined, frameworkDocuments: tenantForm.frameworkDocuments.filter((r) => r.frameworkId).length ? tenantForm.frameworkDocuments.filter((r) => r.frameworkId) : undefined, userSync: userSyncPayload }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
       }
-      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm, region: '', frameworks: [], documentUploads: [], frameworkDocuments: [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }] });
+      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectorList: [], locations: [], billing: defaultBillingForm, region: '', frameworks: [], documentUploads: [], frameworkDocuments: [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }], userSync: { provider: '', protocol: '', configKeys: [], configValues: [] } });
       await loadTenants();
     } catch (err) { console.error(err); alert('Error saving'); }
   }
@@ -379,7 +388,12 @@ export default function AdminPage(){
     const b = t.billing as Record<string, unknown> | undefined;
     const lines = (b?.customBundleLines as Array<{ type: string; productId?: string; label: string; partnerCost?: number; salePrice: number }>) ?? [];
     setTenantForm({
-      id: t.id, name: t.name, partnerId: t.partnerId ?? '', active: t.active, connectors: { ...t.connectors },
+      id: t.id, name: t.name, partnerId: t.partnerId ?? '', active: t.active,
+      connectorList: (() => {
+        const conn = t.connectors as Record<string, Record<string, string> | undefined> | undefined;
+        if (!conn || typeof conn !== 'object') return [];
+        return Object.entries(conn).filter(([, v]) => v && typeof v === 'object').map(([k, v]) => { const o = v as Record<string, string>; const { label, ...params } = o; return { id: k, name: label || k, params }; });
+      })(),
       locations: Array.isArray(t.locations) ? t.locations.map((l) => ({ ...l })) : [],
       billing: {
         zusatzleistungEnabled: !!b?.zusatzleistungEnabled,
@@ -406,6 +420,13 @@ export default function AdminPage(){
         const fd = (t as TenantItem).frameworkDocuments;
         if (Array.isArray(fd) && fd.length > 0) return fd.map((r) => ({ ...r }));
         return [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }];
+      })(),
+      userSync: (() => {
+        const u = (t as TenantItem).userSync;
+        if (!u) return { provider: '' as const, protocol: '', configKeys: [] as string[], configValues: [] as string[] };
+        const keys = u.config ? Object.keys(u.config) : [];
+        const vals = u.config ? Object.values(u.config) : [];
+        return { provider: (u.provider as '' | 'ldap' | 'azure' | 'aws') || '', protocol: u.protocol ?? '', configKeys: keys, configValues: vals };
       })(),
     });
   }
@@ -939,15 +960,17 @@ export default function AdminPage(){
             <p className="text-xs text-[var(--muted)] mb-4">Tenants are customers or organizations. Structured by Company, Locations, Partner, and Billing.</p>
 
             <nav className="flex flex-wrap gap-1 p-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] mb-4">
-              {(['company','locations','partner','billing','framework'] as const).map((sec)=>(
+              {(['company','connectors','locations','partner','billing','framework','users'] as const).map((sec)=>(
                 <button key={sec} type="button" onClick={()=>setKundenakteSection(sec)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${kundenakteSection===sec?'bg-[var(--primary)] text-white':'text-[var(--muted)] hover:text-[var(--text)]'}`}>
                   {sec==='company'&&<Building2 size={14}/>}
+                  {sec==='connectors'&&<Link2 size={14}/>}
                   {sec==='locations'&&<MapPin size={14}/>}
                   {sec==='partner'&&<Building2 size={14}/>}
                   {sec==='billing'&&<CreditCard size={14}/>}
                   {sec==='framework'&&<Shield size={14}/>}
-                  {sec==='company'?'Company':sec==='locations'?'Locations':sec==='partner'?'Partner':sec==='billing'?'Billing':'Framework & documents'}
+                  {sec==='users'&&<Users size={14}/>}
+                  {sec==='company'?'Company':sec==='connectors'?'API & Connectors':sec==='locations'?'Locations':sec==='partner'?'Partner':sec==='billing'?'Billing':sec==='framework'?'Framework & documents':'User'}
                 </button>
               ))}
             </nav>
@@ -980,33 +1003,103 @@ export default function AdminPage(){
                     </select>
                     <p className="text-xs text-[var(--muted)] mt-1">Where this customer&apos;s data runs (US, EU, or Asia).</p>
                   </div>
-                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide pt-2 border-t border-[var(--border)]">Connectors (RMM, Sophos, Autotask)</div>
+                </>
+              )}
+
+              {kundenakteSection==='connectors' && (
+                <>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">API & Connectors</div>
+                  <p className="text-xs text-[var(--muted)] mb-3">Configure APIs and connectors for this tenant. Add a connector with the plus button and enter the parameters required by that API.</p>
+                  <div className="space-y-2 mb-3">
+                    {tenantForm.connectorList.map((c) => (
+                      <div key={c.id} className="flex items-center justify-between rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3">
+                        <span className="text-sm font-medium text-[var(--text)]">{c.name || c.id}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-[var(--muted)]">{Object.keys(c.params).length} param(s)</span>
+                          <button type="button" onClick={()=>setTenantForm(s=>({ ...s, connectorList: s.connectorList.filter((x)=>x.id!==c.id) }))} className="px-2 py-1 rounded border border-[var(--border)] text-xs text-[var(--muted)] hover:bg-[var(--surface)]">Remove</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button type="button" onClick={()=>{ setAddConnectorOpen(true); setAddConnectorName(''); setAddConnectorParams([]); }} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--primary)]/50 text-sm font-medium text-[var(--primary)] hover:bg-[var(--primary)]/10">+ Add connector</button>
+
+                  <Dialog open={addConnectorOpen} onOpenChange={setAddConnectorOpen}>
+                    <DialogContent className="sm:max-w-md bg-[var(--bg)] border-[var(--border)] text-[var(--text)]">
+                      <DialogHeader>
+                        <DialogTitle>Add connector</DialogTitle>
+                        <p className="text-sm text-[var(--muted)]">Enter the connector name and the parameters required by this API (e.g. API URL, API Key, Tenant ID).</p>
+                      </DialogHeader>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-[var(--muted)] mb-1">Connector name</label>
+                          <input value={addConnectorName} onChange={e=>setAddConnectorName(e.target.value)} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="e.g. RMM, Custom API"/>
+                        </div>
+                        <div>
+                          <div className="text-xs font-medium text-[var(--muted)] mb-1">Parameters</div>
+                          {addConnectorParams.map((p, i) => (
+                            <div key={i} className="flex gap-2 mb-2">
+                              <input value={p.key} onChange={e=>{ const next = [...addConnectorParams]; next[i]={ ...next[i], key: e.target.value }; setAddConnectorParams(next); }} className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Key"/>
+                              <input value={p.value} onChange={e=>{ const next = [...addConnectorParams]; next[i]={ ...next[i], value: e.target.value }; setAddConnectorParams(next); }} className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Value"/>
+                              <button type="button" onClick={()=>setAddConnectorParams(addConnectorParams.filter((_, j)=>j!==i))} className="px-2 py-1 rounded border border-[var(--border)] text-xs">Remove</button>
+                            </div>
+                          ))}
+                          <button type="button" onClick={()=>setAddConnectorParams([...addConnectorParams, { key: '', value: '' }])} className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm">+ Add parameter</button>
+                        </div>
+                      </div>
+                      <DialogFooter className="gap-2 sm:gap-0">
+                        <button type="button" onClick={()=>setAddConnectorOpen(false)} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
+                        <button type="button" onClick={()=>{
+                          const name = addConnectorName.trim() || 'Connector';
+                          const baseId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                          const existingIds = new Set(tenantForm.connectorList.map(c=>c.id));
+                          let id = baseId || 'connector';
+                          let n = 0;
+                          while (existingIds.has(id)) { n++; id = `${baseId}-${n}`; }
+                          const params = Object.fromEntries(addConnectorParams.filter(p=>p.key.trim()).map(p=>[p.key.trim(), p.value]));
+                          setTenantForm(s=>({ ...s, connectorList: [...s.connectorList, { id, name: name || id, params }] }));
+                          setAddConnectorOpen(false);
+                          setAddConnectorName('');
+                          setAddConnectorParams([]);
+                        }} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90">Add</button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </>
+              )}
+
+              {kundenakteSection==='users' && (
+                <>
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">User sync</div>
+                  <p className="text-xs text-[var(--muted)] mb-3">Pull users from LDAP, Azure, or AWS. Configure the protocol (hybrid) for the respective provider.</p>
                   <div className="space-y-3">
-                    <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
-                      <div className="text-xs font-medium text-[var(--text)]">RMM (Datto)</div>
-                      <input value={tenantForm.connectors?.rmm?.apiUrl ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, apiUrl: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="API URL"/>
-                      <input value={tenantForm.connectors?.rmm?.tenantId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, tenantId: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Tenant ID"/>
-                      <input value={tenantForm.connectors?.rmm?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, rmm: { ...s.connectors?.rmm, label: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Label (optional)"/>
-                    </div>
-                    <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
-                      <div className="text-xs font-medium text-[var(--text)]">Sophos</div>
-                      <input value={tenantForm.connectors?.sophos?.tenantId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, tenantId: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Tenant ID"/>
-                      <input value={tenantForm.connectors?.sophos?.partnerId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, partnerId: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Partner ID"/>
-                      <input value={tenantForm.connectors?.sophos?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, sophos: { ...s.connectors?.sophos, label: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Label (optional)"/>
-                    </div>
-                    <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-3 space-y-2">
-                      <div className="text-xs font-medium text-[var(--text)]">Autotask PSA</div>
-                      <button type="button" onClick={loadAutotaskCompanies} disabled={autotaskCompaniesLoading} className="w-full px-3 py-2 rounded-lg border border-[var(--border)] text-sm bg-[var(--surface)] hover:bg-[var(--surface-2)] disabled:opacity-50 font-medium">{autotaskCompaniesLoading ? 'Loading…' : 'Load companies from Autotask'}</button>
-                      {autotaskCompaniesError && <p className="text-xs text-amber-400">{autotaskCompaniesError}</p>}
-                      {autotaskCompanies.length > 0 && (
-                        <select value={(tenantForm.connectors as Record<string,{ companyId?: string }|undefined>)?.autotask?.companyId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm bg-[var(--surface)] text-[var(--text)]">
-                        <option value="">— No company —</option>
-                        {autotaskCompanies.map(c=>(<option key={c.id} value={String(c.id)}>{(c as { companyName?: string }).companyName ?? (c as { CompanyName?: string }).CompanyName ?? `Company ${c.id}`}</option>))}
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1">Provider</label>
+                      <select value={tenantForm.userSync.provider} onChange={e=>setTenantForm(s=>({ ...s, userSync: { ...s.userSync, provider: e.target.value as '' | 'ldap' | 'azure' | 'aws' } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)]">
+                        <option value="">— None —</option>
+                        <option value="ldap">LDAP</option>
+                        <option value="azure">Azure</option>
+                        <option value="aws">AWS</option>
                       </select>
-                      )}
-                      <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.companyId ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, companyId: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Or company ID"/>
-                      <input value={(tenantForm.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask?.label ?? ''} onChange={e=>setTenantForm(s=>({...s, connectors: { ...s.connectors, autotask: { ...(s.connectors as Record<string,{ companyId?: string; label?: string }|undefined>)?.autotask, label: e.target.value } } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Label (optional)"/>
                     </div>
+                    {tenantForm.userSync.provider && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-medium text-[var(--muted)] mb-1">Protocol (hybrid)</label>
+                          <input value={tenantForm.userSync.protocol} onChange={e=>setTenantForm(s=>({ ...s, userSync: { ...s.userSync, protocol: e.target.value } }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="e.g. LDAP, SAML, OIDC"/>
+                        </div>
+                        <div>
+                          <div className="text-xs font-medium text-[var(--muted)] mb-1">Config (key-value)</div>
+                          {tenantForm.userSync.configKeys.map((_, i) => (
+                            <div key={i} className="flex gap-2 mb-2">
+                              <input value={tenantForm.userSync.configKeys[i]} onChange={e=>{ const k = [...tenantForm.userSync.configKeys]; k[i]=e.target.value; setTenantForm(s=>({ ...s, userSync: { ...s.userSync, configKeys: k } })); }} className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Key"/>
+                              <input value={tenantForm.userSync.configValues[i]} onChange={e=>{ const v = [...tenantForm.userSync.configValues]; v[i]=e.target.value; setTenantForm(s=>({ ...s, userSync: { ...s.userSync, configValues: v } })); }} className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm" placeholder="Value"/>
+                              <button type="button" onClick={()=>setTenantForm(s=>({ ...s, userSync: { ...s.userSync, configKeys: s.userSync.configKeys.filter((_, j)=>j!==i), configValues: s.userSync.configValues.filter((_, j)=>j!==i) } }))} className="px-2 py-1 rounded border border-[var(--border)] text-xs">Remove</button>
+                            </div>
+                          ))}
+                          <button type="button" onClick={()=>setTenantForm(s=>({ ...s, userSync: { ...s.userSync, configKeys: [...s.userSync.configKeys, ''], configValues: [...s.userSync.configValues, ''] } }))} className="px-3 py-2 rounded-lg border border-[var(--border)] text-sm">+ Add config</button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </>
               )}
@@ -1340,7 +1433,7 @@ export default function AdminPage(){
               <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
                 <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90">{editingTenantId ? 'Save' : 'Add tenant'}</button>
                 {editingTenantId && (
-                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm, region: '', frameworks: [], documentUploads: [], frameworkDocuments: [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }] }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
+                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectorList: [], locations: [], billing: defaultBillingForm, region: '', frameworks: [], documentUploads: [], frameworkDocuments: [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }], userSync: { provider: '', protocol: '', configKeys: [], configValues: [] } }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
                 )}
               </div>
             </div>

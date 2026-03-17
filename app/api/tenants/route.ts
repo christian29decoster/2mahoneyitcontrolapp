@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
     frameworks: body.frameworks,
     documentUploads: body.documentUploads,
     frameworkDocuments: body.frameworkDocuments,
+    userSync: body.userSync,
   })
   return NextResponse.json({ item: tenant })
 }

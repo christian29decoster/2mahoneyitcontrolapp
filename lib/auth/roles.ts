@@ -137,6 +137,8 @@ export interface Tenant {
   documentUploads?: TenantDocumentUpload[]
   /** Framework + document rows: each entry = one framework dropdown + upload, with optional AI-evaluated status. */
   frameworkDocuments?: TenantFrameworkDocumentEntry[]
+  /** User sync: pull users from LDAP, Azure, or AWS; hybrid protocol. */
+  userSync?: TenantUserSync
 }
 
 /** Partner – hat mehrere Tenants (Kunden). */
@@ -155,16 +157,19 @@ export interface Partner {
   region?: DataResidencyRegion
 }
 
-/** Pro Tenant: Zuordnung zu RMM, Sophos, Autotask und weiteren APIs. */
+/** Pro Tenant: dynamische API/Connector-Zuordnung (Plus → Parameter abfragen). */
 export interface TenantConnectors {
-  /** Datto RMM – Account/Seite oder Tenant-ID, falls RMM multi-tenant. */
-  rmm?: { apiUrl?: string; tenantId?: string; label?: string }
-  /** Sophos – Tenant-/Partner-ID aus Sophos Central. */
-  sophos?: { tenantId?: string; partnerId?: string; label?: string }
-  /** Autotask PSA – Company-ID für Ticket-/Unternehmenszuordnung. */
-  autotask?: { companyId?: string; label?: string }
-  /** Erweiterbar für weitere APIs (z. B. backup, siem). */
-  [key: string]: { tenantId?: string; partnerId?: string; apiUrl?: string; label?: string; companyId?: string } | undefined
+  /** Beliebige Connector-IDs; Wert = Parameter für diese API (label, apiUrl, apiKey, tenantId, …). */
+  [key: string]: { label?: string; [paramKey: string]: string | undefined } | undefined
+}
+
+/** User-Sync pro Tenant: Nutzer aus LDAP, Azure oder AWS ziehen; Hybrid-Protokoll. */
+export interface TenantUserSync {
+  provider?: 'ldap' | 'azure' | 'aws'
+  /** Protokoll des Anbieters (z. B. LDAP, SAML, OIDC). */
+  protocol?: string
+  /** Anbieter-spezifische Config (Server-URL, Tenant ID, …). */
+  config?: Record<string, string>
 }
 
 /** Partner-Tier für Margen (Authorized 20 %, Advanced 30 %, Elite 40 %). */
