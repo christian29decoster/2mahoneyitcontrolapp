@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
     region: body.region,
     frameworks: body.frameworks,
     documentUploads: body.documentUploads,
+    frameworkDocuments: body.frameworkDocuments,
   })
   return NextResponse.json({ item: tenant })
 }

@@ -101,6 +101,18 @@ export interface TenantDocumentUpload {
   uploadedAtISO: string
 }
 
+/** One row: framework selection + optional document upload for AI evaluation. */
+export interface TenantFrameworkDocumentEntry {
+  id: string
+  frameworkId: string
+  frameworkName: string
+  documentId?: string
+  documentName?: string
+  uploadedAtISO?: string
+  /** Set when AI has evaluated this document. */
+  aiEvaluated?: boolean
+}
+
 /** Tenant (Mandant) – von Mahoney oder Partner verwaltet. */
 export interface Tenant {
   id: string
@@ -123,6 +135,8 @@ export interface Tenant {
   frameworks?: TenantFramework[]
   /** Documents uploaded for AI to evaluate (policies, certificates). */
   documentUploads?: TenantDocumentUpload[]
+  /** Framework + document rows: each entry = one framework dropdown + upload, with optional AI-evaluated status. */
+  frameworkDocuments?: TenantFrameworkDocumentEntry[]
 }
 
 /** Partner – hat mehrere Tenants (Kunden). */

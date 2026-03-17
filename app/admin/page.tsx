@@ -39,7 +39,8 @@ type TenantBillingForm = {
 type DataResidencyRegion = 'us' | 'eu' | 'asia';
 type TenantFrameworkForm = { id: string; name: string };
 type TenantDocumentUploadForm = { id: string; name: string; uploadedAtISO: string };
-type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string; locations?: TenantLocation[]; billing?: Partial<TenantBillingForm>; region?: DataResidencyRegion; frameworks?: TenantFrameworkForm[]; documentUploads?: TenantDocumentUploadForm[] };
+type FrameworkDocumentEntryForm = { id: string; frameworkId: string; frameworkName: string; documentId?: string; documentName?: string; uploadedAtISO?: string; aiEvaluated?: boolean };
+type TenantItem = { id: string; name: string; partnerId?: string; connectors: TenantConnectors; active: boolean; createdAtISO: string; locations?: TenantLocation[]; billing?: Partial<TenantBillingForm>; region?: DataResidencyRegion; frameworks?: TenantFrameworkForm[]; documentUploads?: TenantDocumentUploadForm[]; frameworkDocuments?: FrameworkDocumentEntryForm[] };
 
 const KNOWN_FRAMEWORKS: TenantFrameworkForm[] = [
   { id: 'iso27001', name: 'ISO 27001' },
@@ -93,7 +94,7 @@ export default function AdminPage(){
     useCustomBundle: false, customBundleLines: [],
     quickbooksSyncEnabled: false, quickbooksCustomerId: '',
   };
-  const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors; locations: TenantLocation[]; billing: TenantBillingForm; region: DataResidencyRegion | ''; frameworks: TenantFrameworkForm[]; documentUploads: TenantDocumentUploadForm[] }>({
+  const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectors: TenantConnectors; locations: TenantLocation[]; billing: TenantBillingForm; region: DataResidencyRegion | ''; frameworks: TenantFrameworkForm[]; documentUploads: TenantDocumentUploadForm[]; frameworkDocuments: FrameworkDocumentEntryForm[] }>({
     id: '', name: '', partnerId: '', active: true,
     connectors: { rmm: {}, sophos: {}, autotask: {} },
     locations: [],
@@ -101,6 +102,7 @@ export default function AdminPage(){
     region: '',
     frameworks: [],
     documentUploads: [],
+    frameworkDocuments: [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }],
   });
   const [kundenakteSection, setKundenakteSection] = useState<'company'|'locations'|'partner'|'billing'|'framework'>('company');
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
@@ -360,14 +362,14 @@ export default function AdminPage(){
     };
     try {
       if (editingTenantId) {
-        const res = await fetch(`/api/tenants/${editingTenantId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload, region: tenantForm.region || undefined, frameworks: tenantForm.frameworks.length ? tenantForm.frameworks : undefined, documentUploads: tenantForm.documentUploads.length ? tenantForm.documentUploads : undefined }) });
+        const res = await fetch(`/api/tenants/${editingTenantId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload, region: tenantForm.region || undefined, frameworks: tenantForm.frameworks.length ? tenantForm.frameworks : undefined, documentUploads: tenantForm.documentUploads.length ? tenantForm.documentUploads : undefined, frameworkDocuments: tenantForm.frameworkDocuments.filter((r) => r.frameworkId).length ? tenantForm.frameworkDocuments.filter((r) => r.frameworkId) : undefined }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
         setEditingTenantId(null);
       } else {
-        const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload, region: tenantForm.region || undefined, frameworks: tenantForm.frameworks.length ? tenantForm.frameworks : undefined, documentUploads: tenantForm.documentUploads.length ? tenantForm.documentUploads : undefined }) });
+        const res = await fetch('/api/tenants', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tenantForm.id || undefined, name: tenantForm.name, partnerId: tenantForm.partnerId || undefined, active: tenantForm.active, connectors: tenantForm.connectors, locations: tenantForm.locations, billing: billingPayload, region: tenantForm.region || undefined, frameworks: tenantForm.frameworks.length ? tenantForm.frameworks : undefined, documentUploads: tenantForm.documentUploads.length ? tenantForm.documentUploads : undefined, frameworkDocuments: tenantForm.frameworkDocuments.filter((r) => r.frameworkId).length ? tenantForm.frameworkDocuments.filter((r) => r.frameworkId) : undefined }) });
         if (!res.ok) { const e = await res.json(); alert(e.error || 'Error'); return; }
       }
-      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm, region: '', frameworks: [], documentUploads: [] });
+      setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm, region: '', frameworks: [], documentUploads: [], frameworkDocuments: [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }] });
       await loadTenants();
     } catch (err) { console.error(err); alert('Error saving'); }
   }
@@ -400,6 +402,11 @@ export default function AdminPage(){
       region: (t as TenantItem).region ?? '',
       frameworks: Array.isArray((t as TenantItem).frameworks) ? (t as TenantItem).frameworks!.map((f) => ({ ...f })) : [],
       documentUploads: Array.isArray((t as TenantItem).documentUploads) ? (t as TenantItem).documentUploads!.map((d) => ({ ...d })) : [],
+      frameworkDocuments: (() => {
+        const fd = (t as TenantItem).frameworkDocuments;
+        if (Array.isArray(fd) && fd.length > 0) return fd.map((r) => ({ ...r }));
+        return [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }];
+      })(),
     });
   }
   async function deleteTenant(id: string) {
@@ -1266,114 +1273,96 @@ export default function AdminPage(){
               {kundenakteSection==='framework' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-sm font-semibold text-[var(--text)] mb-0.5">Compliance-Frameworks</h3>
-                    <p className="text-xs text-[var(--muted)] mb-4">Kunde kann mehrere Frameworks haben. Ausgewählte werden für die KI-Auswertung genutzt.</p>
+                    <h3 className="text-sm font-semibold text-[var(--text)] mb-0.5">Compliance frameworks</h3>
+                    <p className="text-xs text-[var(--muted)] mb-4">Select a framework from the dropdown and upload a document for AI evaluation. When you select one, another row appears below.</p>
 
-                    {tenantForm.frameworks.length > 0 && (
-                      <div className="mb-4">
-                        <span className="text-xs font-medium text-[var(--muted)] block mb-2">Ausgewählt ({tenantForm.frameworks.length})</span>
-                        <div className="flex flex-wrap gap-2">
-                          {tenantForm.frameworks.map((f) => (
-                            <span
-                              key={f.id}
-                              className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-lg bg-[var(--primary)]/15 text-[var(--primary)] border border-[var(--primary)]/30 text-sm font-medium"
+                    <div className="space-y-4">
+                      {tenantForm.frameworkDocuments.map((row, rowIdx) => (
+                        <div key={row.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                          <div className="flex-1 min-w-[200px]">
+                            <label className="text-xs font-medium text-[var(--muted)] block mb-1.5">Framework</label>
+                            <select
+                              value={row.frameworkId}
+                              onChange={(e) => {
+                                const val = e.target.value
+                                const fw = KNOWN_FRAMEWORKS.find((f) => f.id === val)
+                                const arr = [...tenantForm.frameworkDocuments]
+                                arr[rowIdx] = { ...arr[rowIdx], frameworkId: val || '', frameworkName: fw ? fw.name : '' }
+                                if (fw && rowIdx === tenantForm.frameworkDocuments.length - 1) {
+                                  arr.push({ id: 'row-' + Date.now(), frameworkId: '', frameworkName: '', aiEvaluated: false })
+                                }
+                                setTenantForm((s) => ({ ...s, frameworkDocuments: arr }))
+                              }}
+                              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text)]"
                             >
-                              {f.name}
-                              <button
-                                type="button"
-                                onClick={() => setTenantForm((s) => ({ ...s, frameworks: s.frameworks.filter((x) => x.id !== f.id) }))}
-                                className="p-0.5 rounded hover:bg-[var(--primary)]/20 text-[var(--primary)]"
-                                aria-label="Entfernen"
-                              >
-                                <X size={14} strokeWidth={2.5} />
-                              </button>
-                            </span>
-                          ))}
+                              <option value="">— Select framework —</option>
+                              {KNOWN_FRAMEWORKS.map((fw) => (
+                                <option key={fw.id} value={fw.id}>{fw.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex items-end gap-2">
+                            <input
+                              type="file"
+                              id={'framework-upload-' + row.id}
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.txt"
+                              onChange={(e) => {
+                                const file = e.target.files && e.target.files[0]
+                                if (!file || !row.frameworkId) return
+                                const arr = [...tenantForm.frameworkDocuments]
+                                arr[rowIdx] = { ...arr[rowIdx], documentId: 'doc-' + Date.now(), documentName: file.name, uploadedAtISO: new Date().toISOString(), aiEvaluated: arr[rowIdx].aiEvaluated }
+                                if (rowIdx === tenantForm.frameworkDocuments.length - 1) {
+                                  arr.push({ id: 'row-' + Date.now(), frameworkId: '', frameworkName: '', aiEvaluated: false })
+                                }
+                                setTenantForm((s) => ({ ...s, frameworkDocuments: arr }))
+                                e.target.value = ''
+                              }}
+                            />
+                            {row.frameworkId ? (
+                              <label htmlFor={'framework-upload-' + row.id} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-[var(--primary)] text-white hover:opacity-90">
+                                <Plus size={16} /> Upload
+                              </label>
+                            ) : (
+                              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)]">Select framework first</span>
+                            )}
+                          </div>
+                          {row.frameworkId && (
+                            <button type="button" onClick={() => setTenantForm((s) => ({ ...s, frameworkDocuments: s.frameworkDocuments.filter((_, i) => i !== rowIdx) }))} className="p-2 rounded-lg text-[var(--muted)] hover:bg-[var(--danger)]/10 hover:text-[var(--danger)]" aria-label="Remove row"><Trash2 size={14} /></button>
+                          )}
                         </div>
-                      </div>
-                    )}
-
-                    <span className="text-xs font-medium text-[var(--muted)] block mb-2">Weitere hinzufügen</span>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {KNOWN_FRAMEWORKS.filter((fw) => !tenantForm.frameworks.some((f) => f.id === fw.id)).map((fw) => (
-                        <button
-                          key={fw.id}
-                          type="button"
-                          onClick={() => setTenantForm((s) => ({ ...s, frameworks: [...s.frameworks, { id: fw.id, name: fw.name }] }))}
-                          className="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] text-sm text-[var(--text)] hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/5 transition-colors text-left"
-                        >
-                          {fw.name}
-                        </button>
                       ))}
                     </div>
-                    {tenantForm.frameworks.length >= KNOWN_FRAMEWORKS.length && (
-                      <p className="text-xs text-[var(--muted)] mt-2">Alle Frameworks ausgewählt.</p>
-                    )}
                   </div>
 
                   <div className="pt-4 border-t border-[var(--border)]">
-                    <h3 className="text-sm font-semibold text-[var(--text)] mb-0.5">Dokumente (KI-Auswertung)</h3>
-                    <p className="text-xs text-[var(--muted)] mb-4">Richtlinien, Zertifikate o.&nbsp;Ä. hochladen (Metadaten werden gespeichert).</p>
+                    <h3 className="text-sm font-semibold text-[var(--text)] mb-0.5">Uploaded framework documents</h3>
+                    <p className="text-xs text-[var(--muted)] mb-4">Policies, certificates, etc. (metadata stored). Documents evaluated by AI show status &quot;AI evaluated&quot;.</p>
 
-                    {tenantForm.documentUploads.length === 0 ? (
+                    {tenantForm.frameworkDocuments.filter((r) => r.documentName).length === 0 ? (
                       <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-2)]/50 p-6 text-center">
                         <FileText className="w-8 h-8 mx-auto text-[var(--muted)] mb-2 opacity-70" />
-                        <p className="text-sm text-[var(--muted)] mb-3">Noch keine Dokumente</p>
-                        <input
-                          type="file"
-                          id="framework-doc-upload"
-                          className="hidden"
-                          accept=".pdf,.doc,.docx,.txt"
-                          onChange={(e) => {
-                            const file = e.target.files && e.target.files[0]
-                            if (file) {
-                              setTenantForm((s) => ({
-                                ...s,
-                                documentUploads: [...s.documentUploads, { id: 'doc-' + Date.now(), name: file.name, uploadedAtISO: new Date().toISOString() }],
-                              }))
-                              e.target.value = ''
-                            }
-                          }}
-                        />
-                        <label htmlFor="framework-doc-upload" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--primary)] text-white text-sm font-medium cursor-pointer hover:opacity-90 transition-opacity">
-                          <Plus size={16} /> Dokument hinzufügen
-                        </label>
-                        <p className="text-[11px] text-[var(--muted)] mt-2">PDF, DOC, DOCX, TXT</p>
+                        <p className="text-sm text-[var(--muted)]">No documents uploaded yet</p>
+                        <p className="text-[11px] text-[var(--muted)] mt-1">Select a framework above and use Upload.</p>
                       </div>
                     ) : (
-                      <>
-                        <ul className="space-y-2 mb-4">
-                          {tenantForm.documentUploads.map((doc) => (
-                            <li key={doc.id} className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
-                              <FileText size={16} className="text-[var(--muted)] shrink-0" />
-                              <div className="min-w-0 flex-1">
-                                <span className="text-sm font-medium text-[var(--text)] truncate block">{doc.name}</span>
-                                <span className="text-[11px] text-[var(--muted)]">{new Date(doc.uploadedAtISO).toLocaleDateString('de-DE')}</span>
-                              </div>
-                              <button type="button" onClick={() => setTenantForm((s) => ({ ...s, documentUploads: s.documentUploads.filter((d) => d.id !== doc.id) }))} className="p-1.5 rounded-md text-[var(--muted)] hover:text-[var(--danger)] hover:bg-[var(--danger)]/10 transition-colors shrink-0" aria-label="Entfernen"><Trash2 size={14} /></button>
-                            </li>
-                          ))}
-                        </ul>
-                        <input
-                          type="file"
-                          id="framework-doc-upload"
-                          className="hidden"
-                          accept=".pdf,.doc,.docx,.txt"
-                          onChange={(e) => {
-                            const file = e.target.files && e.target.files[0]
-                            if (file) {
-                              setTenantForm((s) => ({
-                                ...s,
-                                documentUploads: [...s.documentUploads, { id: 'doc-' + Date.now(), name: file.name, uploadedAtISO: new Date().toISOString() }],
-                              }))
-                              e.target.value = ''
-                            }
-                          }}
-                        />
-                        <label htmlFor="framework-doc-upload" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border)] text-sm text-[var(--text)] hover:bg-[var(--surface-2)] cursor-pointer transition-colors">
-                          <Plus size={14} /> Weiteres Dokument
-                        </label>
-                      </>
+                      <ul className="space-y-2">
+                        {tenantForm.frameworkDocuments.filter((r) => r.documentName).map((r) => (
+                          <li key={r.id} className="flex items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
+                            <FileText size={16} className="text-[var(--muted)] shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <span className="text-sm font-medium text-[var(--text)] block">{r.frameworkName || r.frameworkId}</span>
+                              <span className="text-xs text-[var(--muted)]">{r.documentName} · {r.uploadedAtISO ? new Date(r.uploadedAtISO).toLocaleDateString('en-US') : ''}</span>
+                            </div>
+                            {r.aiEvaluated ? (
+                              <span className="shrink-0 rounded-full bg-[var(--success)]/20 text-[var(--success)] px-2.5 py-1 text-xs font-medium">Status: AI evaluated</span>
+                            ) : (
+                              <span className="shrink-0 text-xs text-[var(--muted)]">Pending evaluation</span>
+                            )}
+                            <button type="button" onClick={() => setTenantForm((s) => ({ ...s, frameworkDocuments: s.frameworkDocuments.map((x) => x.id === r.id ? { ...x, documentId: undefined, documentName: undefined, uploadedAtISO: undefined } : x) }))} className="p-1.5 rounded-md text-[var(--muted)] hover:bg-[var(--danger)]/10 hover:text-[var(--danger)]" aria-label="Remove"><Trash2 size={14} /></button>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
                 </div>
@@ -1382,7 +1371,7 @@ export default function AdminPage(){
               <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
                 <button onClick={saveTenant} className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90">{editingTenantId ? 'Save' : 'Add tenant'}</button>
                 {editingTenantId && (
-                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm, region: '', frameworks: [], documentUploads: [] }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
+                  <button onClick={()=>{ setEditingTenantId(null); setTenantForm({ id: '', name: '', partnerId: '', active: true, connectors: { rmm: {}, sophos: {}, autotask: {} }, locations: [], billing: defaultBillingForm, region: '', frameworks: [], documentUploads: [], frameworkDocuments: [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }] }); }} className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]">Cancel</button>
                 )}
               </div>
             </div>
