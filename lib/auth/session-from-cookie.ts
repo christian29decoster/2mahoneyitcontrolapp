@@ -14,6 +14,13 @@ export function getActorRole(req: NextRequest): DemoRole | null {
   return null
 }
 
+export function getActorUsername(req: NextRequest): string | null {
+  const cookie = req.headers.get('cookie') || ''
+  const match = cookie.match(/demo_user=([^;]+)/)
+  const decoded = match?.[1] ? decodeURIComponent(match[1]) : null
+  return decoded ?? null
+}
+
 export function getActorPartnerId(req: NextRequest): string | null {
   const cookie = req.headers.get('cookie') || ''
   const match = cookie.match(/demo_partner_id=([^;]+)/)
