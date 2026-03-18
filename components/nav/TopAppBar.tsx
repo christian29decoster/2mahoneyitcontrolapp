@@ -10,6 +10,8 @@ import { useHaptics } from '@/hooks/useHaptics'
 import { usePathname } from 'next/navigation'
 import { DEMO_APP_VERSION } from '@/lib/version'
 import { useDemoViewRoleStore, DEMO_VIEW_ROLE_LABELS, type DemoViewRole } from '@/lib/demoViewRole.store'
+import { useLocaleStore } from '@/lib/locale.store'
+import { useT } from '@/lib/i18n'
 
 export default function TopAppBar() {
   const [open, setOpen] = useState(false)
@@ -18,7 +20,10 @@ export default function TopAppBar() {
   const pathname = usePathname()
   const demoViewRole = useDemoViewRoleStore((s) => s.demoViewRole)
   const setDemoViewRole = useDemoViewRoleStore((s) => s.setDemoViewRole)
-  
+  const locale = useLocaleStore((s) => s.locale)
+  const setLocale = useLocaleStore((s) => s.setLocale)
+  const t = useT()
+
   // Hide navigation on login page
   if (pathname.startsWith('/login')) return null
 
@@ -45,9 +50,25 @@ export default function TopAppBar() {
 
         {/* Branding / tagline */}
         <div className="text-[10px] sm:text-xs text-[var(--muted)] text-center max-w-[140px] sm:max-w-none truncate sm:truncate-none">
-          Unified Risk, Operations & Growth Control Surface
+          {t('appTagline')}
         </div>
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-0.5" title={t('language')} role="group" aria-label={t('language')}>
+            <button
+              type="button"
+              onClick={() => { h.impact('light'); setLocale('en-US') }}
+              className={`px-2 py-1 text-[10px] sm:text-xs font-medium rounded-md transition-colors ${locale === 'en-US' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              onClick={() => { h.impact('light'); setLocale('de') }}
+              className={`px-2 py-1 text-[10px] sm:text-xs font-medium rounded-md transition-colors ${locale === 'de' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
+            >
+              DE
+            </button>
+          </div>
           <select
             value={demoViewRole}
             onChange={(e) => { h.impact('light'); setDemoViewRole(e.target.value as DemoViewRole) }}
@@ -61,9 +82,9 @@ export default function TopAppBar() {
           <Link
             href="/copilot"
             onClick={() => h.impact('medium')}
-            aria-label="Ask AI Co-Pilot"
+            aria-label={t('askAICoPilot')}
             className="h-9 w-9 grid place-items-center rounded-xl border border-[var(--primary)]/50 bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-colors"
-            title="Ask AI Co-Pilot"
+            title={t('askAICoPilot')}
           >
             <MessageSquare size={18} />
           </Link>

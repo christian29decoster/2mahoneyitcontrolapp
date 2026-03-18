@@ -9,7 +9,7 @@ import { useHaptics } from '@/hooks/useHaptics'
 import { useProjectsStore } from '@/lib/projects.store'
 import { useActivityStore } from '@/lib/activity.store'
 import { categorySubcategories, projectCostEstimates } from '@/lib/projects'
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import { 
   Building, 
   Server, 
@@ -70,6 +70,7 @@ export function ProjectWizard({ isOpen, onClose, preselectedCategory }: ProjectW
   })
 
   const h = useHaptics()
+  const formatCurrency = useFormatCurrency()
   const { addProject } = useProjectsStore()
   const addActivity = useActivityStore((s) => s.addActivity)
 

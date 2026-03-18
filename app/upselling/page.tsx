@@ -20,6 +20,7 @@ import {
   CrossSellingBundle 
 } from '@/lib/upselling'
 import { stagger } from '@/lib/ui/motion'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import { TrendingUp, Star, Package, Target } from 'lucide-react'
 
 export default function UpsellingPage() {
@@ -30,6 +31,7 @@ export default function UpsellingPage() {
   const { contract } = useContract()
   const h = useHaptics()
   const addActivity = useActivityStore((s) => s.addActivity)
+  const formatCurrency = useFormatCurrency()
 
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()
@@ -233,13 +235,13 @@ export default function UpsellingPage() {
                 <div>
                   <p className="text-2xl font-bold text-[var(--text)]">
                     {selectedService.discount 
-                      ? `$${(selectedService.price * (1 - selectedService.discount.percentage / 100)).toFixed(0)}`
-                      : `$${selectedService.price.toFixed(0)}`
+                      ? formatCurrency(selectedService.price * (1 - selectedService.discount.percentage / 100))
+                      : formatCurrency(selectedService.price)
                     }
                   </p>
                   {selectedService.discount && (
                     <p className="text-sm text-[var(--muted)] line-through">
-                      ${selectedService.price.toFixed(0)}
+                      {formatCurrency(selectedService.price)}
                     </p>
                   )}
                 </div>
@@ -294,15 +296,15 @@ export default function UpsellingPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-2xl font-bold text-[var(--text)]">
-                    ${selectedBundle.bundlePrice.toFixed(0)}
+                    {formatCurrency(selectedBundle.bundlePrice)}
                   </p>
                   <p className="text-sm text-[var(--muted)] line-through">
-                    ${selectedBundle.originalPrice.toFixed(0)}
+                    {formatCurrency(selectedBundle.originalPrice)}
                   </p>
                 </div>
                 <div className="text-right">
                   <Badge variant="destructive">
-                    Save ${selectedBundle.savings.toFixed(0)}
+                    Save {formatCurrency(selectedBundle.savings)}
                   </Badge>
                 </div>
               </div>

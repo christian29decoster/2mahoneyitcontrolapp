@@ -33,6 +33,7 @@ import {
 import { useHaptics } from '@/hooks/useHaptics'
 import { useViewModeStore } from '@/lib/viewMode.store'
 import { useDemoViewRoleStore } from '@/lib/demoViewRole.store'
+import { useT } from '@/lib/i18n'
 import LogoutButton from '@/components/auth/LogoutButton'
 import ThemeToggle from '@/components/ThemeToggle'
 
@@ -81,6 +82,7 @@ export default function DrawerNav({
   const setMenuPinned = useViewModeStore((s) => s.setMenuPinned)
   const viewModeSet = useViewModeStore((s) => s.setViewMode)
   const demoViewRole = useDemoViewRoleStore((s) => s.demoViewRole)
+  const t = useT()
 
   // Demo view role: Mahoney = all; Partner = no Enhance/Group Admin, yes Partner Pricing & Admin; Client-wit = like Partner minus Partner Pricing & Admin (includes Mission Briefing); Client-woit = same as Client-wit but no Mission Briefing
   const showEnhanceUpgrades = demoViewRole === 'mahoney_it_group'
@@ -111,16 +113,16 @@ export default function DrawerNav({
   const sidebarContent = (
     <>
       <div className="flex items-center justify-between gap-2 mb-3">
-        <span className="text-sm font-semibold text-[var(--text)]">Menu</span>
+        <span className="text-sm font-semibold text-[var(--text)]">{t('menu')}</span>
         {isPinnedSidebar ? (
           <button
             type="button"
             onClick={handleUnpin}
             className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"
-            aria-label="Unpin menu"
+            aria-label={t('unpin')}
           >
             <PinOff size={14} />
-            Unpin
+            {t('unpin')}
           </button>
         ) : (
           viewMode === 'desktop' && (
@@ -128,62 +130,62 @@ export default function DrawerNav({
               type="button"
               onClick={handlePin}
               className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
-              aria-label="Pin menu"
+              aria-label={t('pin')}
             >
               <Pin size={14} />
-              Pin
+              {t('pin')}
             </button>
           )
         )}
       </div>
       <nav className="grid gap-1">
-          <SectionTitle>Ask AI</SectionTitle>
-          <NavLink href="/copilot" label="AI Co-Pilot" icon={MessageSquare} onClick={handleNavClick} />
-          <SectionTitle>Operations (Technik)</SectionTitle>
-          <NavLink href="/" label="Dashboard" icon={Home} onClick={handleNavClick} />
-          <NavLink href="/devices" label="Devices & Staff" icon={Shield} onClick={handleNavClick} />
-          <NavLink href="/company" label="Company" icon={Building2} onClick={handleNavClick} />
-          <NavLink href="/cloud" label="Cloud Security" icon={Cloud} onClick={handleNavClick} />
-          <NavLink href="/governance" label="Governance" icon={Scale} onClick={handleNavClick} />
-          <NavLink href="/governance/soc-questionnaire" label="SOC-Compliance & Handbook" icon={ClipboardList} onClick={handleNavClick} />
-          <NavLink href="/financials" label="Financials" icon={DollarSign} onClick={handleNavClick} />
-          <NavLink href="/contracts" label="Contracts" icon={FileText} onClick={handleNavClick} />
-          <NavLink href="/projects" label="Projects" icon={FolderOpen} onClick={handleNavClick} />
-          <NavLink href="/incidents" label="Incidents" icon={AlertTriangle} onClick={handleNavClick} />
+          <SectionTitle>{t('askAI')}</SectionTitle>
+          <NavLink href="/copilot" label={t('copilot')} icon={MessageSquare} onClick={handleNavClick} />
+          <SectionTitle>{t('operationsTech')}</SectionTitle>
+          <NavLink href="/" label={t('dashboard')} icon={Home} onClick={handleNavClick} />
+          <NavLink href="/devices" label={t('devicesAndStaff')} icon={Shield} onClick={handleNavClick} />
+          <NavLink href="/company" label={t('company')} icon={Building2} onClick={handleNavClick} />
+          <NavLink href="/cloud" label={t('cloudSecurity')} icon={Cloud} onClick={handleNavClick} />
+          <NavLink href="/governance" label={t('governance')} icon={Scale} onClick={handleNavClick} />
+          <NavLink href="/governance/soc-questionnaire" label={t('socComplianceHandbook')} icon={ClipboardList} onClick={handleNavClick} />
+          <NavLink href="/financials" label={t('financials')} icon={DollarSign} onClick={handleNavClick} />
+          <NavLink href="/contracts" label={t('contracts')} icon={FileText} onClick={handleNavClick} />
+          <NavLink href="/projects" label={t('projects')} icon={FolderOpen} onClick={handleNavClick} />
+          <NavLink href="/incidents" label={t('incidents')} icon={AlertTriangle} onClick={handleNavClick} />
           {showMissionBriefing && (
-            <NavLink href="/mission-control" label="Mission Briefing" icon={Radio} onClick={handleNavClick} />
+            <NavLink href="/mission-control" label={t('missionBriefing')} icon={Radio} onClick={handleNavClick} />
           )}
 
-              <SectionTitle>AI & Growth</SectionTitle>
-              <NavLink href="/mahoney-grow" label="AI Growth & Risk Intelligence" icon={LineChart} onClick={handleNavClick} />
+              <SectionTitle>{t('aiGrowth')}</SectionTitle>
+              <NavLink href="/mahoney-grow" label={t('aiGrowthRisk')} icon={LineChart} onClick={handleNavClick} />
 
-              <SectionTitle>Marketplace (Purchase)</SectionTitle>
-              <NavLink href="/marketplace" label="Marketplace" icon={ShoppingBag} onClick={handleNavClick} />
+              <SectionTitle>{t('marketplacePurchase')}</SectionTitle>
+              <NavLink href="/marketplace" label={t('marketplace')} icon={ShoppingBag} onClick={handleNavClick} />
               {showPartnerPricingLink && (
-                <NavLink href="/partner-pricing" label="Partner Pricing" icon={Receipt} onClick={handleNavClick} />
+                <NavLink href="/partner-pricing" label={t('partnerPricing')} icon={Receipt} onClick={handleNavClick} />
               )}
               {showEnhanceUpgrades && (
-          <NavLink href="/upselling" label="Enhance / Upgrades" icon={TrendingUp} onClick={handleNavClick} />
+          <NavLink href="/upselling" label={t('enhanceUpgrades')} icon={TrendingUp} onClick={handleNavClick} />
           )}
 
-          <SectionTitle>Settings</SectionTitle>
-          <NavLink href="/faq" label="FAQ" icon={HelpCircle} onClick={handleNavClick} />
-          <NavLink href="/settings" label="Settings" icon={Settings} onClick={handleNavClick} />
-          <NavLink href="/profile" label="Profile" icon={User} onClick={handleNavClick} />
+          <SectionTitle>{t('settings')}</SectionTitle>
+          <NavLink href="/faq" label={t('faq')} icon={HelpCircle} onClick={handleNavClick} />
+          <NavLink href="/settings" label={t('settings')} icon={Settings} onClick={handleNavClick} />
+          <NavLink href="/profile" label={t('profile')} icon={User} onClick={handleNavClick} />
 
           {showGroupAdmin && (
             <>
-              <SectionTitle>Mahoney IT Group</SectionTitle>
-              <NavLink href="/group-admin" label="Group Admin (Onboarding)" icon={UsersRound} onClick={handleNavClick} />
+              <SectionTitle>{t('groupAdmin')}</SectionTitle>
+              <NavLink href="/group-admin" label={t('groupAdminOnboarding')} icon={UsersRound} onClick={handleNavClick} />
             </>
           )}
 
           {showAdminLink && (
             <>
-              <SectionTitle>App Management</SectionTitle>
+              <SectionTitle>{t('appManagement')}</SectionTitle>
               <Link href="/admin" onClick={handleNavClick} className={linkClass}>
                 <Wrench size={18} />
-                <span className="text-sm">Admin (User, Partner, Settings)</span>
+                <span className="text-sm">{t('adminUserPartnerSettings')}</span>
               </Link>
             </>
           )}
@@ -191,7 +193,7 @@ export default function DrawerNav({
 
       <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-3">
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] mb-1.5">Display</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] mb-1.5">{t('display')}</div>
           <ThemeToggle />
         </div>
         <div className="flex rounded-xl border border-[var(--border)] overflow-hidden">
@@ -199,24 +201,24 @@ export default function DrawerNav({
             type="button"
             onClick={() => { h.impact('light'); viewModeSet('app'); if (!isPinnedSidebar) onOpenChange(false) }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium ${viewMode === 'app' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:bg-[var(--surface-2)]'}`}
-            aria-label="Show as app"
+            aria-label={t('app')}
           >
             <Smartphone size={14} />
-            App
+            {t('app')}
           </button>
           <button
             type="button"
             onClick={() => { h.impact('light'); viewModeSet('desktop'); if (!isPinnedSidebar) onOpenChange(false) }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium ${viewMode === 'desktop' ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:bg-[var(--surface-2)]'}`}
-            aria-label="Show as desktop"
+            aria-label={t('desktop')}
           >
             <Monitor size={14} />
-            Desktop
+            {t('desktop')}
           </button>
         </div>
         <Link href="/copilot" onClick={handleNavClick} className={linkClass + ' w-full'}>
           <MessageSquare size={18} />
-          <span className="text-sm">Open AI Co-Pilot</span>
+          <span className="text-sm">{t('openAICoPilot')}</span>
         </Link>
         <LogoutButton />
       </div>

@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { Badge } from '../Badge'
 import { HapticButton } from '../HapticButton'
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import { UpsellingService } from '@/lib/upselling'
 import { Shield, CheckCircle, Search, Target, GraduationCap, Server, Users } from 'lucide-react'
 
@@ -14,6 +14,7 @@ interface UpsellingCardProps {
 }
 
 export function UpsellingCard({ service, onSelect, variant = 'default' }: UpsellingCardProps) {
+  const formatCurrency = useFormatCurrency()
   const getIcon = (iconName: string) => {
     switch (iconName) {
       case 'Shield': return <Shield className="w-5 h-5" />

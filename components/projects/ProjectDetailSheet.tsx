@@ -9,7 +9,7 @@ import { MiniMap } from '../MiniMap'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useProjectsStore } from '@/lib/projects.store'
 import { Project } from '@/lib/projects'
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import { projectCostEstimates } from '@/lib/projects'
 import { 
   Calendar, 
@@ -36,6 +36,7 @@ export function ProjectDetailSheet({ project, isOpen, onClose }: ProjectDetailSh
   const [showQuoteStub, setShowQuoteStub] = useState(false)
   
   const h = useHaptics()
+  const formatCurrency = useFormatCurrency()
   const { updateStatus, addComment } = useProjectsStore()
 
   if (!project) return null

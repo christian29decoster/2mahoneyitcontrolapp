@@ -17,7 +17,7 @@ import Card from '@/components/ui/Card'
 import { useGroupAdminFeature } from '@/hooks/useGroupAdminFeature'
 import { useHaptics } from '@/hooks/useHaptics'
 import { stagger } from '@/lib/ui/motion'
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import {
   getGroupAdminCustomers,
   ONBOARDING_TOPICS,
@@ -28,14 +28,15 @@ import {
 const GROUP_ADMIN_PASSWORD = 'SuperMario64!'
 const GROUP_ADMIN_STORAGE_KEY = 'group_admin_unlocked'
 
+function formatEur(n: number) {
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
+}
+
 const TAB_STAMMDATEN = 'stammdaten'
 const TAB_UMSATZ = 'umsatz'
 const TAB_THEMEN = 'themen'
 const TAB_ADMIN = 'admin'
 
-function formatEur(n: number) {
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
-}
 
 function useGroupAdminUnlocked() {
   const [unlocked, setUnlocked] = useState(false)
@@ -288,6 +289,7 @@ function auditStatusLabel(s: string) {
 }
 
 function UmsatzSection({ customer }: { customer: CustomerOnboarding }) {
+  const formatCurrency = useFormatCurrency()
   const months = customer.revenueLastMonths
   const totalEur = months.reduce((s, m) => s + m.revenueEur, 0)
   const avgEur = months.length ? Math.round(totalEur / months.length) : 0

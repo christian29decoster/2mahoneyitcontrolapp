@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { Badge } from '../Badge'
 import { HapticButton } from '../HapticButton'
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import { CrossSellingBundle } from '@/lib/upselling'
 import { Package, Clock, Sparkles } from 'lucide-react'
 
@@ -13,6 +13,7 @@ interface BundleCardProps {
 }
 
 export function BundleCard({ bundle, onSelect }: BundleCardProps) {
+  const formatCurrency = useFormatCurrency()
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',

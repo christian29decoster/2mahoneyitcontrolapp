@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Badge } from '../Badge'
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import { Contract } from '@/lib/contracts'
 
 interface ContractHeaderProps {
@@ -10,6 +10,7 @@ interface ContractHeaderProps {
 }
 
 export function ContractHeader({ contract }: ContractHeaderProps) {
+  const formatCurrency = useFormatCurrency()
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',

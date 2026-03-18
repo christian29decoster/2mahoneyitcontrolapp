@@ -14,7 +14,9 @@ import { Toast, ToastType } from '@/components/Toasts'
 import { QuickAuditBlock } from '@/components/QuickAuditBlock'
 import { demoTenant, stats, alerts, mail } from '@/lib/demo'
 import { TrendingUp, CheckCircle } from 'lucide-react'
-import { planMonthlyUSD, formatCurrency } from '@/lib/pricing'
+import { planMonthlyUSD } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
+import { useT } from '@/lib/i18n'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import ServiceCockpitCard from '@/components/cockpit/ServiceCockpitCard'
@@ -73,6 +75,8 @@ export default function DashboardPage() {
   const viewMode = useViewModeStore((s) => s.viewMode)
   const demoViewRole = useDemoViewRoleStore((s) => s.demoViewRole)
   const showPartnerView = demoViewRole !== 'client_wit' && demoViewRole !== 'client_woit'
+  const formatCurrency = useFormatCurrency()
+  const t = useT()
 
   useEffect(() => {
     const m = document.cookie.match(/demo_tenant_id=([^;]+)/)
@@ -153,17 +157,17 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className="flex items-baseline gap-4">
               <h1 className="text-2xl font-bold tracking-tight text-[var(--text)]">
-                Control Dashboard
+                {t('controlDashboard')}
               </h1>
               <span className="text-sm text-[var(--muted)] font-medium">
-                {view === 'customer' ? 'Single-tenant view' : 'Partner overview'}
+                {view === 'customer' ? t('singleTenantView') : t('partnerOverview')}
               </span>
               {view === 'customer' && partnerCustomers.length > 0 && showPartnerView && (
                 <select
                   value={selectedTenantId ?? ''}
                   onChange={(e) => setSelectedTenantId(e.target.value || null)}
                   className="text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
-                  aria-label="Select customer"
+                  aria-label={t('selectCustomer')}
                 >
                   {partnerCustomers.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>

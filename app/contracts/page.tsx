@@ -13,7 +13,7 @@ import { RequestsList } from '@/components/contracts/RequestsList'
 import { useContract } from '@/hooks/useContract'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useActivityStore } from '@/lib/activity.store'
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import { stagger } from '@/lib/ui/motion'
 import { TrendingUp } from 'lucide-react'
 
@@ -25,6 +25,7 @@ export default function ContractsPage() {
   const { contract, requests, loading, submitRequest, withdrawRequest } = useContract()
   const h = useHaptics()
   const addActivity = useActivityStore((s) => s.addActivity)
+  const formatCurrency = useFormatCurrency()
 
   const addToast = (type: ToastType, title: string, message?: string) => {
     const id = Date.now().toString()

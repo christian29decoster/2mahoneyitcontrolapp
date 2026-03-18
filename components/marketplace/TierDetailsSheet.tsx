@@ -5,7 +5,8 @@ import { Sheet } from '../Sheets'
 import { HapticButton } from '../HapticButton'
 import { Badge } from '../Badge'
 import { useHaptics } from '@/hooks/useHaptics'
-import { prorate, formatCurrency } from '@/lib/pricing'
+import { prorate } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import { CheckCircle } from 'lucide-react'
 import type { MarketplaceTier, MarketplaceBundle } from '@/lib/marketplace-pricing'
 
@@ -41,6 +42,7 @@ export default function TierDetailsSheet({
     tier.unit === 'gb' ? 500 : tier.unit === 'user' || tier.unit === 'device' ? 50 : 1
   )
   const h = useHaptics()
+  const formatCurrency = useFormatCurrency()
 
   const monthlyUSD = useMemo(() => {
     if (isBundle(item)) return item.priceMonthlyUSD

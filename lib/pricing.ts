@@ -45,12 +45,23 @@ export function monthlyDelta(current: number, next: number): number {
   return +(next - current).toFixed(2)
 }
 
-export function formatCurrency(amount: number): string {
+export type CurrencyLocale = 'en-US' | 'de'
+
+/** Format amount as currency. en-US: USD with $ before; de: EUR with € after. */
+export function formatCurrency(amount: number, locale: CurrencyLocale = 'en-US'): string {
+  if (locale === 'de') {
+    return new Intl.NumberFormat('de-DE', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount)
+  }
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(amount)
 }
 

@@ -6,7 +6,8 @@ import { Sheet } from '../Sheets'
 import { HapticButton } from '../HapticButton'
 import { Badge } from '../Badge'
 import { useHaptics } from '@/hooks/useHaptics'
-import { monthlyAddonUSD, prorate, formatCurrency } from '@/lib/pricing'
+import { monthlyAddonUSD, prorate } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import { CheckCircle, Info } from 'lucide-react'
 
 interface ServiceDetailsSheetProps {
@@ -36,6 +37,7 @@ export default function ServiceDetailsSheet({
 }: ServiceDetailsSheetProps) {
   const [qty, setQty] = useState<number>(service.unit === 'flat' ? 1 : (service.unit === 'gb' ? 100 : 1))
   const h = useHaptics()
+  const formatCurrency = useFormatCurrency()
 
   const monthlyUSD = useMemo(() => 
     monthlyAddonUSD(service.unit, service.unitPriceUSD, qty), 

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Badge } from '../Badge'
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 
 interface ServiceRowProps {
   service: {
@@ -17,6 +17,7 @@ interface ServiceRowProps {
 }
 
 export function ServiceRow({ service }: ServiceRowProps) {
+  const formatCurrency = useFormatCurrency()
   const getStatusColor = () => {
     switch (service.status) {
       case 'active': return 'accent'

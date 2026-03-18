@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card'
 import { HapticButton } from '@/components/HapticButton'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import {
   financialKpis,
   incidentCostHistory,
@@ -113,6 +113,7 @@ export default function FinancialsPage() {
     [usage]
   )
   const h = useHaptics()
+  const formatCurrency = useFormatCurrency()
 
   useEffect(() => {
     const m = document.cookie.match(/demo_tenant_id=([^;]+)/)

@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { Badge } from '../Badge'
 import { Project } from '@/lib/projects'
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 import { projectCostEstimates } from '@/lib/projects'
 import { Calendar, MapPin, Clock, User } from 'lucide-react'
 
@@ -13,6 +13,7 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, onClick }: ProjectCardProps) {
+  const formatCurrency = useFormatCurrency()
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Draft': return 'secondary'

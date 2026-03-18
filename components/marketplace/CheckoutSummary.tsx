@@ -1,6 +1,6 @@
 'use client'
 
-import { formatCurrency } from '@/lib/pricing'
+import { useFormatCurrency } from '@/hooks/useFormatCurrency'
 
 type Line = {
   name: string
@@ -16,6 +16,7 @@ interface CheckoutSummaryProps {
 }
 
 export default function CheckoutSummary({ lines }: CheckoutSummaryProps) {
+  const formatCurrency = useFormatCurrency()
   const monthly = lines.reduce((sum, line) => sum + line.monthlyUSD, 0)
   const prorate = lines.reduce((sum, line) => sum + line.proratedUSD, 0)
 
