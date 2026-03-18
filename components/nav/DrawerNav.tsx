@@ -28,6 +28,7 @@ import {
   ClipboardList,
   Radio,
   Receipt,
+  HelpCircle,
 } from 'lucide-react'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useViewModeStore } from '@/lib/viewMode.store'
@@ -166,6 +167,7 @@ export default function DrawerNav({
           )}
 
           <SectionTitle>Settings</SectionTitle>
+          <NavLink href="/faq" label="FAQ" icon={HelpCircle} onClick={handleNavClick} />
           <NavLink href="/settings" label="Settings" icon={Settings} onClick={handleNavClick} />
           <NavLink href="/profile" label="Profile" icon={User} onClick={handleNavClick} />
 
