@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { checkCredentials } from '@/lib/demo-auth'
 import { useHaptics } from '@/hooks/useHaptics'
+import { useDemoViewRoleStore } from '@/lib/demoViewRole.store'
 
 type Branding = { appName: string; logoDataUrl: string | null }
 
@@ -36,6 +37,12 @@ export default function LoginPage() {
         document.cookie = `demo_role=${session.role}; Max-Age=${maxAge}; Path=/; SameSite=Lax`
         if (session.partnerId) document.cookie = `demo_partner_id=${session.partnerId}; Max-Age=${maxAge}; Path=/; SameSite=Lax`
         if (session.tenantId) document.cookie = `demo_tenant_id=${session.tenantId}; Max-Age=${maxAge}; Path=/; SameSite=Lax`
+        
+        // Demo presenter: ensure Karen (and any sales demo user) gets full menu (Partner, Admin, Settings)
+        const usernameNorm = u.trim().toLowerCase()
+        if (usernameNorm === 'karen.thompson' || usernameNorm === 'sales.jane' || usernameNorm === 'sales.john') {
+          useDemoViewRoleStore.getState().setDemoViewRole('mahoney_it_group')
+        }
         
         // send audit (timezone + ua). The server will add masked IP.
         try {
