@@ -1,0 +1,14 @@
+{
+  "name": "mahoney-device-agent",
+  "version": "1.0.0",
+  "description": "Lightweight agent to send device events to Mahoney Control App",
+  "type": "module",
+  "main": "agent.js",
+  "scripts": {
+    "start": "node agent.js",
+    "run": "node agent.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

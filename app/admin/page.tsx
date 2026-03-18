@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X, MapPin, FileText, Plus, Trash2, Link2 } from 'lucide-react';
+import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X, MapPin, FileText, Plus, Trash2, Link2, Download } from 'lucide-react';
 import {
   PLATFORM_LIST_PRICES,
   SOC_LIST_PRICES,
@@ -110,7 +110,7 @@ export default function AdminPage(){
     frameworkDocuments: [{ id: 'row-1', frameworkId: '', frameworkName: '', aiEvaluated: false }],
     userSync: { provider: '', protocol: '', configKeys: [], configValues: [] },
   });
-  const [kundenakteSection, setKundenakteSection] = useState<'company'|'connectors'|'locations'|'partner'|'billing'|'framework'|'users'>('company');
+  const [kundenakteSection, setKundenakteSection] = useState<'company'|'connectors'|'locations'|'partner'|'billing'|'framework'|'users'|'agent'>('company');
   const [addConnectorOpen, setAddConnectorOpen] = useState(false);
   const [addConnectorName, setAddConnectorName] = useState('');
   const [addConnectorParams, setAddConnectorParams] = useState<{ key: string; value: string }[]>([]);
@@ -968,7 +968,7 @@ export default function AdminPage(){
             <p className="text-xs text-[var(--muted)] mb-4">Tenants are customers or organizations. Structured by Company, Locations, Partner, and Billing.</p>
 
             <nav className="flex flex-wrap gap-1 p-1 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] mb-4">
-              {(['company','connectors','locations','partner','billing','framework','users'] as const).map((sec)=>(
+              {(['company','connectors','locations','partner','billing','framework','users','agent'] as const).map((sec)=>(
                 <button key={sec} type="button" onClick={()=>setKundenakteSection(sec)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${kundenakteSection===sec?'bg-[var(--primary)] text-white':'text-[var(--muted)] hover:text-[var(--text)]'}`}>
                   {sec==='company'&&<Building2 size={14}/>}
@@ -978,7 +978,8 @@ export default function AdminPage(){
                   {sec==='billing'&&<CreditCard size={14}/>}
                   {sec==='framework'&&<Shield size={14}/>}
                   {sec==='users'&&<Users size={14}/>}
-                  {sec==='company'?'Company':sec==='connectors'?'API & Connectors':sec==='locations'?'Locations':sec==='partner'?'Partner':sec==='billing'?'Billing':sec==='framework'?'Framework & documents':'User'}
+                  {sec==='agent'&&<Download size={14}/>}
+                  {sec==='company'?'Company':sec==='connectors'?'API & Connectors':sec==='locations'?'Locations':sec==='partner'?'Partner':sec==='billing'?'Billing':sec==='framework'?'Framework & documents':sec==='users'?'User':'Agent'}
                 </button>
               ))}
             </nav>
@@ -1444,6 +1445,40 @@ export default function AdminPage(){
                       ))}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {kundenakteSection==='agent' && (
+                <div className="space-y-4">
+                  <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Device agent</div>
+                  <p className="text-sm text-[var(--text)]">Install the Mahoney device agent on a server or PC to send heartbeat and events for this tenant. The download is pre-configured with this tenant&apos;s ID and app URL.</p>
+                  {(editingTenantId || tenantForm.id) ? (
+                    <>
+                      <div className="rounded-xl bg-[var(--surface-2)] border border-[var(--border)] p-4 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs text-[var(--muted)]">App URL</span>
+                          <span className="text-sm font-mono text-[var(--text)] truncate" title={typeof window !== 'undefined' ? window.location.origin : ''}>{typeof window !== 'undefined' ? window.location.origin : '—'}</span>
+                          {typeof window !== 'undefined' && (
+                            <button type="button" onClick={() => { navigator.clipboard.writeText(window.location.origin); }} className="shrink-0 p-1.5 rounded-lg text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]" title="Copy"><Copy size={14} /></button>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs text-[var(--muted)]">Tenant ID</span>
+                          <span className="text-sm font-mono text-[var(--text)]">{editingTenantId || tenantForm.id}</span>
+                          <button type="button" onClick={() => { navigator.clipboard.writeText(editingTenantId || tenantForm.id || ''); }} className="shrink-0 p-1.5 rounded-lg text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]" title="Copy"><Copy size={14} /></button>
+                        </div>
+                      </div>
+                      <a
+                        href={`/api/agent/download?tenantId=${encodeURIComponent(editingTenantId || tenantForm.id || '')}${typeof window !== 'undefined' ? '&appUrl=' + encodeURIComponent(window.location.origin) : ''}`}
+                        download
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90"
+                      >
+                        <Download size={18} /> Download agent (ZIP)
+                      </a>
+                    </>
+                  ) : (
+                    <p className="text-sm text-[var(--muted)]">Save the tenant first (set an ID or add the tenant) to get the agent download for this tenant.</p>
+                  )}
                 </div>
               )}
 
