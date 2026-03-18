@@ -37,6 +37,7 @@ type UsageData = {
   sophosConfigured?: boolean
   sophosAlertsCount?: number | null
   sophosAlertsCapped?: boolean
+  mduBudgetUsd?: number
 }
 
 function KpiCard({
@@ -114,7 +115,10 @@ export default function FinancialsPage() {
   const h = useHaptics()
 
   useEffect(() => {
-    fetch('/api/usage')
+    const m = document.cookie.match(/demo_tenant_id=([^;]+)/)
+    const tenantId = m ? decodeURIComponent(m[1].trim()) : null
+    const url = tenantId ? `/api/usage?tenantId=${encodeURIComponent(tenantId)}` : '/api/usage'
+    fetch(url)
       .then((r) => r.json())
       .then((d: UsageData) => setUsage(d))
       .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000, eventsPerMonth: 39000 }))
@@ -177,6 +181,9 @@ export default function FinancialsPage() {
           <Database className="w-5 h-5 text-[var(--primary)]" />
           <h2 className="text-lg font-semibold text-[var(--text)]">Platform & Data (MDU)</h2>
         </div>
+        {usage?.mduBudgetUsd != null && usage.mduBudgetUsd >= 1000 && (
+          <p className="text-sm font-medium text-[var(--text)] mb-2">MDU budget: {formatCurrency(usage.mduBudgetUsd)}/period (processing stops when reached)</p>
+        )}
         {usage && mduBreakdown ? (
           <>
             <p className="text-sm text-[var(--muted)] mb-4">

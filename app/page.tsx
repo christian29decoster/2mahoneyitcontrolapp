@@ -50,6 +50,7 @@ export type UsageData = {
   sophosConfigured?: boolean
   sophosAlertsCount?: number | null
   sophosAlertsCapped?: boolean
+  mduBudgetUsd?: number
 }
 
 export default function DashboardPage() {
@@ -74,7 +75,10 @@ export default function DashboardPage() {
   const showPartnerView = demoViewRole !== 'client_wit' && demoViewRole !== 'client_woit'
 
   useEffect(() => {
-    fetch('/api/usage')
+    const m = document.cookie.match(/demo_tenant_id=([^;]+)/)
+    const tenantId = m ? decodeURIComponent(m[1].trim()) : null
+    const url = tenantId ? `/api/usage?tenantId=${encodeURIComponent(tenantId)}` : '/api/usage'
+    fetch(url)
       .then((r) => r.json())
       .then((d: UsageData) => setUsage(d))
       .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000, eventsPerMonth: 39000 }))
@@ -247,6 +251,9 @@ export default function DashboardPage() {
                   <Database className="w-4 h-4 text-[var(--primary)]" />
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)]">Events & Data cost (MDU)</h2>
                 </div>
+                {usage?.mduBudgetUsd != null && usage.mduBudgetUsd >= 1000 && (
+                  <p className="text-xs font-medium text-[var(--text)] mb-2">MDU budget: {formatCurrency(usage.mduBudgetUsd)}/period</p>
+                )}
                 {usage ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

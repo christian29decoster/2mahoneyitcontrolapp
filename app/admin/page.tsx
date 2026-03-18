@@ -38,6 +38,7 @@ type TenantBillingForm = {
   salePriceAppTier: string; salePriceSocTier: string; salePriceMitAiTier: string; salePriceBundle: string;
   useCustomBundle: boolean; customBundleLines: CustomBundleLineForm[];
   quickbooksSyncEnabled: boolean; quickbooksCustomerId: string;
+  mduBudgetUsd: string;
 };
 type DataResidencyRegion = 'us' | 'eu' | 'asia';
 type TenantFrameworkForm = { id: string; name: string };
@@ -96,6 +97,7 @@ export default function AdminPage(){
     salePriceAppTier: '', salePriceSocTier: '', salePriceMitAiTier: '', salePriceBundle: '',
     useCustomBundle: false, customBundleLines: [],
     quickbooksSyncEnabled: false, quickbooksCustomerId: '',
+    mduBudgetUsd: '',
   };
   const [tenantForm, setTenantForm] = useState<{ id: string; name: string; partnerId: string; active: boolean; connectorList: ConnectorEntryForm[]; locations: TenantLocation[]; billing: TenantBillingForm; region: DataResidencyRegion | ''; frameworks: TenantFrameworkForm[]; documentUploads: TenantDocumentUploadForm[]; frameworkDocuments: FrameworkDocumentEntryForm[]; userSync: TenantUserSyncForm }>({
     id: '', name: '', partnerId: '', active: true,
@@ -366,6 +368,11 @@ export default function AdminPage(){
       quickbooks: tenantForm.billing.quickbooksSyncEnabled || tenantForm.billing.quickbooksCustomerId
         ? { syncEnabled: tenantForm.billing.quickbooksSyncEnabled, customerId: tenantForm.billing.quickbooksCustomerId.trim() || undefined }
         : undefined,
+      mduBudgetUsd: (() => {
+        const v = tenantForm.billing.mduBudgetUsd ? Number(tenantForm.billing.mduBudgetUsd) : undefined;
+        if (v != null && !Number.isNaN(v) && v < 1000) return 1000;
+        return v != null && !Number.isNaN(v) ? v : undefined;
+      })(),
     };
     const connectors = Object.fromEntries(tenantForm.connectorList.map((c) => [c.id, { label: c.name, ...c.params }]));
     const userSyncPayload = tenantForm.userSync.provider ? { provider: tenantForm.userSync.provider, protocol: tenantForm.userSync.protocol || undefined, config: Object.fromEntries(tenantForm.userSync.configKeys.map((k, i) => [k, tenantForm.userSync.configValues[i] ?? '']).filter(([, v]) => v !== '')) } : undefined;
@@ -412,6 +419,7 @@ export default function AdminPage(){
         customBundleLines: lines.map((l) => ({ type: (l.type as 'mahoney'|'own') || 'own', productId: l.productId ?? '', label: l.label, partnerCost: l.partnerCost != null ? String(l.partnerCost) : '', salePrice: l.salePrice != null ? String(l.salePrice) : '' })),
         quickbooksSyncEnabled: !!(b?.quickbooks as { syncEnabled?: boolean } | undefined)?.syncEnabled,
         quickbooksCustomerId: ((b?.quickbooks as { customerId?: string } | undefined)?.customerId as string) ?? '',
+        mduBudgetUsd: b?.mduBudgetUsd != null ? String(b.mduBudgetUsd) : '',
       },
       region: (t as TenantItem).region ?? '',
       frameworks: Array.isArray((t as TenantItem).frameworks) ? (t as TenantItem).frameworks!.map((f) => ({ ...f })) : [],
@@ -1335,6 +1343,12 @@ export default function AdminPage(){
                   </div>
 
                   <div className="mt-4 p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+                    <div className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide mb-2">MDU budget (USD)</div>
+                    <p className="text-xs text-[var(--muted)] mb-2">Cap for MDU processing per tenant/partner. Minimum $1000. When the budget is reached, no further data is processed until the next period or budget increase.</p>
+                    <input type="number" min={1000} step={100} value={tenantForm.billing.mduBudgetUsd} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, mduBudgetUsd: e.target.value } }))} className="w-full rounded-xl bg-[var(--surface)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)]" placeholder="e.g. 1000 (min $1000)"/>
+                  </div>
+
+                  <div className="mt-4 p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
                     <div className="flex items-center gap-2 mb-2">
                       <Link2 size={16} className="text-[var(--muted)]" />
                       <span className="text-sm font-semibold text-[var(--text)]">QuickBooks</span>
@@ -1356,6 +1370,9 @@ export default function AdminPage(){
                       <FileText size={16} className="text-[var(--muted)]" />
                       <span className="text-sm font-semibold text-[var(--text)]">MDU consumption (customer)</span>
                     </div>
+                    {tenantForm.billing.mduBudgetUsd && Number(tenantForm.billing.mduBudgetUsd) >= 1000 && (
+                      <p className="text-sm font-medium text-[var(--text)] mb-1">MDU budget: ${Number(tenantForm.billing.mduBudgetUsd).toLocaleString()}/period</p>
+                    )}
                     <p className="text-xs text-[var(--muted)]">Which customer consumed how much MDU: shown from Billing/Usage per tenant when available.</p>
                     <p className="text-sm text-[var(--muted)] mt-2">This month: — (Data from Admin → Billing / Usage)</p>
                   </div>
@@ -1554,7 +1571,8 @@ export default function AdminPage(){
               <CreditCard size={20} className="text-[var(--primary)]" />
               <h2 className="font-semibold text-[var(--text)]">Monthly accumulation (for invoice)</h2>
             </div>
-            <p className="text-xs text-[var(--muted)] mb-4">Per month: number of alerts (incidents), event total, threshold check (1M events included), and MDU cost. Usable for invoicing at month end.</p>
+            <p className="text-xs text-[var(--muted)] mb-2">Per month: number of alerts (incidents), event total, threshold check (1M events included), and MDU cost. Usable for invoicing at month end.</p>
+            <p className="text-xs text-[var(--muted)] mb-4">Per-tenant MDU budget: set in Customer file → Billing (min $1000). When budget is reached, no further MDU processing for that tenant.</p>
             {billingLoading ? (
               <div className="text-sm text-[var(--muted)]">Loading…</div>
             ) : billingMonthlyTotals.length === 0 ? (

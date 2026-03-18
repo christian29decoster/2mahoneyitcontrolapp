@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import {
   getDattoRmmAccessToken,
   getDattoRmmDevices,
@@ -7,6 +7,7 @@ import {
 } from '@/lib/rmm-datto'
 import { getSophosAccessToken, getSophosPartnerAlertsTotal, getSophosPartnerEventsCount } from '@/lib/sophos-central'
 import { estimateMonthlyEvents } from '@/lib/mdu-pricing'
+import { getTenantById } from '@/lib/data/tenants'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,7 +37,7 @@ function startOfMonthISO(): string {
   return d.toISOString()
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const rmmUrl = process.env.DATTO_RMM_API_URL
   const rmmKey = process.env.DATTO_RMM_API_KEY
   const rmmSecret = process.env.DATTO_RMM_API_SECRET
@@ -127,6 +128,10 @@ export async function GET() {
   const sophosConfigured = !!(sophosClientId && sophosClientSecret && sophosTenantId)
   const eventsPerMonth = realEventsPerMonth ?? estimatedEventsPerMonth
 
+  const tenantId = req.nextUrl.searchParams.get('tenantId')
+  const tenant = tenantId ? getTenantById(tenantId) : null
+  const mduBudgetUsd = tenant?.billing?.mduBudgetUsd
+
   return NextResponse.json({
     source,
     deviceCount,
@@ -141,5 +146,6 @@ export async function GET() {
     sophosConfigured,
     sophosAlertsCount,
     sophosAlertsCapped,
+    ...(mduBudgetUsd != null && mduBudgetUsd >= 1000 ? { mduBudgetUsd } : {}),
   })
 }

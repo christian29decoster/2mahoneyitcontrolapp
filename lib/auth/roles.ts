@@ -83,6 +83,8 @@ export interface TenantBilling {
     /** QuickBooks Customer ID – Zuordnung zum Kunden in QuickBooks für Rechnungen. */
     customerId?: string
   }
+  /** MDU budget (USD) per tenant/partner. Min $1000. When reached, no further MDU processing until next period or budget increase. */
+  mduBudgetUsd?: number
 }
 
 /** AWS/data residency region for tenant or partner. */

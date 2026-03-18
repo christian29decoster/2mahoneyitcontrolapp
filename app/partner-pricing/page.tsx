@@ -374,6 +374,7 @@ export default function PartnerPricingPage() {
                 <p className="text-xs font-medium text-[var(--primary)] mt-3 bg-[var(--primary)]/10 rounded-xl px-4 py-2">
                   Passive income: you earn this margin every month from data processing as long as the customer is live – no extra effort required.
                 </p>
+                <p className="text-[10px] text-[var(--muted)] mt-2">Per-tenant MDU budget (min $1000) can be set in Admin → Customer file → Billing. When reached, processing stops until next period.</p>
               </div>
 
               {tierImpactMessage && (
