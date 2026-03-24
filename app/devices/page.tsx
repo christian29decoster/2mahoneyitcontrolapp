@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, Plus, MapPin, Wifi, RefreshCw, Building2 } from 'lucide-react'
+import { Search, Filter, Plus, MapPin, Wifi, RefreshCw, Building2, Radio } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { DeviceRow } from '@/components/DeviceRow'
 import { HapticButton } from '@/components/HapticButton'
 import { FormSheet } from '@/components/Sheets'
 import { Toast, ToastType } from '@/components/Toasts'
 import { devices as demoDevices, demoTenant } from '@/lib/demo'
+import { siemDemoDevices } from '@/lib/siem-demo-devices'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { FolderOpen } from 'lucide-react'
@@ -65,12 +66,12 @@ export default function DevicesPage() {
     if (typeof window === 'undefined') return null
     try { return localStorage.getItem(DEVICES_TENANT_STORAGE_KEY) } catch { return null }
   })
-  /** Nutzerauswahl: Demo, Datto RMM oder Sophos EDR */
-  const [dataMode, setDataMode] = useState<'demo' | 'rmm' | 'edr'>(() => {
+  /** Nutzerauswahl: Demo, Datto RMM, SIEM (SOC), Sophos EDR */
+  const [dataMode, setDataMode] = useState<'demo' | 'rmm' | 'siem' | 'edr'>(() => {
     if (typeof window === 'undefined') return 'demo'
     try {
-      const m = localStorage.getItem('devices-data-mode') as 'demo' | 'rmm' | 'edr'
-      return m === 'rmm' || m === 'edr' ? m : 'demo'
+      const m = localStorage.getItem('devices-data-mode') as 'demo' | 'rmm' | 'siem' | 'edr'
+      return m === 'rmm' || m === 'edr' || m === 'siem' ? m : 'demo'
     } catch { return 'demo' }
   })
   const [rmmDevicesCache, setRmmDevicesCache] = useState<any[]>([])
@@ -87,9 +88,16 @@ export default function DevicesPage() {
   const sessionTenantId = getTenantIdFromCookie()
   const effectiveTenantId = canSeeMultipleCompanies ? selectedTenantId : sessionTenantId
 
-  const displayList = dataMode === 'demo' ? demoDevices : dataMode === 'rmm' ? rmmDevicesCache : edrDevicesCache
+  const displayList =
+    dataMode === 'demo'
+      ? demoDevices
+      : dataMode === 'rmm'
+        ? rmmDevicesCache
+        : dataMode === 'siem'
+          ? siemDemoDevices
+          : edrDevicesCache
 
-  const setDataModeAndPersist = (mode: 'demo' | 'rmm' | 'edr') => {
+  const setDataModeAndPersist = (mode: 'demo' | 'rmm' | 'siem' | 'edr') => {
     setDataMode(mode)
     try { localStorage.setItem('devices-data-mode', mode) } catch { /* ignore */ }
   }
@@ -182,11 +190,20 @@ export default function DevicesPage() {
     { key: 'phone', label: 'Phone' }
   ]
   
-  const filteredDevices = displayList.filter(device => {
+  const filteredDevices = displayList.filter((device: any) => {
     const loc = typeof device.location === 'string' ? device.location : device.location?.name ?? ''
-    const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (device.serial || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (loc || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const q = searchTerm.toLowerCase()
+    const siem = device.siemData as { logSources?: string[]; lastNotableEvent?: string; mitreTactics?: string } | undefined
+    const matchesSiem =
+      siem &&
+      (siem.logSources?.some((l) => l.toLowerCase().includes(q)) ||
+        (siem.lastNotableEvent && siem.lastNotableEvent.toLowerCase().includes(q)) ||
+        (siem.mitreTactics && siem.mitreTactics.toLowerCase().includes(q)))
+    const matchesSearch =
+      device.name.toLowerCase().includes(q) ||
+      (device.serial || '').toLowerCase().includes(q) ||
+      (loc || '').toLowerCase().includes(q) ||
+      !!matchesSiem
     const matchesFilter = selectedFilter === 'all' || (device.type || '').toLowerCase() === selectedFilter
     return matchesSearch && matchesFilter
   })
@@ -298,7 +315,7 @@ export default function DevicesPage() {
           </Card>
         ) : null}
 
-        {/* Header: Titel + Umschalter Demo / RMM / EDR + Remap */}
+        {/* Header: Titel + Umschalter Demo / RMM / SIEM / EDR + Remap */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold text-[var(--text)]">Devices & Staff</h1>
@@ -324,6 +341,17 @@ export default function DevicesPage() {
                 }`}
               >
                 RMM
+              </button>
+              <button
+                type="button"
+                onClick={() => { h.impact('light'); setDataModeAndPersist('siem') }}
+                className={`px-3 py-1.5 rounded-[10px] text-sm font-medium transition-colors ${
+                  dataMode === 'siem'
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'text-[var(--muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                SIEM
               </button>
               <button
                 type="button"
@@ -374,6 +402,12 @@ export default function DevicesPage() {
                   <RefreshCw className={`w-4 h-4 ${devicesLoading ? 'animate-spin' : ''}`} />
                 </button>
               </>
+            )}
+            {dataMode === 'siem' && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
+                <Radio className="w-3.5 h-3.5" />
+                SIEM · SOC (demo)
+              </span>
             )}
           </div>
           <HapticButton
@@ -449,6 +483,17 @@ export default function DevicesPage() {
           </div>
         )}
 
+        {/* SIEM: Hinweis (Mahoney SOC Handbook — collection, normalization, correlation, triage) */}
+        {dataMode === 'siem' && displayList.length > 0 && (
+          <div className="p-4 rounded-[16px] bg-cyan-500/10 border border-cyan-500/25">
+            <p className="text-sm text-[var(--text)]">
+              <strong>SIEM-covered assets (demo).</strong> Each row reflects log sources, ingestion health, normalized event volume,
+              and correlated alerts aligned with the <strong>Mahoney SOC Handbook</strong> workflow (collection → normalization → correlation → L1/L2 triage).
+              MITRE ATT&CK references illustrate analyst routing; live data would come from your SIEM connector.
+            </p>
+          </div>
+        )}
+
         {/* Search and Filter */}
         <div className="space-y-4">
           <div className="relative">
@@ -487,43 +532,102 @@ export default function DevicesPage() {
           <div className="text-sm text-[var(--muted)]">
             {dataMode === 'rmm' && devicesLoading
               ? 'Loading…'
-              : totalPages > 1
-                ? `Devices ${(currentPage - 1) * DEVICES_PER_PAGE + 1}–${Math.min(currentPage * DEVICES_PER_PAGE, totalFiltered)} of ${totalFiltered}`
-                : `${totalFiltered} device${totalFiltered !== 1 ? 's' : ''}`}
+              : dataMode === 'edr' && devicesLoading
+                ? 'Loading…'
+                : totalPages > 1
+                  ? `Devices ${(currentPage - 1) * DEVICES_PER_PAGE + 1}–${Math.min(currentPage * DEVICES_PER_PAGE, totalFiltered)} of ${totalFiltered}`
+                  : `${totalFiltered} device${totalFiltered !== 1 ? 's' : ''}`}
           </div>
         </div>
 
         {/* Device List: table on desktop, cards on app */}
         {viewMode === 'desktop' ? (
           <Card className="overflow-x-auto p-0">
-            <table className="w-full text-sm text-left">
-              <thead>
-                <tr className="text-[var(--muted)] border-b border-[var(--border)] bg-[var(--surface-2)]/50">
-                  <th className="py-3 px-4 font-semibold">Device type</th>
-                  <th className="py-3 px-4 font-semibold">Hostname</th>
-                  <th className="py-3 px-4 font-semibold">OS</th>
-                  <th className="py-3 px-4 font-semibold">Last user</th>
-                  <th className="py-3 px-4 font-semibold">Last login</th>
-                  <th className="py-3 px-4 font-semibold">Serial</th>
-                </tr>
-              </thead>
-              <tbody className="text-[var(--text)]">
-                {paginatedDevices.map((device) => (
-                  <tr
-                    key={device.uid ?? device.serial ?? device.name}
-                    onClick={() => handleDeviceClick(device)}
-                    className="border-b border-[var(--border)] hover:bg-[var(--surface-elev)]/50 cursor-pointer transition-colors"
-                  >
-                    <td className="py-3 px-4">{device.type ?? '–'}</td>
-                    <td className="py-3 px-4 font-medium">{device.name ?? '–'}</td>
-                    <td className="py-3 px-4">{device.os ?? '–'}</td>
-                    <td className="py-3 px-4">{getLastUser(device)}</td>
-                    <td className="py-3 px-4">{getLastLoginDisplay(device)}</td>
-                    <td className="py-3 px-4 font-mono text-xs">{device.serial ?? '–'}</td>
+            {dataMode === 'siem' ? (
+              <table className="w-full text-sm text-left min-w-[900px]">
+                <thead>
+                  <tr className="text-[var(--muted)] border-b border-[var(--border)] bg-[var(--surface-2)]/50">
+                    <th className="py-3 px-4 font-semibold">Type</th>
+                    <th className="py-3 px-4 font-semibold">Hostname</th>
+                    <th className="py-3 px-4 font-semibold">OS</th>
+                    <th className="py-3 px-4 font-semibold">Log sources</th>
+                    <th className="py-3 px-4 font-semibold">Ingestion</th>
+                    <th className="py-3 px-4 font-semibold text-right">Events / 24h</th>
+                    <th className="py-3 px-4 font-semibold text-right">Alerts</th>
+                    <th className="py-3 px-4 font-semibold">Last notable</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="text-[var(--text)]">
+                  {paginatedDevices.map((device: any) => {
+                    const s = device.siemData
+                    if (!s) return null
+                    return (
+                      <tr
+                        key={device.uid ?? device.serial ?? device.name}
+                        onClick={() => handleDeviceClick(device)}
+                        className="border-b border-[var(--border)] hover:bg-[var(--surface-elev)]/50 cursor-pointer transition-colors"
+                      >
+                        <td className="py-3 px-4">{device.type ?? '–'}</td>
+                        <td className="py-3 px-4 font-medium">{device.name ?? '–'}</td>
+                        <td className="py-3 px-4">{device.os ?? '–'}</td>
+                        <td className="py-3 px-4 max-w-[220px] text-xs" title={s.logSources.join(', ')}>
+                          {s.logSources.slice(0, 2).join(' · ')}
+                          {s.logSources.length > 2 ? '…' : ''}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`inline-flex px-2 py-0.5 rounded-md text-xs font-medium capitalize ${
+                              s.ingestionHealth === 'ok'
+                                ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                                : s.ingestionHealth === 'degraded'
+                                  ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
+                                  : 'bg-red-500/20 text-red-700 dark:text-red-300'
+                            }`}
+                          >
+                            {s.ingestionHealth}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono text-xs">{s.normalizedEvents24h.toLocaleString()}</td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="font-medium">{s.openAlerts}</span>
+                          <span className="text-[var(--muted)] text-xs ml-1">({s.maxSeverity})</span>
+                        </td>
+                        <td className="py-3 px-4 text-xs max-w-[280px]">{s.lastNotableEvent}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full text-sm text-left">
+                <thead>
+                  <tr className="text-[var(--muted)] border-b border-[var(--border)] bg-[var(--surface-2)]/50">
+                    <th className="py-3 px-4 font-semibold">Device type</th>
+                    <th className="py-3 px-4 font-semibold">Hostname</th>
+                    <th className="py-3 px-4 font-semibold">OS</th>
+                    <th className="py-3 px-4 font-semibold">Last user</th>
+                    <th className="py-3 px-4 font-semibold">Last login</th>
+                    <th className="py-3 px-4 font-semibold">Serial</th>
+                  </tr>
+                </thead>
+                <tbody className="text-[var(--text)]">
+                  {paginatedDevices.map((device) => (
+                    <tr
+                      key={device.uid ?? device.serial ?? device.name}
+                      onClick={() => handleDeviceClick(device)}
+                      className="border-b border-[var(--border)] hover:bg-[var(--surface-elev)]/50 cursor-pointer transition-colors"
+                    >
+                      <td className="py-3 px-4">{device.type ?? '–'}</td>
+                      <td className="py-3 px-4 font-medium">{device.name ?? '–'}</td>
+                      <td className="py-3 px-4">{device.os ?? '–'}</td>
+                      <td className="py-3 px-4">{getLastUser(device)}</td>
+                      <td className="py-3 px-4">{getLastLoginDisplay(device)}</td>
+                      <td className="py-3 px-4 font-mono text-xs">{device.serial ?? '–'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </Card>
         ) : (
           <div className="space-y-3">

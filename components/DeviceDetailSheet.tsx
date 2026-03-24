@@ -9,6 +9,7 @@ import { MiniMap } from './MiniMap'
 import { useHaptics } from '@/hooks/useHaptics'
 import CustomMessageDialog from './CustomMessageDialog'
 import type { RmmDeviceData } from '@/lib/rmm-datto'
+import type { SiemDemoData } from '@/lib/siem-demo-devices'
 
 export interface RmmDetailsPayload {
   device?: Record<string, unknown> | null
@@ -32,6 +33,7 @@ interface DeviceDetail {
   health?: { cpu: number; ram: number; storage: number }
   alerts?: Array<{ id: string; title: string; severity: string; time: string }>
   rmmData?: RmmDeviceData
+  siemData?: SiemDemoData
 }
 
 interface DeviceDetailSheetProps {
@@ -145,8 +147,58 @@ export function DeviceDetailSheet({
                   {device.complianceStatus === 'compliant' ? 'Compliant' : 'Non-Compliant'}
                 </Badge>
               )}
+              {device.siemData != null && (
+                <Badge variant="accent" className="bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">
+                  SIEM · SOC
+                </Badge>
+              )}
             </div>
           </div>
+
+          {/* SIEM — aligned with Mahoney SOC Handbook (collection → correlation → triage) */}
+          {device.siemData != null && (
+            <div className="mb-4 p-3 rounded-[12px] bg-cyan-500/10 border border-cyan-500/25">
+              <h4 className="font-medium text-[var(--text)] mb-2 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                SIEM coverage (demo)
+              </h4>
+              <p className="text-xs text-[var(--muted)] mb-3">{device.siemData.handbookRef}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <div className="sm:col-span-2">
+                  <p className="text-[var(--muted)]">Log sources</p>
+                  <p className="text-[var(--text)]">{device.siemData.logSources.join(' · ')}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">Ingestion health</p>
+                  <p className="text-[var(--text)] capitalize">{device.siemData.ingestionHealth}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">Normalized events (24h)</p>
+                  <p className="text-[var(--text)]">{device.siemData.normalizedEvents24h.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">Open alerts (asset)</p>
+                  <p className="text-[var(--text)]">{device.siemData.openAlerts}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">Max severity</p>
+                  <p className="text-[var(--text)] capitalize">{device.siemData.maxSeverity}</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="text-[var(--muted)]">Last notable event</p>
+                  <p className="text-[var(--text)]">{device.siemData.lastNotableEvent}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">MITRE ATT&CK (ref.)</p>
+                  <p className="text-[var(--text)]">{device.siemData.mitreTactics}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--muted)]">Correlation tier</p>
+                  <p className="text-[var(--text)]">{device.siemData.correlationTier}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Datto RMM – alle Gerätedaten */}
           {rmm && (

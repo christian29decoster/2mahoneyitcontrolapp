@@ -18,6 +18,7 @@ interface DeviceRowProps {
     status: string
     rmmData?: unknown
     edrData?: unknown
+    siemData?: unknown
   }
 }
 
@@ -73,6 +74,11 @@ export function DeviceRow({ device }: DeviceRowProps) {
           {device.edrData != null && (
             <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-violet-500/20 text-violet-600 dark:text-violet-400">
               EDR
+            </span>
+          )}
+          {device.siemData != null && (
+            <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-cyan-500/20 text-cyan-600 dark:text-cyan-400">
+              SIEM
             </span>
           )}
         </div>
