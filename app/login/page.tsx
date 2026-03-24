@@ -38,9 +38,9 @@ export default function LoginPage() {
         if (session.partnerId) document.cookie = `demo_partner_id=${session.partnerId}; Max-Age=${maxAge}; Path=/; SameSite=Lax`
         if (session.tenantId) document.cookie = `demo_tenant_id=${session.tenantId}; Max-Age=${maxAge}; Path=/; SameSite=Lax`
         
-        // Demo presenter: ensure Karen (and any sales demo user) gets full menu (Partner, Admin, Settings)
+        // Demo presenter: ensure Karen, Sabrina (and any sales demo user) gets full menu (Partner, Admin, Settings)
         const usernameNorm = u.trim().toLowerCase()
-        if (usernameNorm === 'karen.thompson' || usernameNorm === 'sales.jane' || usernameNorm === 'sales.john') {
+        if (usernameNorm === 'karen.thompson' || usernameNorm === 'sabrina' || usernameNorm === 'sales.jane' || usernameNorm === 'sales.john') {
           useDemoViewRoleStore.getState().setDemoViewRole('mahoney_it_group')
         }
         

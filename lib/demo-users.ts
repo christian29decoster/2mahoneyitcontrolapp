@@ -25,10 +25,15 @@ let users: DemoUser[] = [
   { id: 'u-partner-1', username: 'partner.demo', password: 'Mahoney#1', role: 'partner', partnerId: 'partner-1', active: true, createdAtISO: new Date().toISOString() },
   // Karen Thompson – demo presenter; needs Partner, Admin, Settings. Role admin so she can open Admin and present full app.
   { id: 'u-karen', username: 'karen.thompson', password: 'Mahoney#1', role: 'admin', active: true, createdAtISO: new Date().toISOString() },
+  // Sabrina – same presenter scope as Karen (admin + full demo view on login).
+  { id: 'u-sabrina', username: 'Sabrina', password: '55?se7fUPx&C', role: 'admin', active: true, createdAtISO: new Date().toISOString() },
 ];
 
 export function listUsers(){ return users.slice(); }
-export function findUser(username: string){ return users.find(u => u.username === username); }
+export function findUser(username: string) {
+  const n = username.trim().toLowerCase()
+  return users.find((u) => u.username.toLowerCase() === n)
+}
 export function upsertUser(u: Partial<DemoUser> & {username: string, password?: string}){
   const existing = users.find(x => x.username === u.username);
   if (existing) {
