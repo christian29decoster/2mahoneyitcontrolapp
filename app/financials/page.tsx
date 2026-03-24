@@ -7,6 +7,18 @@ import { HapticButton } from '@/components/HapticButton'
 import { stagger } from '@/lib/ui/motion'
 import { useHaptics } from '@/hooks/useHaptics'
 import { useFormatCurrency } from '@/hooks/useFormatCurrency'
+import { useLocaleStore } from '@/lib/locale.store'
+import { financialsExtended } from '@/lib/financials-i18n'
+import { getFinancialsSectionVisibility } from '@/data/financials-mock'
+import { generateExecutiveFinancialsPdf } from '@/lib/financials-pdf'
+import { TrendChartsSection } from '@/components/financials/TrendChartsSection'
+import { BenchmarkSection } from '@/components/financials/BenchmarkSection'
+import { ComplianceSection } from '@/components/financials/ComplianceSection'
+import { CyberInsuranceSection } from '@/components/financials/CyberInsuranceSection'
+import { PartnerPnLSection } from '@/components/financials/PartnerPnLSection'
+import { BudgetForecastSection } from '@/components/financials/BudgetForecastSection'
+import { FinancialsDeferredSection } from '@/components/financials/FinancialsDeferredSection'
+import { useFinancialsPartnerAccess } from '@/components/financials/useFinancialsRole'
 import {
   financialKpis,
   incidentCostHistory,
@@ -105,6 +117,8 @@ function KpiCard({
 export default function FinancialsPage() {
   const [simpleInputs, setSimpleInputs] = useState<SimpleROIInputs>(defaultSimpleROIInputs)
   const [usage, setUsage] = useState<UsageData | null>(null)
+  const [tenantId, setTenantId] = useState<string | null>(null)
+  const [partnerLabel, setPartnerLabel] = useState<string | undefined>(undefined)
   const derivedInputs = useMemo(() => deriveROIInputs(simpleInputs), [simpleInputs])
   const roiOutputs = useMemo(() => computeROIOutputs(derivedInputs), [derivedInputs])
   const topIncidents = useMemo(() => getTopExpensiveIncidents(5), [])
@@ -114,22 +128,47 @@ export default function FinancialsPage() {
   )
   const h = useHaptics()
   const formatCurrency = useFormatCurrency()
+  const locale = useLocaleStore((s) => s.locale)
+  const tExt = financialsExtended(locale)
+  const sectionVisibility = useMemo(() => getFinancialsSectionVisibility(tenantId), [tenantId])
+  const { showPartnerPnL } = useFinancialsPartnerAccess()
 
   useEffect(() => {
     const m = document.cookie.match(/demo_tenant_id=([^;]+)/)
-    const tenantId = m ? decodeURIComponent(m[1].trim()) : null
-    const url = tenantId ? `/api/usage?tenantId=${encodeURIComponent(tenantId)}` : '/api/usage'
+    const tid = m ? decodeURIComponent(m[1].trim()) : null
+    setTenantId(tid)
+    const url = tid ? `/api/usage?tenantId=${encodeURIComponent(tid)}` : '/api/usage'
     fetch(url)
       .then((r) => r.json())
       .then((d: UsageData) => setUsage(d))
       .catch(() => setUsage({ source: 'demo', deviceCount: 130, estimatedEventsPerMonth: 39000, eventsPerMonth: 39000 }))
   }, [])
 
+  useEffect(() => {
+    const pm = typeof document !== 'undefined' ? document.cookie.match(/(?:^|;) ?demo_partner=([^;]+)/) : null
+    if (pm) setPartnerLabel(decodeURIComponent(pm[1].trim()))
+  }, [])
+
+  const runExecutiveReport = () => {
+    h.impact('medium')
+    generateExecutiveFinancialsPdf({
+      locale,
+      partnerName: partnerLabel,
+      roiAnnualRiskUsd: roiOutputs.estimatedAnnualRiskCostUsd,
+      automationSavingsUsd: financialKpis.automationSavingsEstimateUsd,
+      costReductionAutomationUsd: roiOutputs.estimatedCostReductionViaAutomationUsd,
+      savingsFromAiUsd: roiOutputs.estimatedSavingsFromAIRecommendationsUsd,
+    })
+  }
+
   return (
     <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)]">Security Financials</h1>
-        <p className="text-sm text-[var(--muted)]">Security spend, cost per incident, ROI and risk exposure</p>
+      <div id="executive-report" className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between scroll-mt-24">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)]">Security Financials</h1>
+          <p className="text-sm text-[var(--muted)]">Security spend, cost per incident, ROI and risk exposure</p>
+        </div>
+        <HapticButton label={tExt.generateReport} variant="surface" onClick={runExecutiveReport} className="shrink-0" />
       </div>
 
       {/* KPI cards */}
@@ -426,6 +465,37 @@ export default function FinancialsPage() {
           ))}
         </ul>
       </Card>
+
+      {sectionVisibility.trends && (
+        <FinancialsDeferredSection rows={8}>
+          <TrendChartsSection />
+        </FinancialsDeferredSection>
+      )}
+      {sectionVisibility.benchmark && (
+        <FinancialsDeferredSection rows={5}>
+          <BenchmarkSection />
+        </FinancialsDeferredSection>
+      )}
+      {sectionVisibility.compliance && (
+        <FinancialsDeferredSection rows={6}>
+          <ComplianceSection riskExposureUsd={financialKpis.riskExposureValueUsd} />
+        </FinancialsDeferredSection>
+      )}
+      {sectionVisibility.cyberInsurance && (
+        <FinancialsDeferredSection rows={4}>
+          <CyberInsuranceSection riskExposureUsd={financialKpis.riskExposureValueUsd} />
+        </FinancialsDeferredSection>
+      )}
+      {sectionVisibility.partnerPnL && showPartnerPnL && (
+        <FinancialsDeferredSection rows={5}>
+          <PartnerPnLSection />
+        </FinancialsDeferredSection>
+      )}
+      {sectionVisibility.budgetForecast && (
+        <FinancialsDeferredSection rows={10}>
+          <BudgetForecastSection riskExposureUsd={financialKpis.riskExposureValueUsd} />
+        </FinancialsDeferredSection>
+      )}
     </motion.div>
   )
 }
