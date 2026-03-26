@@ -13,6 +13,15 @@ A production-ready Next.js 14 security management and monitoring platform with d
 - **Proactive Recommendations** system
 - **Health Check API** endpoint
 
+### Business overview (German)
+
+Ausführliche Erklärung **Zweck der Plattform**, **abgebildete Business Lines** und **Nutzen für MSP und Endkunden**:
+
+- **[docs/ANWENDUNGSBESCHREIBUNG-MSP-PLATFORM.md](docs/ANWENDUNGSBESCHREIBUNG-MSP-PLATFORM.md)**
+
+Auf GitHub direkt lesbar (main branch):  
+[github.com/christian29decoster/2mahoneyitcontrolapp/blob/main/docs/ANWENDUNGSBESCHREIBUNG-MSP-PLATFORM.md](https://github.com/christian29decoster/2mahoneyitcontrolapp/blob/main/docs/ANWENDUNGSBESCHREIBUNG-MSP-PLATFORM.md)
+
 ## Quick Start (Vercel GitHub Import)
 
 1. **Sign in to Vercel**
