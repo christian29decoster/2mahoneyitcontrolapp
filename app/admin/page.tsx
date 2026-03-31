@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import Card from '@/components/ui/Card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Users, Activity, Building2, Layers, CreditCard, Settings, Shield, UserPlus, Copy, Inbox, Palette, X, MapPin, FileText, Plus, Trash2, Link2, Download } from 'lucide-react';
 import {
   PLATFORM_LIST_PRICES,
@@ -115,6 +115,7 @@ export default function AdminPage(){
   const [addConnectorName, setAddConnectorName] = useState('');
   const [addConnectorParams, setAddConnectorParams] = useState<{ key: string; value: string }[]>([]);
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
+  const [additionalServicesConfirmOpen, setAdditionalServicesConfirmOpen] = useState(false);
   type AutotaskCompanyItem = { id: number; companyName?: string };
   const [autotaskCompanies, setAutotaskCompanies] = useState<AutotaskCompanyItem[]>([]);
   const [autotaskCompaniesLoading, setAutotaskCompaniesLoading] = useState(false);
@@ -959,6 +960,53 @@ export default function AdminPage(){
       )}
 
       {tab==='tenants' && (
+        <>
+        <Dialog open={additionalServicesConfirmOpen} onOpenChange={setAdditionalServicesConfirmOpen}>
+          <DialogContent className="sm:max-w-lg bg-[var(--bg)] border-[var(--border)] text-[var(--text)] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Confirm activation of fee-based services</DialogTitle>
+              <DialogDescription asChild>
+                <div className="text-left space-y-3 text-sm text-[var(--text)] pt-2 leading-relaxed">
+                  <p>
+                    By enabling <strong>Additional services</strong> for this tenant, you represent that you are activating paid subscription services on behalf of your organization and, where applicable, your end customer, in accordance with the <strong>Master Services Agreement (MSA)</strong> or other written agreement in effect between Mahoney IT and the Partner (collectively, the &quot;Agreement&quot;).
+                  </p>
+                  <p>
+                    You acknowledge that <strong>Mahoney will invoice the Partner</strong> for recurring fees and applicable charges for the product tiers and services selected in this tenant&apos;s billing configuration. Invoices will <strong>reflect the tiers and SKUs activated</strong> for this tenant at the time of activation (and subsequent changes saved in accordance with the Agreement).
+                  </p>
+                  <p>
+                    The Partner will receive <strong>Partner pricing and commercial terms</strong> that are in effect at the time of activation, as set forth in the Agreement, applicable order forms, and the then-current partner price list. Fees are exclusive of applicable taxes unless otherwise stated.
+                  </p>
+                  <p>
+                    <strong>Records.</strong> Mahoney maintains an <strong>archived record</strong> of service activations and billing configuration changes (including product and tier selections) for billing integrity, audit, and dispute resolution, as described in the Agreement and our privacy and data policies.
+                  </p>
+                  <p className="text-xs text-[var(--muted)] border-t border-[var(--border)] pt-3">
+                    If you do not agree, select Cancel and leave Additional services off. This confirmation does not constitute legal advice; consult your counsel for questions regarding your obligations under the Agreement.
+                  </p>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0 mt-2">
+              <button
+                type="button"
+                onClick={() => setAdditionalServicesConfirmOpen(false)}
+                className="px-4 py-2 rounded-xl border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)] text-sm font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTenantForm((s) => ({ ...s, billing: { ...s.billing, zusatzleistungEnabled: true } }));
+                  setAdditionalServicesConfirmOpen(false);
+                }}
+                className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:opacity-90 text-sm"
+              >
+                I acknowledge and activate
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="p-5 overflow-auto">
             <div className="flex items-center gap-2 mb-2">
@@ -1173,7 +1221,19 @@ export default function AdminPage(){
                       <span className="text-sm font-medium text-[var(--text)]">Additional services</span>
                       <span className={`text-sm font-semibold ${tenantForm.billing.zusatzleistungEnabled ? 'text-emerald-500' : 'text-[var(--muted)]'}`}>{tenantForm.billing.zusatzleistungEnabled ? 'On' : 'Off'}</span>
                       <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-[var(--surface)] border border-[var(--border)] transition-colors focus-within:ring-2 focus-within:ring-[var(--primary)]/30">
-                        <input type="checkbox" checked={tenantForm.billing.zusatzleistungEnabled} onChange={e=>setTenantForm(s=>({...s, billing: { ...s.billing, zusatzleistungEnabled: e.target.checked } }))} className="sr-only peer" />
+                        <input
+                          type="checkbox"
+                          checked={tenantForm.billing.zusatzleistungEnabled}
+                          onChange={(e) => {
+                            const on = e.target.checked;
+                            if (!on) {
+                              setTenantForm((s) => ({ ...s, billing: { ...s.billing, zusatzleistungEnabled: false } }));
+                              return;
+                            }
+                            setAdditionalServicesConfirmOpen(true);
+                          }}
+                          className="sr-only peer"
+                        />
                         <span className="pointer-events-none inline-block h-5 w-5 rounded-full bg-[var(--muted)] shadow ring-0 transition translate-x-0.5 peer-checked:translate-x-6 peer-checked:bg-[var(--primary)] rtl:peer-checked:-translate-x-6" />
                       </span>
                     </label>
@@ -1547,6 +1607,7 @@ export default function AdminPage(){
             )}
           </Card>
         </div>
+        </>
       )}
 
       {tab==='billing' && (
